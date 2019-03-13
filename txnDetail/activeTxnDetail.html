@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>InterMax - Active Transaction Detail View</title>
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="../extjs/packages/ext-theme-gray/build/resources/ext-theme-gray-all.css"/>
+    <link rel="stylesheet" type="text/css" href="../styles/main.css" />
+    <link rel="stylesheet" type="text/css" href="../styles/jquery-ui.min.css"/>
+    <link rel="stylesheet" type="text/css" href="../styles/dock.css" />
+
+    <link rel="stylesheet" type="text/css" href="../RTM/styles/rtmTheme_v1.css" />
+    <link rel="stylesheet" type="text/css" href="../RTM/styles/rtmTheme_black_v1.css" />
+    <link rel="stylesheet" type="text/css" href="../RTM/styles/rtmTheme_gray_v1.css" />
+
+    <link rel="stylesheet" type="text/css" href="../PA/styles/crop/jquery.Jcrop.css"/>
+    <link rel="stylesheet" type="text/css" href="../PA/styles/PATheme_v1.css"/>
+    <style>
+        @font-face {
+            font-family: 'NanumGothic';
+            src: url('../styles/fonts/NanumGothic.woff') format('woff');
+        }
+        @font-face {
+            font-family: 'Droid Sans';
+            font-style: normal;
+            font-weight: 400;
+            src: local('Droid Sans'), local('DroidSans'), url('../styles/fonts/DroidSans.woff2') format('woff2');
+            unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
+        }
+        @font-face {
+            font-family: 'Meiryo UI';
+            src: local('Meiryo UI'), url('../styles/fonts/MeiryoUI.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        *:focus {outline:none}
+        .x-tree-icon { display: none !important; } /* treeGrid 에서 icon 없애는 css */
+    </style>
+</head>
+<body>
+<script type="text/javascript" src="init.js"></script>
+<script type="text/javascript" src="../lib/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="../lib/jquery-ui.js"></script>
+
+<script type="text/javascript" src="../lib/IMXWS.js"></script>
+
+<script type="text/javascript" src="../lib/spin.min.js"></script>
+<script type="text/javascript" src="../lib/d3.min.js"></script>
+<script type="text/javascript" src="../lib/underscore-min.js"></script>
+<script type="text/javascript" src="../lib/src/ace.js"></script>
+<script type="text/javascript" src="../lib/jquery.jsPlumb.min.js"></script>
+<script type="text/javascript" src="../lib/excel-builder/Builder.js"></script>
+<script type="text/javascript" src="../lib/excel-builder/jszip.js"></script>
+<script type="text/javascript" src="../lib/excel-builder/Drawings.js"></script>
+<script type="text/javascript" src="../lib/excel-builder/RelationshipManager.js"></script>
+<script type="text/javascript" src="../lib/excel-builder/SharedStrings.js"></script>
+<script type="text/javascript" src="../lib/excel-builder/StyleSheet.js"></script>
+<script type="text/javascript" src="../lib/excel-builder/Table.js"></script>
+<script type="text/javascript" src="../lib/excel-builder/util.js"></script>
+<script type="text/javascript" src="../lib/excel-builder/Workbook.js"></script>
+<script type="text/javascript" src="../lib/excel-builder/Worksheet.js"></script>
+<script type="text/javascript" src="../lib/excel-builder/XMLDOM.js"></script>
+
+<script type="text/javascript" src="../extjs/build/ext-all.js"></script>
+
+<script type="text/javascript" src="../extjs/src/ux/BoxReorderer.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/ToolbarDroppable.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/InputTextMask.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/TabReorderer.js"></script>
+
+<script type="text/javascript" src="../lib/crop/html2canvas.js"></script>
+<script type="text/javascript" src="../lib/crop/pa.layout.cropimage.js"></script>
+
+<script type="text/javascript" src="../common/Util.js"></script>
+<script type="text/javascript" src="../common/Envir.js"></script>
+
+<script type="text/javascript" src="../Exem/LoadingMask.js"></script>
+<script type="text/javascript" src="../Exem/TabPanel.js"></script>
+<script type="text/javascript" src="../Exem/SyntaxEditor.js"></script>
+<script type="text/javascript" src="../Exem/Panel.js"></script>
+<script type="text/javascript" src="../Exem/ContextMenu.js"></script>
+<script type="text/javascript" src="../Exem/BaseGrid.js"></script>
+<script type="text/javascript" src="../Exem/ComboBox.js"></script>
+<script type="text/javascript" src="../Exem/AjaxComboBox.js"></script>
+<script type="text/javascript" src="../Exem/Container.js"></script>
+<script type="text/javascript" src="../Exem/Button.js"></script>
+<script type="text/javascript" src="../Exem/TreeColumn.js"></script>
+<script type="text/javascript" src="../Exem/Window.js"></script>
+<script type="text/javascript" src="../Exem/XMWindow.js"></script>
+<script type="text/javascript" src="../Exem/adminGrid.js"></script>
+<script type="text/javascript" src="../Exem/ClassView.js"></script>
+<script type="text/javascript" src="../Exem/FullSQLTextWindow.js"></script>
+<script type="text/javascript" src="../Exem/SQLEditorBaseFrame.js"></script>
+<script type="text/javascript" src="../Exem/GridExportExcel.js"></script>
+<script type="text/javascript" src="../Exem/SelectItemWindow.js"></script>
+<script type="text/javascript" src="../Exem/Form.js"></script>
+
+<script type="text/javascript" src="../RTM/src/rtmCommon.js"></script>
+<script type="text/javascript" src="../RTM/src/rtmActiveTxnDetail.js"></script>
+
+<script type="text/javascript" src="activeTxnDetail.js"></script>
+</body>
+</html>

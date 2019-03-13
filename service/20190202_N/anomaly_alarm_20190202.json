@@ -1,0 +1,12 @@
+{
+    "description": ["문제 없음"],
+    "date": "2019-02-01 23:59:00",
+    "status": {
+        "transaction": "normal",
+        "instance": "normal"
+    },
+    "details": {
+        "transaction": "트랜잭션",
+        "instance": "인스턴스"
+    }
+}

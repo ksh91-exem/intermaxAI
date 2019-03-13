@@ -1,0 +1,2948 @@
+﻿<html>
+<head>
+    <title>Intermax WebSocket Daemon Test Page</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="lib/ext-4.2.0/resources/css/ext-all.css"/>
+    <script src="lib/zlib.min.js"></script>
+    <script src="lib/IMXWS.js"></script>
+    <style>
+        body {
+            font-size: 10pt;
+        }
+
+        td {
+            font-size: 9pt;
+            font-weight: bold;
+        }
+
+        textarea {
+            font-size: 8pt;
+        }
+
+        input {
+            font-size: 8pt;
+        }
+
+        .history {
+        }
+
+        .normal_text {
+            font-weight: normal;
+        }
+    </style>
+
+    <script type="text/javascript">
+        'use strict';
+        var AConn;
+        var _isDBListChange = false;
+        var PushCheckBox;
+        var _EditLists = {};
+
+        var _ParseStringArray = (function (AStr)
+        {
+            var AStrArray;
+
+            try
+            {
+                if (AStr.charAt(0) == '[' && AStr.charAt(AStr.length - 1) == ']')
+                {
+                    AStrArray = JSON.parse('{"array":' + AStr + '}');
+                }
+                else
+                {
+                    AStrArray = JSON.parse('{"array":[' + AStr + ']}');
+                }
+            }
+            catch (e)
+            {
+//			AStrArray = JSON.parse('{"array":[]}');
+                if (AStr.indexOf(",") != -1)
+                {
+                    AStrArray = new Array();
+                    AStrArray.array = AStr.split(",");
+                }
+                else
+                {
+                    AStrArray.array = new Array();
+                    AStrArray.array.push(AStr);
+                }
+                /*
+                 if (replace_array.indexOf(",") != -1) {
+                 ASendJSON.replace_pair = replace_array.split(",");
+                 } else {
+                 ASendJSON.replace_pair = new Array();
+                 ASendJSON.replace_pair.push(replace_array);
+                 }
+
+                 */
+            }
+
+            return AStrArray.array;
+        });
+
+        function AddMemoLine(AMemoName, ALine)
+        {
+            var ADate = new Date();
+            var total;
+            var memoObj = document.getElementById(AMemoName);
+
+            if (memoObj != undefined)
+            {
+                var total = ((memoObj.value ? memoObj.value + "\n" : "") + ("[" + ADate.toLocaleDateString() + " " + ADate.toLocaleTimeString() + "] " + ALine)).split("\n");
+                if (total.length > 300)
+                    total = total.slice(total.length - 300);
+
+                memoObj.value = total.join("\n");
+
+                memoObj.scrollTop = memoObj.scrollHeight;
+
+                memoObj = null;
+                total = null;
+            } else
+            {
+                console.log('Memo "' + AMemoName + '" Not Found!');
+            }
+
+            ALine = null;
+            AMemoName = null;
+        }
+
+        function PutDataLine(ATAName, AData)
+        {
+            var ATextArea = document.getElementById(ATAName);
+            var AStrData;
+
+            if (ATextArea != undefined)
+            {
+                if (typeof AData === "string")
+                {
+                    ATextArea.value = AData;
+                }
+                else
+                {
+                    AStrData = JSON.stringify(AData);
+                    ATextArea.value = AStrData;
+                    AStrData = null;
+                }
+            }
+            else
+            {
+                console.log('TextArea "' + ATAName + '" Not Found!');
+            }
+
+            AData = null;
+            ATAName = null;
+            ATextArea = null;
+
+            /*
+             var  ATextArea;
+             var AStrData;
+
+             ATextArea = _EditLists[ATAName];
+
+             if (!ATextArea)
+             {
+             ATextArea = document.getElementById(ATAName);
+             _EditLists[ATAName] = ATextArea;
+             }
+
+             if (!ATextArea)
+             {
+             return;
+             }
+
+             if (typeof AData === "string")
+             {
+             ATextArea.value = AData;
+             }
+             else
+             {
+             var ALocalData = {};
+             var AProp;
+             var ASub;
+
+             if (Array.isArray(AData))
+             {
+             ALocalData = Array.from(AData);
+             }
+             else
+             {
+             for (AProp in AData)
+             {
+             if (Array.isArray(AData[AProp]))
+             {
+             ALocalData[AProp] = [];
+             ALocalData[AProp] = Array.from(AData[AProp]);
+             }
+             else
+             {
+             for (ASub in AData[AProp])
+             {
+             ALocalData[AProp][ASub] = {};
+             ALocalData[AProp][ASub] = AData[ASub];
+             }
+             }
+             }
+             }
+
+             //            AStrData = JSON.stringify(AData);
+             //            ATextArea.value = AStrData;
+             //            AStrData = null;
+
+             AStrData = JSON.stringify(ALocalData);
+             ATextArea.value = AStrData;
+             AStrData = null;
+
+             for (AProp in ALocalData)
+             {
+             delete ALocalData[AProp];
+             }
+             ALocalData = null;
+             }
+
+             ATextArea = null;
+             ATAName = null;
+             AData = null;
+             */
+        }
+
+        // class 사용 선언. var AConn = new IMXWS(); 처럼 쓰는것이 일반 적.
+        AConn = new IMXWS();
+        AConn.DeepDelete = false;
+
+        // 기본 이벤트 연결.
+        /*=====================================================================================================================*/
+        AConn.onConnect = (function ()
+        {
+            // onconnect도 같이 쓰임.
+            AddMemoLine("log_console", "Server '" + window.location.hostname + ":" + AConn.Port + "' Connected!")
+            PutDataLine("log_data", "Connected");
+
+        });
+
+        AConn.onDisconnect = (function (AEvent)
+        {
+            // ondisconnect 같이 쓰임.
+            AddMemoLine("log_console", "Server '" + window.location.hostname + ":" + AConn.Port + "' Disconnected!")
+            PutDataLine("log_data", AEvent.data);
+
+            AEvent = null;
+        });
+
+        function Do_Message(AHeader, AData)
+        {
+            if (!PushCheckBox)
+            {
+                PushCheckBox = document.getElementById("pushdataoff");
+            }
+
+            if (PushCheckBox != undefined && PushCheckBox.checked == true && AHeader.type.toLowerCase() == "push_data")
+            {
+            } 
+            else
+            {
+                AddMemoLine("log_console", "Message Arrived! 'type:" + AHeader.type + "', 'command:" + AHeader.command + "'");
+                PutDataLine("log_data", AData);
+            }
+
+            AData = null;
+            AHeader = null;
+        }
+
+        AConn.onMessage = Do_Message;
+        //	AConn.onMessage = (function(AHeader, AData) {
+        ////		var chkbox = document.getElementById("pushdataoff");
+        //		// onmessage 같이 쓰임.
+        //
+        ////        if (!PushCheckBox)
+        ////        {
+        ////            PushCheckBox = document.getElementById("pushdataoff");
+        ////        }
+        ////
+        ////		if (PushCheckBox != undefined && PushCheckBox.checked == true && AHeader.type.toLowerCase() == "push_data") {
+        ////		} else {
+        ////			AddMemoLine("log_console", "Message Arrived! 'type:" + AHeader.type + "', 'command:" + AHeader.command + "'");
+        ////			PutDataLine("log_data", AData);
+        ////		}
+        //
+        //        AData = null;
+        //        AHeader = null;
+        ////        delete this.chkbox;
+        //	});
+        /*=====================================================================================================================*/
+        AConn.onConfig = function (AHeader, AData)
+        {
+            // onconfig 같이 쓰임.
+            var DBList;
+
+            AddMemoLine("config_console", "Config Data Arrived! 'Config Type:" + AHeader.command + "'");
+
+//		DBList = AData.result;
+            DBList = AData;
+
+            PutDataLine("config_data", AData);
+
+            var ADBLen = DBList.length;
+
+            if (ADBLen > 0)
+            {
+                var ADBSelect = document.getElementById("database_list");
+
+                if (ADBSelect != null)
+                {
+                    var ASelLen = ADBSelect.options.length;
+                    var ix;
+                    var AOption;
+
+                    _isDBListChange = true;
+
+                    for (ix = ASelLen - 1; ix >= 0; ix--)
+                    {
+                        ADBSelect.remove(0);
+                    }
+
+                    for (ix = 0; ix < ADBLen; ix++)
+                    {
+                        AOption = document.createElement("option");
+
+                        AOption.value = DBList[ix].database_name;
+                        AOption.text = DBList[ix].database_name + " (" + DBList[ix].database_server + "/" + DBList[ix].database_type + "/" + (DBList[ix].database_database = "" ? "/" : DBList[ix].database_database + "/") + DBList[ix].database_user + ")";
+
+                        ADBSelect.add(AOption);
+
+                        if (AConn.DefaultDB == "" && DBList[ix].database_default)
+                        {
+                            ADBSelect.value = AOption.value;
+                        }
+                    }
+
+                    if (AConn.DefaultDB != "")
+                    {
+                        ADBSelect.value = AConn.DefaultDB;
+                    }
+
+                    _isDBListChange = false;
+
+                    ADBSelect = null;
+                }
+                AHeader = null;
+                AData = null;
+            }
+        }
+
+        AConn.onInitialize = function ()
+        {
+            AddMemoLine("log_console", "Server '" + window.location.hostname + ":" + AConn.Port + "' Initialized!");
+        }
+
+        AConn.onSQLExec = function (AHeader, AData)
+        {
+            // onsqlexec 같이 쓰임.
+            AddMemoLine("sqlexec_console", "SQLExec Result Arrived! 'sql_file:" + AHeader.command + "'");
+            PutDataLine("sqlexec_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onFunction = function (AHeader, AData)
+        {
+            // onfunction 같이 쓰임.
+            AddMemoLine("function_console", "Function Result Arrived! 'command:" + AHeader.command + "', 'Value:" + AHeader.value + "'");
+            PutDataLine("function_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onDataGather = function (AHeader, AData)
+        {
+            // ondatagather 같이 쓰임.
+            AddMemoLine("datagather_console", "DataGather Result Arrived! 'packet:" + AHeader.command + "'");
+            PutDataLine("datagather_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        function Do_PushData(AHeader, AData)
+        {
+            // onpushdata 같이 쓰임.
+            AddMemoLine("pushdata_console", "Push Data Result Arrived! 'packet:" + AHeader.command + "'");
+            PutDataLine("pushdata_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onPushData = Do_PushData;
+        //	AConn.onPushData = (function(AHeader, AData) {
+        //		// onpushdata 같이 쓰임.
+        //		AddMemoLine("pushdata_console", "Push Data Result Arrived! 'packet:" + AHeader.command + "'");
+        //		PutDataLine("pushdata_data", AData);
+        //        AData = null;
+        //        AHeader = null;
+        //	});
+        /*=====================================================================================================================*/
+        /*
+         // push or datagather 패킷 별 이벤트 연결.
+         // 이벤트 연결후 아래와 같이 메소드를 호출 해 주면 이벤트가 연결 된 패킷만 받을 수 있다.
+         AConn.ReceiveSelectedPackets();
+         */
+        /*=====================================================================================================================*/
+        AConn.onAlarmHistory = function (AHeader, AData)
+        {
+            // onalarmhistory 같이 쓰임.
+            AddMemoLine("alarmhistory_console", "Push Data - Alarm History Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("alarmhistory_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onServiceInfo = function (AHeader, AData)
+        {
+            // onserviceinfo
+            AddMemoLine("serviceinfo_console", "Push Data - Service Info Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("serviceinfo_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onActivity = function (AHeader, AData)
+        {
+            // onactivity
+            AddMemoLine("activity_console", "Push Data - Activity Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("activity_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onActivityClientIP = function (AHeader, AData)
+        {
+            // onactivityclientip
+            AddMemoLine("activityclientip_console", "Push Data - Activity Client IP Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("activityclientip_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onWasStat = function (AHeader, AData)
+        {
+            // onwasstat
+            AddMemoLine("wasstat_console", "Push Data - Was Stat Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("wasstat_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onDBCPUUsage = function (AHeader, AData)
+        {
+            // ondbcpuusage
+            AddMemoLine("dbcpuchange_console", "Push Data - DB CPU Change Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("dbcpuchange_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onDBStat = function (AHeader, AData)
+        {
+            // ondbstat
+            AddMemoLine("dbstat_console", "Push Data - DB Stat Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("dbstat_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onSQLElapse = function (AHeader, AData)
+        {
+            // onsqlelapse
+            AddMemoLine("sqlelapse_console", "Push Data - SQL Elapse Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("sqlelapse_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onActiveTXN = function (AHeader, AData)
+        {
+            // onactivetxn
+            AddMemoLine("activetxn_console", "Push Data - Active TXN Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("activetxn_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onPoolMonitor = function (AHeader, AData)
+        {
+            // onpoolmonitor
+            AddMemoLine("poolmonitor_console", "Push Data - Pool Monitor Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("poolmonitor_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onLogHistory = function (AHeader, AData)
+        {
+            // onloghistory
+            AddMemoLine("loghistory_console", "Push Data - Log History Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("loghistory_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onProcessMonitor = function (AHeader, AData)
+        {
+            // onprocessmonitor
+            AddMemoLine("processmonitor_console", "Push Data - Process Monitor Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("processmonitor_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onJVMGCMax = function (AHeader, AData)
+        {
+            // onjvmgcmax
+            AddMemoLine("jvmgcmax_console", "Push Data - JVM GC Max Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("jvmgcmax_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onJVMGCStat = function (AHeader, AData)
+        {
+            // onjvmgcstat
+            AddMemoLine("jvmgcstat_console", "Push Data - JVM GC Stat Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("jvmgcstat_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onLockInfo = function (AHeader, AData)
+        {
+            // onlockinfo
+            AddMemoLine("lockinfo_console", "Push Data - Lock Info Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("lockinfo_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onServerStatus = function (AHeader, AData)
+        {
+            // onserverstatus
+            AddMemoLine("serverstatus_console", "Push Data - Server Status Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("serverstatus_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onRecentTopTXN = function (AHeader, AData)
+        {
+            // onrecenttoptxn
+            AddMemoLine("recenttoptxn_console", "Push Data - Recent Top TXN Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("recenttoptxn_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onRecentTopSQL = function (AHeader, AData)
+        {
+            // onrecenttopsql
+            AddMemoLine("recenttopsql_console", "Push Data - Recent Top SQL Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("recenttopsql_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onRecentTopException = function (AHeader, AData)
+        {
+            // onrecenttopexception
+            AddMemoLine("recenttopexception_console", "Push Data - Recent Top Exception Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("recenttopexception_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onWebActive = function (AHeader, AData)
+        {
+            // onwebactive
+            AddMemoLine("webactive_console", "Push Data - Web Active Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("webactive_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onWebActiveSum = function (AHeader, AData)
+        {
+            // onwebactivesum
+            AddMemoLine("webactivesum_console", "Push Data - Web Active Sum Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("webactivesum_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onRTMSummary = function (AHeader, AData)
+        {
+            // onrtmsummary
+            AddMemoLine("rtmsummary_console", "Push Data - RTM Summary Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("rtmsummary_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onWasTXNSummary = function (AHeader, AData)
+        {
+            // onwastxnsummary
+            AddMemoLine("wastxnsummary_console", "Push Data - Was TXN Summary Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("wastxnsummary_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onWasDBTXNSummary = function (AHeader, AData)
+        {
+            // onwasdbtxnsummary
+            AddMemoLine("wasdbtxnsummary_console", "Push Data - Was DB TXN Summary Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("wasdbtxnsummary_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onWasSessionCount = function (AHeader, AData)
+        {
+            // onwassessioncount
+            AddMemoLine("wassessioncount_console", "Push Data - Was Session Count Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("wassessioncount_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onTopWasInfo = function (AHeader, AData)
+        {
+            // ontopwasinfo
+            AddMemoLine("topwasinfo_console", "Push Data - Top Was Info Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("topwasinfo_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onHostGroupInfo = function (AHeader, AData)
+        {
+            // onhostgroupinfo
+            AddMemoLine("hostgroupinfo_console", "Push Data - Host Group Info Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("hostgroupinfo_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onWasTPS = function (AHeader, AData)
+        {
+            // onwastps
+            AddMemoLine("wastps_console", "Push Data - Was TPS Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("wastps_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onWasTXNElapse = function (AHeader, AData)
+        {
+            // onwastxnelapse
+            AddMemoLine("wastxnelapse_console", "Push Data - Was TXN Elapse Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("wastxnelapse_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onDashboardTXNCount = function (AHeader, AData)
+        {
+            // ondashboardtxncount
+            AddMemoLine("dashboardtxncount_console", "Push Data - Dashboard TXN Count Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("dashboardtxncount_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+
+        AConn.onWasStatOS = function (AHeader, AData)
+        {
+            // ondashboardtxncount
+            AddMemoLine("wasstatos_console", "Push Data -Was Stat OS Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("wasstatos_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+
+        AConn.onWasStatBank = function (AHeader, AData)
+        {
+            // ondashboardtxncount
+            AddMemoLine("wasstatbank_console", "Push Data -Was Stat Bank Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("wasstatbank_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onWSStat = function (AHeader, AData)
+        {
+            // ondashboardtxncount
+            AddMemoLine("wsstat_console", "Push Data -WS Stat Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("wsstat_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onWSOSStat = function (AHeader, AData)
+        {
+            // ondashboardtxncount
+            AddMemoLine("wsosstat_console", "Push Data -WS OS Stat Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("wsosstat_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onNHGLB = function (AHeader, AData)
+        {
+            // ondashboardtxncount
+            AddMemoLine("nhglb_console", "Push Data -WS OS Stat Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("nhglb_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onWasMonitorDaily = function(AHeader, AData)
+        {
+            // onwasmonitordaily
+            AddMemoLine("wasmonitordaily_console", "Push Data -Was Monitor Daily Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("wasmonitordaily_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        AConn.onProcessStatus = function(AHeader, AData) 
+        {
+            // onprocessstatus
+            AddMemoLine("processstatus_console", "Push Data -Process Status Result Arrived! : count - " + AHeader.rows_affected);
+            PutDataLine("processstatus_data", AData);
+            AData = null;
+            AHeader = null;
+        }
+        
+        /*=====================================================================================================================*/
+
+        // push 성 data 중 선택된 packet 만 받도록 한다.
+        // 여기서 packet 을 선택하는 방법은 packet 에 해당하는 packet event (onAlarmHistory, onActivity 등등...) 을
+        // 연결해 주거나 AddReceivePacket(packet_number) 나 RemoveReceivePacket(packet_number) 등의 함수로 패킷 번호를 넣어주면...
+        // 추가 되거나 제거 된다.
+        // 이벤트 연결 설정/해제시 자동으로 Add/Remove 됨.
+        AConn.ReceiveSelectedPackets();
+
+        /*
+         // 아래처럼 호출 해 주면 전체 패킷을 다 받는다.
+         AConn.ReceiveAllPackets();
+
+         // 아래처럼 property 형식으로 사용 가능하다.
+         AConn.AllPackets = true;
+         or
+         AConn.allpackets = true;
+         or
+         AConn.AllPackets = false;
+         or
+         AConn.allpackets = false;
+
+         // 아래처럼 패킷을 추가 할 수 있다.
+         AConn.AddReceivePacket(PKT_CLIENT_RES_SERVER_STATUS);
+         or
+         AConn.addreceivepacket(PKT_CLIENT_RES_SERVER_STATUS);
+
+         // 아래처럼 패킷을 제거 할 수 있다.
+         AConn.RemoveReceivePacket(PKT_CLIENT_RES_SERVER_STATUS);
+         or
+         AConn.removereceivepacket(PKT_CLIENT_RES_SERVER_STATUS);
+         */
+
+        var APort = parseInt(window.location.port, 10);
+
+        // 접속할 WebSocket IP
+        AConn.Host = window.location.hostname;
+        // 접속할 WebSocket Port
+        //AConn.Port = 8081;
+
+        // ms visual studio 의 debug 환경인지 검사를 함.
+        /*
+         if (APort < 30000) {
+         AConn.Port = APort + 1;
+         } else {
+         AConn.Port = 8081;
+         }
+         */
+
+
+        AConn.Port = window.location.port;
+        // 접속.
+        AConn.Open();
+        // push 성 data 를 받도록 한다. 반대는 PushDataOff
+        /*
+         // 위의 3줄을 다음과 같이 한줄로 줄여 사용 가능 함.
+         AConn.Connect(window.location.hostname, 8081);
+         or
+         AConn.connect(window.location.hostname, 8081);
+         */
+        // push Data 를 받도록 한다.
+        AConn.PushDataOn();
+        //AConn.pushdataon();
+        /*
+         // 아래와 같이 명령하면 끌 수 있다.
+         AConn.PushDataOff();
+         AConn.pushdataoff();
+         */
+        /*
+         // 아래와 같이 property 형식으로 도 사용이 가능 하다.
+         AConn.PushData = true;
+         or
+         AConn.pushdata = true;
+         or
+         AConn.PushData = false;
+         or
+         AConn.pushdata = false;
+         */
+        // result data 의 json header 를 분리 하도록 설정.
+        AConn.ExtractHeader = true;
+        AConn.SQLExtractHeader = true;
+        /*
+         // 아래와 같이 사용도 가능 하다.
+         AConn.extractheader = true;
+         or
+         AConn.ExtractHeader = false;
+         or
+         AConn.extractheader = false;
+         */
+
+        function IMXWS_PushDataOn()
+        {
+            // push data 를 받도록 함.
+            AConn.PushData = true;
+        }
+
+        function IMXWS_PushDataOff()
+        {
+            // push data 를 받지 않도록 함.
+            AConn.PushData = false;
+        }
+
+        function IMXWS_ExtractHeaderOn()
+        {
+            // result data 의 json header 를 분리해서 배열 형태로 받도록 함.
+            AConn.ExtractHeader = true;
+        }
+
+        function IMXWS_ExtractHeaderOff()
+        {
+            // result data 의 json header 일반 적인 형태로 받도록 함.
+            AConn.ExtractHeader = false;
+        }
+
+        function IMXWS_AllPacketsOn()
+        {
+            AConn.AllPackets = true;
+        }
+
+        function IMXWS_AllPacketsOff()
+        {
+            AConn.AllPackets = false;
+        }
+
+        function IMXWS_FillJSON()
+        {
+            var edt_jsontext = document.getElementById("function_sendjson_text");
+
+            edt_jsontext.value = '{\n' +
+            '    "type":"", \n' +
+            '    "command":"", \n' +
+            '    "value":"", \n' +
+            '    "parameters":{ \n' +
+            '                     "options":{ \n' +
+            '                               } \n' +
+            '                  } \n' +
+            '}';
+
+            edt_jsontext = null;
+        }
+
+        function IMXWS_SendJSON(ajsontext)
+        {
+            var edt_jsontext = document.getElementById("function_sendjson_text");
+
+            if (ajsontext == undefined)
+            {
+                ajsontext = edt_jsontext.value;
+            }
+
+            edt_jsontext = null;
+
+            if (ajsontext != null && ajsontext != "")
+            {
+                try
+                {
+                    var AJSON = JSON.parse(ajsontext);
+                }
+                catch (e)
+                {
+                    alert(e.message);
+                }
+
+                AConn.RunJSONObject(AJSON, IMXWS_SendJSON_Callback);
+            }
+
+        }
+
+        function IMXWS_SendJSON_Callback(AHeader, AData)
+        {
+            PutDataLine("function_sendjson_result", AData);
+            AData = null;
+            AHeader = null;
+        }
+
+        /*
+         // SQLFileExec 사용 방법.
+         1.	bind 없이 그냥 sql_file 을 실행 시키고 결과값을 되돌려 받고 싶을 때...
+
+         SQLFileExec(sql_file_name, call_back_function);
+
+         call back function 없이 사용 하고 싶을 때는...
+
+         SQLFileExecNoParam(sql_file_name) 를 쓰면 된다.
+
+         2.	bind 값을 넘겨 줄때 (bind 이름은 ":1", ":2", ":3"... 과 같이 들어가 있어야 함.)
+         bind 값은 배열 혹은 콤마(,) 로 구분된 문자열 이어야 함. 물론 값이 하나면 콤마가 없어도 된다.
+
+         SQLFileExec(sql_file_name, bind_values, false, call_back_function);
+
+         call back function 없이 사용하고 싶을 때는...
+
+         SQLFileExecWithBind(sql_file_name, bind_values)
+         또는
+         sqlfileexecwithbind(sql_file_name, bind_values) 를 사용 하면 된다.
+
+         3.	bind 값을 넘겨 줄때
+         bind 값은 이름, 값 순으로 배열 돼야 한다. (ex "param1", "abcd", "param2", "wdfg"...)
+
+         SQLFileExec(sql_file_name, bind_pair_values, true, call_back_function);
+
+         call back function 없이 사용하고 싶을 떄는...
+
+         SQLFileExecWithBindPair(sql_file_name, bind_pair_values)
+         또는
+         sqlfileexecwithbindpair(sql_file_name, bind_pair_values) 를 사용하면 된다.
+         */
+        function IMXWS_ExecSQLFile(asqlfile)
+        {
+            var edt_filename = document.getElementById("sqlfile_name");
+            var edt_replacepair = document.getElementById("sqlfile_repl");
+            var replace_pair;
+
+            if (asqlfile == undefined)
+            {
+                if (edt_filename != undefined)
+                {
+                    asqlfile = edt_filename.value;
+                    edt_filename = null;
+                } else
+                {
+                    edt_filename = null;
+                    return;
+                }
+            }
+
+            if (!edt_replacepair.disabled)
+            {
+                replace_pair = edt_replacepair.value.trim();
+                // sql file 을 실행 싵키고 결과를 받아 온다.
+                // 이곳에선 replace_pair 옵션을 사용 한다.
+                AConn.SQLFileExec(asqlfile, replace_pair, IMXWS_ExecSQLFile_Callback);
+            } else
+            {
+                // sql file 을 실행 싵키고 결과를 받아 온다.
+                AConn.SQLFileExec(asqlfile, IMXWS_ExecSQLFile_Callback);
+            }
+        }
+
+        // IMXWS_ExecSQLFile 에서 call back 을 받을 함수
+        function IMXWS_ExecSQLFile_Callback(AHeader, AData)
+        {
+            PutDataLine("sqlexec_result", AData);
+            AData = null;
+            AHeader = null;
+        }
+
+        // bind parameter 를 가지는 sql_file 을 실행 한다.
+        function IMXWS_ExecSQLFileBind(asqlfile, asqlbind, aisbindpair)
+        {
+            var edt_filename = document.getElementById("sqlfile_bind_name");
+            var replace_pair;
+            if (asqlfile == undefined)
+            {
+                if (edt_filename != undefined)
+                {
+                    asqlfile = edt_filename.value;
+                } else
+                {
+                    edt_filename = null;
+                    return;
+                }
+            }
+            edt_filename = null;
+
+            var edt_bindvalues = document.getElementById("sqlfile_bind");
+            if (asqlbind == undefined)
+            {
+                if (edt_bindvalues != undefined)
+                {
+                    asqlbind = edt_bindvalues.value;
+                } else
+                {
+                    edt_bindvalues = null;
+                    return;
+                }
+            }
+            edt_bindvalues = null;
+
+            /*
+             var chk_bindpair = document.getElementById("sqlfile_check_bind_pair");
+             if  (aisbindpair == undefined) {
+             if (chk_bindpair != undefined) {
+             aisbindpair = chk_bindpair.checked;
+             } else {
+             aisbindpair = false;
+             }
+             }
+             chk_bindpair = null;
+             */
+            var bind_option = document.getElementById("sqlfile_check_bind_pair");
+            if (aisbindpair == undefined)
+            {
+                if (bind_option != undefined)
+                {
+                    aisbindpair = bind_option.value;
+                } else
+                {
+                    aisbindpair = 0;
+                }
+            }
+            bind_option = null;
+
+            var edt_replacepair = document.getElementById("sqlfile_bind_repl");
+            if (!edt_replacepair.disabled)
+            {
+                replace_pair = edt_replacepair.value.trim();
+
+                AConn.SQLFileExec(asqlfile, asqlbind, aisbindpair, replace_pair, IMXWS_ExecSQLFileBind_Callback);
+            } else
+            {
+                AConn.SQLFileExec(asqlfile, asqlbind, aisbindpair, IMXWS_ExecSQLFileBind_Callback);
+            }
+
+            edt_replacepair = null;
+            replace_pair = null;
+
+            asqlfile = null;
+            asqlbind = null;
+            aisbindpair = null;
+
+        }
+        // IMXWS_ExecSQLFileBind 에서 call back 을 받을 함수
+        function IMXWS_ExecSQLFileBind_Callback(AHeader, AData)
+        {
+            PutDataLine("sqlexec_bind_result", AData);
+            AData = null;
+            AHeader = null;
+        }
+
+        // bind parameter 를 가지는 sql_file 을 실행 한다.
+        function IMXWS_ExecSQLProcBind(asqlproc, asqlbind, aisbindpair)
+        {
+            var edt_procname = document.getElementById("sqlproc_bind_name");
+            if (asqlproc == undefined)
+            {
+                if (edt_procname != undefined)
+                {
+                    asqlproc = edt_procname.value;
+                } else
+                {
+                    edt_procname = null;
+                    return;
+                }
+            }
+            edt_procname = null;
+
+            var edt_bindvalues = document.getElementById("sqlproc_bind");
+            if (asqlbind == undefined)
+            {
+                if (edt_bindvalues != undefined)
+                {
+                    asqlbind = edt_bindvalues.value;
+                } else
+                {
+                    edt_bindvalues = null;
+                    return;
+                }
+            }
+            edt_bindvalues = null;
+
+            var AProcJSON = {};
+            AProcJSON.stored_proc = asqlproc;
+            AProcJSON.bind = [];
+
+            var ABindArray;
+
+            if (asqlbind != undefined && asqlbind != "")
+            {
+                ABindArray = _ParseStringArray(asqlbind);
+
+                var ALen = ABindArray.length;
+
+                if (ALen > 0)
+                {
+                    var ABindName;
+                    var ABindValue;
+
+                    for (var ix = 0; ix < ALen; ix++)
+                    {
+                        ABindName = ABindArray[ix++];
+                        ABindValue = ABindArray[ix];
+
+                        AProcJSON.bind.push({"name": ABindName, "value": ABindValue});
+                    }
+
+                    ABindName = null;
+                    ABindValue = null;
+                }
+            }
+
+//        AProcJSON.bind = ABindArray;
+
+            AConn.StoredProcExec(AProcJSON, IMXWS_ExecSQLProcBind_Callback);
+
+        }
+        // IMXWS_ExecSQLFileBind 에서 call back 을 받을 함수
+        function IMXWS_ExecSQLProcBind_Callback(AHeader, AData)
+        {
+            PutDataLine("sqlproc_bind_result", AData);
+            AData = null;
+            AHeader = null;
+        }
+
+        // SQL List 를 가져오는 함수.
+        function IMXWS_SQLList()
+        {
+            AConn.SQLList(IMXWS_SQLList_Callback);
+        }
+        // IMXWS_SQLList 에서 call back 을 받을 함수.
+        function IMXWS_SQLList_Callback(AHeader, AData)
+        {
+            var ALen;
+            var AText;
+            if (AData != undefined && typeof AData === "string")
+            {
+                var AJSONData = JSON.parse(AData);
+
+                ALen = AJSONData.result.length;
+                AText = "";
+
+                for (var ix = 0; ix < ALen; ix++)
+                {
+                    AText += AJSONData.result[ix] + "\n";
+                }
+
+                AJSONData = null;
+            } else if (AData != undefined && Array.isArray(AData))
+            {
+                ALen = AData.length;
+                AText = "";
+
+                for (var ix = 0; ix < ALen; ix++)
+                {
+                    AText += AData[ix] + "\n";
+                }
+
+            }
+
+            PutDataLine("function_sqllist_result", AText);
+
+            ALen = null;
+            AText = null;
+            AData = null;
+            AHeader = null;
+        }
+        // SQL File 의 내용을 돌려주는 함수.
+        function IMXWS_SQLView(asqlfilename)
+        {
+            var edt_filename = document.getElementById("function_sqlview_sqlfile");
+            if (asqlfilename == undefined)
+            {
+                if (edt_filename != undefined)
+                {
+                    asqlfilename = edt_filename.value;
+                    edt_filename = null;
+                } else
+                {
+                    edt_filename = null;
+                    return;
+                }
+            }
+
+            AConn.SQLView(asqlfilename, IMXWS_SQLView_Callback);
+        }
+        // IMXWS_SQLView 의 call back 을 받을 함수.
+        function IMXWS_SQLView_Callback(AHeader, AData)
+        {
+            /*
+             if (AData != undefined && typeof AData === "string") {
+             var AJSONData = JSON.parse(AData);
+             PutDataLine("function_sqlview_result", AJSONData.result);
+             } else if (AData != undefined && AData.result != undefined) {
+             PutDataLine("function_sqlview_result", AData.result);
+             }
+             */
+            // sqlview 의 결과는 그냥 string 이다. 바로 출력하거나 사용 하면 됨.
+
+            PutDataLine("function_sqlview_result", AData);
+            AData = null;
+            AHeader = null;
+        }
+
+        function IMXWS_ReadText(atextfilename)
+        {
+            var edt_filename = document.getElementById("function_read_text");
+            if (atextfilename == undefined)
+            {
+                if (edt_filename != undefined)
+                {
+                    atextfilename = edt_filename.value;
+                    edt_filename = null;
+                } else
+                {
+                    edt_filename = null;
+                    return;
+                }
+            }
+
+            AConn.ReadText(atextfilename, IMXWS_ReadText_Callback);
+        }
+
+        // IMXWS_ReadText 의 call back 을 받을 함수.
+        function IMXWS_ReadText_Callback(AHeader, AData)
+        {
+            PutDataLine("function_readtext_result", AData);
+            AData = null;
+            AHeader = null;
+        }
+
+        // sql 을 formatting 해서 돌려주는 함수.
+        function IMXWS_FormatSQL(asql)
+        {
+            var edt_sql = document.getElementById("function_sqlformat_sql");
+            if (asql == undefined)
+            {
+                if (edt_sql != undefined)
+                {
+                    asql = edt_sql.value;
+                    edt_sql = null;
+                } else
+                {
+                    edt_sql = null;
+                    return;
+                }
+            }
+
+            AConn.FormatSQL(asql, IMXWS_FormatSQL_Callback);
+        }
+
+        // IMXWS_FormatSQL용 call back 함수
+        function IMXWS_FormatSQL_Callback(AHeader, AData)
+        {
+            /*
+             if (AData != undefined && typeof AData === "string") {
+             PutDataLine("function_sqlformat_result", AData);
+
+             AJSONData = null;
+             }
+             if (AData != undefined) {
+             PutDataLine("function_sqlformat_result", AData);
+             }
+             */
+            PutDataLine("function_sqlformat_result", AData);
+            AData = null;
+            AHeader = null;
+        }
+
+        // service_info 를 가져오는 함수.
+        // pushdata = true 를 해 주면 첫번 째로 오는 데이터와 동일.
+        function IMXWS_ServiceInfo()
+        {
+            AConn.ServiceInfo(IMXWS_ServiceInfo_Callback);
+        }
+        // IMXWS_ServiceInfo용 call back 함수
+        function IMXWS_ServiceInfo_Callback(AHeader, AData)
+        {
+            if (AData != undefined && typeof AData === "string")
+            {
+                var AJSONData = JSON.parse(AData);
+                PutDataLine("datagather_serviceinfo_result", AJSONData);
+
+                AJSONData = null;
+            }
+            if (AData != undefined)
+            {
+                PutDataLine("datagather_serviceinfo_result", AData);
+            }
+            AData = null;
+            AHeader = null;
+        }
+
+        // alarm history 를 가져오는 함수.
+        // pushdata = true 를 해 주면 첫번 째로 오는 데이터와 동일.
+        function IMXWS_AlarmHistory()
+        {
+            AConn.AlarmHistory(IMXWS_AlarmHistory_Callback);
+        }
+        // IMXWS_AlarmHistory용 call back 함수
+        function IMXWS_AlarmHistory_Callback(AHeader, AData)
+        {
+            if (AData != undefined && typeof AData === "string")
+            {
+                var AJSONData = JSON.parse(AData);
+                PutDataLine("datagather_alarmhistory_result", AJSONData);
+
+                AJSONData = null;
+            }
+            if (AData != undefined)
+            {
+                PutDataLine("datagather_alarmhistory_result", AData);
+            }
+            AData = null;
+            AHeader = null;
+        }
+
+        // host group info 를 가져오는 함수.
+        function IMXWS_HostGroupInfo()
+        {
+            AConn.HostGroupInfo(IMXWS_HostGroupInfo_Callback);
+        }
+        // IMXWS_HostGroupInfo용 call back 함수
+        function IMXWS_HostGroupInfo_Callback(AHeader, AData)
+        {
+            if (AData != undefined && typeof AData === "string")
+            {
+                var AJSONData = JSON.parse(AData);
+                PutDataLine("datagather_hostgroupinfo_result", AJSONData);
+
+                AJSONData = null;
+            }
+            if (AData != undefined)
+            {
+                PutDataLine("datagather_hostgroupinfo_result", AData);
+            }
+            AData = null;
+            AHeader = null;
+        }
+
+        function IMXWS_WasSessionCount()
+        {
+            AConn.WasSessionCount(IMXWS_WasSessionCount_Callback);
+        }
+
+        function IMXWS_WasSessionCount_Callback(AHeader, AData)
+        {
+            if (AData != undefined && typeof AData === "string")
+            {
+                var AJSONData = JSON.parse(AData);
+                PutDataLine("datagather_wassessioncount_result", AJSONData);
+
+                AJSONData = null;
+            }
+            if (AData != undefined)
+            {
+                PutDataLine("datagather_wassessioncount_result", AData);
+            }
+            AData = null;
+            AHeader = null;
+        }
+
+        function IMXWS_WasTPS()
+        {
+            AConn.WasTPS(IMXWS_WasTPS_Callback);
+        }
+
+        function IMXWS_WasTPS_Callback(AHeader, AData)
+        {
+            if (AData != undefined && typeof AData === "string")
+            {
+                var AJSONData = JSON.parse(AData);
+                PutDataLine("datagather_wastps_result", AJSONData);
+
+                AJSONData = null;
+            }
+            if (AData != undefined)
+            {
+                PutDataLine("datagather_wastps_result", AData);
+            }
+            AData = null;
+            AHeader = null;
+        }
+
+        function IMXWS_WasTXNElapse()
+        {
+            AConn.WasTXNElapse(IMXWS_WasTXNElapse_Callback);
+        }
+
+        function IMXWS_WasTXNElapse_Callback(AHeader, AData)
+        {
+            if (AData != undefined && typeof AData === "string")
+            {
+                var AJSONData = JSON.parse(AData);
+                PutDataLine("datagather_wastxnelapse_result", AJSONData);
+
+                AJSONData = null;
+            }
+            if (AData != undefined)
+            {
+                PutDataLine("datagather_wastxnelapse_result", AData);
+            }
+            AData = null;
+            AHeader = null;
+        }
+
+        function IMXWS_DashboardTXNCount()
+        {
+            AConn.DashboardTXNCount(IMXWS_DashboardTXNCount_Callback);
+        }
+
+        function IMXWS_DashboardTXNCount_Callback(AHeader, AData)
+        {
+            if (AData != undefined && typeof AData === "string")
+            {
+                var AJSONData = JSON.parse(AData);
+                PutDataLine("datagather_dashboardtxncount_result", AJSONData);
+
+                AJSONData = null;
+            }
+            if (AData != undefined)
+            {
+                PutDataLine("datagather_dashboardtxncount_result", AData);
+            }
+        }
+
+        function IMXWS_RecentTopSQL()
+        {
+            AConn.RecentTopSQL(IMXWS_RecentTopSQL_Callback);
+        }
+
+        function IMXWS_RecentTopSQL_Callback(AHeader, AData)
+        {
+            if (AData != undefined && typeof AData === "string")
+            {
+                var AJSONData = JSON.parse(AData);
+                PutDataLine("datagather_recenttopsql_result", AJSONData);
+
+                AJSONData = null;
+            }
+            if (AData != undefined)
+            {
+                PutDataLine("datagather_recenttopsql_result", AData);
+            }
+            AData = null;
+            AHeader = null;
+        }
+
+        function IMXWS_RecentTopTXN()
+        {
+            AConn.RecentTopTXN(IMXWS_RecentTopTXN_Callback);
+        }
+
+        function IMXWS_RecentTopTXN_Callback(AHeader, AData)
+        {
+            if (AData != undefined && typeof AData === "string")
+            {
+                var AJSONData = JSON.parse(AData);
+                PutDataLine("datagather_recenttoptxn_result", AJSONData);
+
+                AJSONData = null;
+            }
+            if (AData != undefined)
+            {
+                PutDataLine("datagather_recenttoptxn_result", AData);
+            }
+            AData = null;
+            AHeader = null;
+        }
+
+        function IMXWS_RecentTopException()
+        {
+            AConn.RecentTopException(IMXWS_RecentTopException_Callback);
+        }
+
+        function IMXWS_RecentTopException_Callback(AHeader, AData)
+        {
+            if (AData != undefined && typeof AData === "string")
+            {
+                var AJSONData = JSON.parse(AData);
+                PutDataLine("datagather_recenttopexception_result", AJSONData);
+
+                AJSONData = null;
+            }
+            if (AData != undefined)
+            {
+                PutDataLine("datagather_recenttopexception_result", AData);
+            }
+            AData = null;
+            AHeader = null;
+        }
+
+        function IMXWS_ExecSQLFile_Repl_Click(chkbx)
+        {
+            var edt_replacepair = document.getElementById("sqlfile_repl");
+
+            if (edt_replacepair == null)
+            {
+                return;
+            }
+
+            if (chkbx.checked)
+            {
+                edt_replacepair.disabled = false;
+            } else
+            {
+                edt_replacepair.disabled = true;
+            }
+        }
+
+        function IMXWS_ExecSQLFile_Bind_Repl_Click(chkbx)
+        {
+            var edt_replacepair = document.getElementById("sqlfile_bind_repl");
+
+            if (edt_replacepair == null)
+            {
+                return;
+            }
+
+            if (chkbx.checked)
+            {
+                edt_replacepair.disabled = false;
+            } else
+            {
+                edt_replacepair.disabled = true;
+            }
+        }
+
+        function IMXWS_NHGlobal()
+        {
+            AConn.NHGlobal(IMXWS_NHGlobal_Callback);
+        }
+
+        function IMXWS_NHGlobal_Callback(AHeader, AData)
+        {
+            if (AData != undefined && typeof AData === "string")
+            {
+                var AJSONData = JSON.parse(AData);
+                PutDataLine("datagather_nhglobal_result", AJSONData);
+
+                AJSONData = null;
+            }
+            if (AData != undefined)
+            {
+                PutDataLine("datagather_nhglobal_result", AData);
+            }
+            AData = null;
+            AHeader = null;
+        }
+
+        function IMXWS_ClientIP()
+        {
+            AConn.ClientIP(IMXWS_ClientIP_Callback);
+        }
+
+        function IMXWS_ClientIP_Callback(AHeader, AData)
+        {
+            if (AData != undefined)
+            {
+                PutDataLine("datagather_clientip_result", AData);
+            }
+            AData = null;
+            AHeader = null;
+        }
+
+        /*
+         <p>
+         IMXWS Plug-In Function<br />
+         <font class="normal_text">Function Name : </font><input type="text" id="plugin_function_name" value="" style="width:300px;"><br />
+         <font class="normal_text">Function Options : </font><input type="text" id="plugin_function_option" value="" style="width:200px;"><input type="button" id="plugin_function" value="Call Plug-In Function" onclick="IMXWS_PlugInFunction()" /><br />
+         <textarea id="plugin_function_result" rows="5" cols="70"> </textarea>
+         </p>
+         */
+        function IMXWS_PlugInFunction(func_name, dll_name, func_option)
+        {
+            var edt_funcname = document.getElementById("plugin_function_name");
+            var edt_funcoption = document.getElementById("plugin_function_option");
+            var edt_dllname = document.getElementById("plugin_dll_name");
+
+            if (func_name == undefined)
+            {
+                if (edt_funcname != undefined)
+                {
+                    func_name = edt_funcname.value;
+                    edt_funcname = null;
+                }
+                else
+                {
+                    edt_funcoption = null;
+                    return;
+                }
+            }
+
+            if (dll_name == undefined)
+            {
+                if (edt_dllname != undefined)
+                {
+                    dll_name = edt_dllname.value;
+                    edt_dllname = null;
+                }
+                else
+                {
+                    edt_dllname = null;
+                    return;
+                }
+            }
+
+            if (func_option == undefined)
+            {
+                if (edt_funcoption != undefined)
+                {
+                    func_option = edt_funcoption.value;
+                    edt_funcoption = null;
+                }
+                else
+                {
+                    edt_funcopion = null;
+                    return;
+                }
+            }
+
+            var AJSON = {};
+            AJSON.function = func_name;
+            AJSON.dll_name = dll_name;
+            try
+            {
+                if (func_option == "")
+                {
+                    AJSON.options = {};
+                }
+                else
+                {
+                    AJSON.options = JSON.parse(func_option);
+                }
+            }
+            catch (e)
+            {
+                window.alert("Plug-In Function Options Parsing Error!\n" + e.message);
+
+                AJSON = null;
+                return;
+            }
+
+            AConn.PluginFunction(AJSON, IMXWS_PlugInFunction_Callback, this);
+        }
+
+        function IMXWS_PlugInFunction_Callback(AHeader, AData)
+        {
+            if (AData != undefined && typeof AData === "string")
+            {
+                var AJSONData = JSON.parse(AData);
+                PutDataLine("plugin_function_result", AJSONData);
+
+                AJSONData = null;
+            }
+            if (AData != undefined)
+            {
+                PutDataLine("plugin_function_result", AData);
+            }
+            AData = null;
+            AHeader = null;
+        }
+
+        function IMXWS_BindPairReplaceTest()
+        {
+            /*
+             var AJSON = {
+             type: "sql_file",
+             command: "txn_detail_drag.sql",
+             bind_pair: ["from_time","2013-06-01 01:01:01","to_time","2013-06-18 02:11:01","err_count","-1","txn_name","%","txn_elapse_min","0","txn_elapse_max","86400","sql_elapse","0","sql_exec_count","0","fetch_count","0","sql_elapse_avg","0"],
+             replace_pair:["was_id", "333"],
+             job_id: "abcd"
+             };
+             */
+            /*
+             var bind_pair = ["from_time","2013-06-17 01:01:01","to_time","2013-06-18 02:11:01","err_count","-1","txn_name","%","txn_elapse_min","0","txn_elapse_max","86400","sql_elapse","0","sql_exec_count","0","fetch_count","0","sql_elapse_avg","0"];
+             */
+            var bind_pair = ["from_time", "2013-06-19 09:18:25", "to_time", "2013-06-20 09:20:44", "elapsed_time_max", "26887", "elapsed_time_min", "8092", "elapsed_time_avg", "0", "txn_name", "%"];
+            var replace_pair = ["was_id", "333,77,771,881,991,772,882,992,51"];
+
+
+            AConn.SQLFileExec("txn_detail_drag_sql_grid.sql", bind_pair, true, replace_pair, IMXWS_ExecSQLFileBind_Callback);
+        }
+
+        function IMXWS_Add_Was(was_name)
+        {
+            var edt_wasname = document.getElementById("add_remove_was");
+            var edt_wasservers = document.getElementById("add_remove_was_text");
+
+            if (was_name == undefined)
+            {
+                if (edt_wasname != undefined)
+                {
+                    was_name = edt_wasname.value;
+                    edt_wasname = null;
+                } else
+                {
+                    edt_wasname = null;
+                    return;
+                }
+            }
+
+            AConn.AddWasServer(was_name);
+            PutDataLine("add_remove_was_text", AConn.WasServers.join());
+        }
+
+        function IMXWS_Add_Option(option_name)
+        {
+            var edt_optionname = document.getElementById("add_remove_option");
+            var edt_optionservers = document.getElementById("add_remove_option_text");
+
+            if (option_name == undefined)
+            {
+                if (edt_optionname != undefined)
+                {
+                    option_name = edt_optionname.value;
+                    edt_optionname = null;
+                } else
+                {
+                    edt_optionname = null;
+                    return;
+                }
+            }
+
+            AConn.AddOption(option_name);
+            PutDataLine("add_remove_option_text", AConn.Options.join());
+        }
+
+        function IMXWS_Remove_Option(option_name)
+        {
+            var edt_optionname = document.getElementById("add_remove_option");
+//        var edt_options = document.getElementById("add_remove_was_text");
+
+            if (option_name == undefined)
+            {
+                if (edt_optionname != undefined)
+                {
+                    option_name = edt_optionname.value;
+                    edt_optionname = null;
+                } else
+                {
+                    edt_optionname = null;
+                    return;
+                }
+            }
+
+            AConn.RemoveOption(option_name);
+            PutDataLine("add_remove_option_text", AConn.Options.join());
+        }
+
+        function IMXWS_RemoveWas(was_name)
+        {
+            var edt_wasname = document.getElementById("add_remove_was");
+//		var edt_wasservers = document.getElementById("add_remove_was_text");
+
+            if (was_name == undefined)
+            {
+                if (edt_wasname != undefined)
+                {
+                    was_name = edt_wasname.value;
+                    edt_wasname = null;
+                } else
+                {
+                    edt_wasname = null;
+                    return;
+                }
+            }
+
+            AConn.RemoveWasServer(was_name);
+            PutDataLine("add_remove_was_text", AConn.WasServers.join());
+        }
+
+        function IMXWS_AllWas()
+        {
+            var edt_wasservers = document.getElementById("add_remove_was_text");
+
+            AConn.ReceiveAllWasServers();
+            PutDataLine("add_remove_was_text", AConn.WasServers.join());
+        }
+
+        function IMXWS_Add_DB(db_name)
+        {
+            var edt_dbname = document.getElementById("add_remove_db");
+            var edt_dbservers = document.getElementById("add_remove_db_text");
+
+            if (db_name == undefined)
+            {
+                if (edt_dbname != undefined)
+                {
+                    db_name = edt_dbname.value;
+                    edt_dbname = null;
+                } else
+                {
+                    edt_dbname = null;
+                    return;
+                }
+            }
+
+            AConn.AddDBServer(db_name);
+            PutDataLine("add_remove_db_text", AConn.DBServers.join());
+        }
+
+        function IMXWS_RemoveDB(db_name)
+        {
+            var edt_dbname = document.getElementById("add_remove_db");
+            var edt_dbservers = document.getElementById("add_remove_db_text");
+
+            if (db_name == undefined)
+            {
+                if (edt_dbname != undefined)
+                {
+                    db_name = edt_dbname.value;
+                    edt_dbname = null;
+                } else
+                {
+                    edt_dbname = null;
+                    return;
+                }
+            }
+
+            AConn.RemoveDBServer(db_name);
+            PutDataLine("add_remove_db_text", AConn.DBServers.join());
+        }
+
+        function IMXWS_AllDB()
+        {
+            var edt_dbservers = document.getElementById("add_remove_db_text");
+
+            AConn.ReceiveAllDBServers();
+            PutDataLine("add_remove_db_text", AConn.DBServers.join());
+        }
+
+        function IMXWS_Add_Web(web_name)
+        {
+            var edt_webname = document.getElementById("add_remove_web");
+            var edt_webservers = document.getElementById("add_remove_web_text");
+
+            if (web_name == undefined)
+            {
+                if (edt_webname != undefined)
+                {
+                    web_name = edt_webname.value;
+                    edt_webname = null;
+                }
+                else
+                {
+                    edt_webname = null;
+                    return;
+                }
+            }
+
+            AConn.AddWebServer(web_name);
+            PutDataLine("add_remove_web_text", AConn.WebServers.join());
+        }
+
+        function IMXWS_RemoveWeb(web_name)
+        {
+            var edt_webname = document.getElementById("add_remove_web");
+            var edt_webservers = document.getElementById("add_remove_web_text");
+
+            if (web_name == undefined)
+            {
+                if (edt_webname != undefined)
+                {
+                    web_name = edt_webname.value;
+                    edt_webname = null;
+                } else
+                {
+                    edt_webname = null;
+                    return;
+                }
+            }
+
+            AConn.RemoveWebServer(web_name);
+            PutDataLine("add_remove_web_text", AConn.WebServers.join());
+        }
+
+        function IMXWS_AllWeb()
+        {
+            var edt_webservers = document.getElementById("add_remove_web_text");
+
+            AConn.ReceiveAllWebServers();
+            PutDataLine("add_remove_web_text", AConn.WebServers.join());
+        }
+
+        function IMXWS_Add_Host(host_name)
+        {
+            var edt_hostname = document.getElementById("add_remove_host");
+            var edt_hostservers = document.getElementById("add_remove_host_text");
+
+            if (host_name == undefined)
+            {
+                if (edt_hostname != undefined)
+                {
+                    host_name = edt_hostname.value;
+                    edt_hostname = null;
+                }
+                else
+                {
+                    edt_hostname = null;
+                    return;
+                }
+            }
+
+            AConn.AddHostServer(host_name);
+            PutDataLine("add_remove_host_text", AConn.HostServers.join());
+        }
+
+        function IMXWS_RemoveHost(host_name)
+        {
+            var edt_hostname = document.getElementById("add_remove_host");
+            var edt_hostservers = document.getElementById("add_remove_host_text");
+
+            if (host_name == undefined)
+            {
+                if (edt_hostname != undefined)
+                {
+                    host_name = edt_hostname.value;
+                    edt_hostname = null;
+                } else
+                {
+                    edt_hostname = null;
+                    return;
+                }
+            }
+
+            AConn.RemoveHostServer(host_name);
+            PutDataLine("add_remove_host_text", AConn.HostServers.join());
+        }
+
+        function IMXWS_AllHost()
+        {
+            var edt_hostservers = document.getElementById("add_remove_host_text");
+
+            AConn.ReceiveAllHostServers();
+            PutDataLine("add_remove_host_text", AConn.HostServers.join());
+        }
+
+        function IMXWS_DBChanged(AEventObj)
+        {
+            if (_isDBListChange)
+            {
+                return;
+            }
+
+            AConn.DefaultDB = AEventObj.value;
+        }
+
+        function IMXWS_KeepConnectionChange(AOnOff)
+        {
+            if (AConn.KeepConnection != AOnOff)
+            {
+                AConn.KeepConnection = AOnOff;
+            }
+        }
+
+/*
+ <font class="normal_text">Subject: </font><input type="text" id="send_mail_subject" value=""  style="width:230px;"><input type="button"  id="send_mail_function"  value="Send Mail"  onclick="IMXWS_SendMailFunction()"/><br/>
+ <font class="normal_text">from - name: </font><input type="text" id="send_mail_from_name" value=""  style="width:120px;"/> <font  class="normal_text">address: </font><input type="text" id="send_mail_from_addr" value=""  style="width:120px;"><br/>
+ <font class="normal_text">to - name: </font><input type="text" id="send_mail_to_name" value="" style="width:120px;"/> <font class="normal_text">address: </font><input type="text" id="send_mail_to_addr" value="" style="width:120px;"><br/>
+ <font class="normal_text">cc - name: </font><input type="text" id="send_mail_cc_name" value="" style="width:120px;"/> <font class="normal_text">address: </font><input type="text" id="send_mail_cc_addr" value="" style="width:120px;"><br/>
+ <font class="normal_text">bcc - name: </font><input type="text" id="send_mail_bcc_name" value="" style="width:120px;"/> <font class="normal_text">address: </font><input type="text" id="send_mail_bcc_addr" value="" style="width:120px;"><br/>
+ <font class="normal_text">Attachment: </font><input type="file" id="send_mail_attach" value="" style="width:250px;"/><br/>
+ <font class="normal_text">Content: </font><br/>
+ <textarea id="send_mail_content" rows="5" cols="70"> </textarea>
+ <hr style="width:370px; " align=left>
+ <textarea id="send_mail_text" rows="5" cols="70"> </textarea>
+ </p>
+* */
+        function IMXWS_SendMailFunction()
+        {
+            var AName;
+            var AAddr;
+            var AEdit;
+            var AEditName;
+            var AEditAddr;
+            var AMail = {};
+
+
+            var ASendMail = {};
+
+            ASendMail.server = "";    // smtp mail server - config.json 에 지정된 서버. 지정하지 않으면 디폴트 서버가 사용됨.
+
+            // from
+            AEditName = document.getElementById("send_mail_from_name");
+            AEditAddr = document.getElementById("send_mail_from_addr");
+
+            if (AEditName || AEditAddr)
+            {
+                ASendMail.from = {};
+                if (AEditName)
+                {
+                    ASendMail.from.name = AEditName.value;
+                    AEditName = null;
+                }
+
+                if (AEditAddr)
+                {
+                    ASendMail.from.address = AEditAddr.value;
+                    AEditAddr = null;
+                }
+            }
+
+            AEditName = document.getElementById("send_mail_to_name");
+            AEditAddr = document.getElementById("send_mail_to_addr");
+
+            if ((AEditName && AEditName.value != "") || (AEditAddr && AEditAddr.value != ""))
+            {
+                AMail = {};
+                ASendMail.mail_to = [];
+                if (AEditName)
+                {
+                    AMail.name = AEditName.value;
+                    AEditName = null;
+                }
+
+                if (AEditAddr)
+                {
+                    AMail.address = AEditAddr.value;
+                    AEditAddr = null;
+                }
+                ASendMail.mail_to.push(AMail);
+                AMail = null;
+            }
+
+            AEditName = document.getElementById("send_mail_cc_name");
+            AEditAddr = document.getElementById("send_mail_cc_addr");
+
+            if ((AEditName && AEditName.value != "") || (AEditAddr && AEditAddr.value != ""))
+            {
+                AMail = {};
+                ASendMail.mail_cc = [];
+                if (AEditName.value != "")
+                {
+                    AMail.name = AEditName.value;
+                    AEditName = null;
+                }
+
+                if (AEditAddr.value != "")
+                {
+                    AMail.address = AEditAddr.value;
+                    AEditAddr = null;
+                }
+
+                ASendMail.mail_cc.push(AMail);
+
+                AMail = null;
+            }
+
+            AEditName = document.getElementById("send_mail_bcc_name");
+            AEditAddr = document.getElementById("send_mail_bcc_addr");
+
+            if ((AEditName && AEditName.value != "") || (AEditAddr && AEditAddr.value != ""))
+            {
+                AMail = {};
+                ASendMail.mail_bcc = [];
+                if (AEditName.value != "")
+                {
+                    AMail.name = AEditName.value;
+                    AEditName = null;
+                }
+
+                if (AEditAddr.value != "")
+                {
+                    AMail.address = AEditAddr.value;
+                    AEditAddr = null;
+                }
+
+                ASendMail.mail_bcc.push(AMail);
+
+                AMail = null;
+            }
+
+            AEdit = document.getElementById("send_mail_subject");
+            if (AEdit)
+            {
+                ASendMail.subject = AEdit.value;
+                AEdit = null;
+            }
+
+            AEdit = document.getElementById("send_mail_content");
+            if (AEdit)
+            {
+                ASendMail.content = AEdit.value;
+                ASendMail.content_type = "text/plain";
+                AEdit = null;
+            }
+
+            AEdit = document.getElementById("send_mail_attach");
+            if (AEdit)
+            {
+                var AFileList = AEdit.files;
+                if (AFileList.length > 0)
+                {
+                    ASendMail.attachments = [];
+
+//                    for (var ix=0; ix < AFileList.length; ix++)
+                    {
+                        var AFile = AFileList[0];
+                        var AFileReader = new FileReader();
+
+/*
+                        addEventHandler(AFileReader, 'loadend', function(e, file) {
+                            var AAttach = {};
+
+                            AAttach.filename = file.name;
+                            AAttach.content_type = file.type;
+                            AAttach.content = e.target.result;
+
+                            SendMail.attachments.add(AAttach);
+
+                            AAttach = null;
+
+                            if (SendMail.attachments.length == AFileList.length)
+                            {
+                                AConn.SendMail(SendMail);
+                            }
+                        }).bindToEventHandler(AFile);
+*/
+                        AFileReader.onloadend = function(e) {
+                            var AAttach = {};
+                            var APos = 0;
+
+                            AAttach.filename = AFile.name;
+                            AAttach.content_type = AFile.type;
+
+                            APos =  e.target.result.indexOf(';base64,');
+                            if (APos > 0)
+                            {
+                                AAttach.content = e.target.result.slice(APos + 8);
+                            }
+                            else
+                            {
+                                AAttach.content = e.target.result;
+                            }
+
+                            ASendMail.attachments.push(AAttach);
+
+                            AAttach = null;
+
+//                            if (ASendMail.attachments.length == AFileList.length)
+                            {
+                                AConn.SendMail(ASendMail);
+
+                                ASendMail = null;
+                            }
+                        }
+
+                        AFileReader.readAsDataURL(AFile);
+                    }
+                }
+                else
+                {
+                    AConn.SendMail(ASendMail);
+                    ASendMail = null;
+                }
+
+            }
+
+//            ASendMail = null;
+
+        }
+
+        function IMXWS_SQLTest()
+        {
+//        var ASQLJSON = JSON.parse("{\"sql_file\":\"MFOPA_TopSql_Graph.sql\",\"bind\":[{\"name\":\"from_time\",\"value\":\"2014-04-01 00:00:00\"},{\"name\":\"to_time\",\"value\":\"2014-04-01 15:43:00\"},{\"name\":\"db_id\",\"value\":\"4\"}],\"replace_string\":[{\"name\":\"partition_key\",\"value\":\"10004140401\"},{\"name\":\"sql_id\",\"value\":\"'60388F4167117A9C582C1FED','5C9C603B1E3DCD652E01AE5E','49FF026E0BA244DB2E4F7FBE','54D4A84B13AD3A44684F2A46','58F69DB011953F1836A2CB3F','7F2E5E6E28D980C630240F86','3F7ECF9859CD1C71713E8C97','3E92BD5549E7904504B9BE7A','47F5B9613E0C7ADA7C84C69D','163069CE43827F0C20EE0170','3886CB6952E7FB1020DD29C5','2BBBD65841168D8F16FDCA96','0AA82ADF1172BD9B65DD192D','09E9F9CD37D10C221EDAD6E6','499556AF117BD25A241E4CFE','468D53E15255F965666F8917','2AAC8C0D7242C31142DA7336','0C4A7AF63B91F3150AEA451F','452E2FF165C67DE1618885B2','5C9042C44C60F24235014A3A'\"}]}");
+
+//        var ASQLJSONStr = "{ \"sql\":\" CREATE TEMPORARY TABLE \\n" +
+//                "         tmp_part_list ( partition_key bigint ) \\n" +
+//                " ON COMMIT DELETE ROWS; \\n" +
+//                " INSERT INTO   tmp_part_list ( \\n " +
+//                " SELECT mxg_get_partition_key( a.db_id, cast( pDate.yymmdd as integer ) ) \\n" +
+//                " FROM   apm_db_info a, \\n" +
+//                "     ( \\n" +
+//                "     WITH RECURSIVE t AS ( \\n" +
+//                "     SELECT '' as yymmdd,  1 as rownum \\n" +
+//                "     UNION ALL \\n" +
+//                "     SELECT  TO_CHAR( TO_DATE( '20140417', 'YYYYMMDD' ) +rownum-1, 'YYMMDD' ), rownum + 1 as rno \\n" +
+//                "     FROM t \\n" +
+//                "     where rownum <= TO_DATE( '20140417' , 'YYYYMMDD' ) - TO_DATE( '20140417' , 'YYYYMMDD' ) +1 \\n" +
+//                "     ) select yymmdd from t where yymmdd <> '' \\n" +
+//                " ) pDate \\n" +
+//                " WHERE  a.instance_name IN ( 'KRAC1','KRAC2' ) ); \\n" +
+//                " SELECT /*+ leading(a b) use_hash(b) full(b) */ \\n" +
+//                "         a.instance_name, \\n" +
+//                "         round( sum(b.cpu_usage), 0) cpu_usage \\n" +
+//                "         FROM   apm_db_info a , \\n" +
+//                "                krac1.ora_sql_stat_daily b \\n" +
+//                " WHERE  a.instance_name = upper( 'krac1' ) \\n" +
+//                " AND    a.db_id=b.db_id \\n" +
+//                " AND    b.partition_key IN (  SELECT partition_key FROM   tmp_part_list ) \\n" +
+//                " AND    b.TIME BETWEEN to_timestamp( :FromTime , 'YYYYMMDDHH24MI' ) \\n" +
+//                " AND                   to_timestamp( :ToTime   , 'YYYYMMDDHH24MI' ) \\n" +
+//                " group by a.instance_name \\n" +
+//                "union all\\n SELECT /*+ leading(a b) use_hash(b) full(b) */ \\n" +
+//                "         a.instance_name, \\n" +
+//                "         round( sum(b.cpu_usage), 0) cpu_usage \\n" +
+//                "         FROM   apm_db_info a , \\n" +
+//                "                krac2.ora_sql_stat_daily b \\n" +
+//                " WHERE  a.instance_name = upper( 'krac2' ) \\n" +
+//                " AND    a.db_id=b.db_id \\n" +
+//                " AND    b.partition_key IN (  SELECT partition_key FROM   tmp_part_list ) \\n" +
+//                " AND    b.TIME BETWEEN to_timestamp( :FromTime , 'YYYYMMDDHH24MI' ) \\n" +
+//                " AND                   to_timestamp( :ToTime   , 'YYYYMMDDHH24MI' ) \\n" +
+//                " group by a.instance_name \\n" +
+//                " order by instance_name;\\n" +
+//                " SELECT instance_name , \\n" +
+//                "         CASE \\n" +
+//                "           WHEN rnk <=10 \\n " +
+//                "     THEN a.program_name \\n" +
+//                "     ELSE 'Others' \\n" +
+//                "     END program_name , \\n" +
+//                " --       ROUND( RATIO_TO_REPORT( SUM( column_value) ) over( ) *100 , 0 ) AS ratio , \\n" +
+//                "     SUM( column_value) column_value, \\n" +
+//                "     MAX( program_Hid ) program_Hid ,\\n" +
+//                "     MAX( rnk ) rnk\\n" +
+//                " FROM   (\\n" +
+//                "     SELECT /*+ leading(a b) use_hash(b) full(b) */ \\n" +
+//                "     instance_name , \\n" +
+//                "     COALESCE( c.hash_value, 'n/a' ) program_name, \\n" +
+//                "     ROUND( SUM( b.cpu_usage ) , 0 ) column_value, \\n" +
+//                "     ROW_NUMBER( ) over( PARTITION BY instance_name ORDER     BY SUM( b.cpu_usage ) DESC ) rnk , \\n" +
+//                "     b.program_hid \\n" +
+//                " FROM   apm_db_info a , \\n" +
+//                "        krac1.ora_sql_stat_daily b, \\n" +
+//                "        krac1.XM_HASH_MASTER AS c\\n" +
+//                " WHERE  a.instance_name = upper( 'krac1' )\\n" +
+//                " AND    b.partition_key IN ( SELECT partition_key FROM tmp_part_list ) \\n" +
+//                " AND    b.partition_key = c.partition_key \\n" +
+//                " AND    a.db_id=b.db_id \\n" +
+//                " and    a.db_id=c.db_id \\n" +
+//                " and    c.hash_id=b.program_hid \\n" +
+//                " and    c.hash_type='PROGRAM' \\n" +
+//                " AND    b.time BETWEEN to_timestamp( :FromTime , 'YYYYMMDDHH24MI' ) \\n" +
+//                " AND    to_timestamp( :ToTime , 'YYYYMMDDHH24MI' ) \\n" +
+//                " GROUP BY a.instance_name , \\n" +
+//                "     b.program_hid, \\n" +
+//                "     COALESCE( c.hash_value, 'n/a' )                                                             \\n" +
+//                " ) a                                                                                             \\n" +
+//                " GROUP  BY instance_name ,                                                                       \\n" +
+//                "     CASE                                                                                        \\n" +
+//                " WHEN rnk <=10                                                                                   \\n" +
+//                " THEN a.program_name                                                                             \\n" +
+//                " ELSE 'Others'                                                                                   \\n" +
+//                " END                                                                                             \\n" +
+//                "union all\\n" +
+//                " SELECT instance_name ,                                                                          \\n" +
+//                "         CASE                                                                                    \\n" +
+//                "             WHEN rnk <=10                                                                       \\n" +
+//                "     THEN a.program_name                                                                         \\n" +
+//                "     ELSE 'Others'                                                                               \\n" +
+//                "     END program_name ,                                                                          \\n" +
+//                " --       ROUND( RATIO_TO_REPORT( SUM( column_value) ) over( ) *100 , 0 ) AS ratio ,             \\n" +
+//                "     SUM( column_value) column_value,                                                            \\n" +
+//                "     MAX( program_Hid ) program_Hid ,                                                            \\n" +
+//                "     MAX( rnk ) rnk                                                                              \\n" +
+//                " FROM   (                                                                                        \\n" +
+//                "     SELECT /*+ leading(a b) use_hash(b) full(b) */                                              \\n" +
+//                "     instance_name ,                                                                             \\n" +
+//                "     COALESCE( c.hash_value, 'n/a' ) program_name ,                                              \\n" +
+//                "     ROUND( SUM( b.cpu_usage ) , 0 ) column_value,                                               \\n" +
+//                "     ROW_NUMBER( ) over( PARTITION BY instance_name ORDER     BY SUM( b.cpu_usage ) DESC ) rnk , \\n" +
+//                "     b.program_hid                                                                               \\n" +
+//                " FROM   apm_db_info a ,                                                                          \\n" +
+//                "        krac2.ora_sql_stat_daily b,                                                         \\n" +
+//                "        krac2.XM_HASH_MASTER AS c                                                           \\n" +
+//                " WHERE  a.instance_name = upper( 'krac2' )                                                  \\n" +
+//                " AND    b.partition_key IN ( SELECT partition_key FROM tmp_part_list )                           \\n" +
+//                " AND    b.partition_key = c.partition_key                                                        \\n" +
+//                " AND    a.db_id=b.db_id                                                                          \\n" +
+//                " and    a.db_id=c.db_id                                                                          \\n" +
+//                " and    c.hash_id=b.program_hid                                                                  \\n" +
+//                " and    c.hash_type='PROGRAM'                                                                    \\n" +
+//                " AND    b.time BETWEEN to_timestamp( :FromTime , 'YYYYMMDDHH24MI' )                              \\n" +
+//                " AND    to_timestamp( :ToTime , 'YYYYMMDDHH24MI' )                                               \\n" +
+//                " GROUP BY a.instance_name ,                                                                      \\n" +
+//                "     b.program_hid,                                                                              \\n" +
+//                "     COALESCE( c.hash_value, 'n/a' )                                                             \\n" +
+//                " ) a                                                                                             \\n" +
+//                " GROUP  BY instance_name ,                                                                       \\n" +
+//                "     CASE                                                                                        \\n" +
+//                " WHEN rnk <=10                                                                                   \\n" +
+//                " THEN a.program_name                                                                             \\n" +
+//                " ELSE 'Others'                                                                                   \\n" +
+//                " END                                                                                             \\n" +
+//                "ORDER  BY instance_name ,rnk;\\n" +
+//                " SELECT instance_name ,                                                                                  \\n" +
+//                "        case when program_id = -1 then 'Others' else COALESCE( x.hash_value, 'n/a' ) end programe_name , \\n" +
+//                "        program_id ,                                                                                     \\n" +
+//                "        case when program_id = -1 then 'Others' else sql_id end sql_id ,                                 \\n" +
+//                "        ROUND( SUM( sql_elapsed_time ), 0 ) sql_elapsed_time ,                                           \\n" +
+//                "        MAX( pro_elapsed_time ) pro_elapsed_time ,                                                       \\n" +
+//                "        MAX( case when program_id = -1 then 11 else sql_rnk end ) sql_rnk                                \\n" +
+//                " FROM   (                                                                                                \\n" +
+//                "         SELECT instance_name ,                                                                          \\n" +
+//                "         CASE                                                                                            \\n" +
+//                "             WHEN sql_rnk <=10                                                                           \\n" +
+//                "             THEN program_hid                                                                            \\n" +
+//                "             ELSE - 1                                                                                    \\n" +
+//                "         END program_id ,                                                                                \\n" +
+//                "                pro_id ,                                                                                 \\n" +
+//                "                sql_id ,                                                                                 \\n" +
+//                "                sql_elapsed_time ,                                                                       \\n" +
+//                "                pro_elapsed_time ,                                                                       \\n" +
+//                "                sql_rnk                                                                                  \\n" +
+//                "         FROM   (                                                                                        \\n" +
+//                "                 SELECT d.instance_name ,                                                                \\n" +
+//                "                        d.program_hid ,                                                                  \\n" +
+//                "                        d.program_hid pro_id ,                                                           \\n" +
+//                "                        d.sql_id ,                                                                       \\n" +
+//                "                        d.sql_elapsed_time ,                                                             \\n" +
+//                "                        s.pro_elapsed_time ,                                                             \\n" +
+//                "                        ROW_NUMBER( ) over( PARTITION BY d.instance_name , d.program_hid                 \\n" +
+//                "                                       ORDER     BY d.sql_elapsed_time DESC ) AS sql_rnk                 \\n" +
+//                "                 FROM   (                                                                                \\n" +
+//                "                         SELECT a.instance_name ,                                                        \\n" +
+//                "                                b.program_hid ,                                                          \\n" +
+//                "                                b.sql_id ,                                                               \\n" +
+//                "                                SUM( b.cpu_usage ) sql_elapsed_time                                      \\n" +
+//                "                         FROM   apm_db_info a ,                                                          \\n" +
+//                "                                krac1.ora_sql_stat_daily b                                          \\n" +
+//                "                         WHERE  TIME >= to_timestamp( :FromTime  , 'YYYYMMDDHH24MI' )                    \\n" +
+//                "                         AND    TIME <= to_timestamp( :ToTime    , 'YYYYMMDDHH24MI' )                    \\n" +
+//                "                         AND    a.db_id=b.db_id                                                          \\n" +
+//                "                         AND    a.instance_name = upper( 'krac1' )                                  \\n" +
+//                "                         AND    partition_key IN (                                                       \\n" +
+//                "                                                  SELECT partition_key                                   \\n" +
+//                "                                                  FROM   tmp_part_list                                   \\n" +
+//                "                                                 )                                                       \\n" +
+//                "                         GROUP  BY a.instance_name ,                                                     \\n" +
+//                "                                b.program_hid ,                                                          \\n" +
+//                "                                b.sql_id                                                                 \\n" +
+//                "                        ) d ,                                                                            \\n" +
+//                "                        (                                                                                \\n" +
+//                "                         SELECT a.instance_name ,                                                        \\n" +
+//                "                                b.program_hid ,                                                          \\n" +
+//                "                                SUM( b.cpu_usage ) pro_elapsed_time ,                                    \\n" +
+//                "                                ROW_NUMBER( ) over( PARTITION BY a.instance_name                         \\n" +
+//                "                                               ORDER     BY SUM( b.cpu_usage ) DESC ) AS pro_rnk         \\n" +
+//                "                         FROM   apm_db_info a ,                                                          \\n" +
+//                "                                krac1.ora_sql_stat_daily b                                          \\n" +
+//                "                         WHERE  TIME >= to_timestamp( :FromTime  , 'YYYYMMDDHH24MI' )                    \\n" +
+//                "                         AND    TIME <= to_timestamp( :ToTime  , 'YYYYMMDDHH24MI' )                      \\n" +
+//                "                         AND    a.db_id=b.db_id                                                          \\n" +
+//                "                         AND    a.instance_name = upper( 'krac1' )                                  \\n" +
+//                "                         AND    partition_key IN (                                                       \\n" +
+//                "                                                  SELECT partition_key                                   \\n" +
+//                "                                                  FROM   tmp_part_list                                   \\n" +
+//                "                                                 )                                                       \\n" +
+//                "                         GROUP  BY a.instance_name ,                                                     \\n" +
+//                "                                b.program_hid                                                            \\n" +
+//                "                        ) s                                                                              \\n" +
+//                "                 WHERE  d.instance_name = s.instance_name                                                \\n" +
+//                "                 AND    d.program_hid = s.program_hid                                                    \\n" +
+//                "                 AND    s.pro_rnk <= 10                                                                  \\n" +
+//                "                ) as b                                                                                   \\n" +
+//                "        ) as v ,                                                                                         \\n" +
+//                "        krac1.xm_hash_master x                                                                      \\n" +
+//                " where  x.hash_id=program_id                                                                             \\n" +
+//                " AND    x.hash_type='PROGRAM'                                                                            \\n" +
+//                " and partition_key IN ( SELECT partition_key FROM   tmp_part_list )                                      \\n" +
+//                " GROUP  BY instance_name ,                                                                               \\n" +
+//                "        program_id ,                                                                                     \\n" +
+//                "        pro_id ,                                                                                         \\n" +
+//                "        case when program_id = -1 then 'Others' else sql_id end ,                                        \\n" +
+//                "        x.hash_value                                                                                     \\n" +
+//                "union all\\n" +
+//                " SELECT instance_name ,                                                                                  \\n" +
+//                "        case when program_id = -1 then 'Others' else COALESCE( x.hash_value, 'n/a' ) end programe_name , \\n" +
+//                "        program_id ,                                                                                     \\n" +
+//                "        case when program_id = -1 then 'Others' else sql_id end sql_id ,                                 \\n" +
+//                "        ROUND( SUM( sql_elapsed_time ), 0 ) sql_elapsed_time ,                                           \\n" +
+//                "        MAX( pro_elapsed_time ) pro_elapsed_time ,                                                       \\n" +
+//                "        MAX( case when program_id = -1 then 11 else sql_rnk end ) sql_rnk                                \\n" +
+//                " FROM   (                                                                                                \\n" +
+//                "         SELECT instance_name ,                                                                          \\n" +
+//                "         CASE                                                                                            \\n" +
+//                "             WHEN sql_rnk <=10                                                                           \\n" +
+//                "             THEN program_hid                                                                            \\n" +
+//                "             ELSE - 1                                                                                    \\n" +
+//                "         END program_id ,                                                                                \\n" +
+//                "                pro_id ,                                                                                 \\n" +
+//                "                sql_id ,                                                                                 \\n" +
+//                "                sql_elapsed_time ,                                                                       \\n" +
+//                "                pro_elapsed_time ,                                                                       \\n" +
+//                "                sql_rnk                                                                                  \\n" +
+//                "         FROM   (                                                                                        \\n" +
+//                "                 SELECT d.instance_name ,                                                                \\n" +
+//                "                        d.program_hid ,                                                                  \\n" +
+//                "                        d.program_hid pro_id ,                                                           \\n" +
+//                "                        d.sql_id ,                                                                       \\n" +
+//                "                        d.sql_elapsed_time ,                                                             \\n" +
+//                "                        s.pro_elapsed_time ,                                                             \\n" +
+//                "                        ROW_NUMBER( ) over( PARTITION BY d.instance_name , d.program_hid                 \\n" +
+//                "                                       ORDER     BY d.sql_elapsed_time DESC ) AS sql_rnk                 \\n" +
+//                "                 FROM   (                                                                                \\n" +
+//                "                         SELECT a.instance_name ,                                                        \\n" +
+//                "                                b.program_hid ,                                                          \\n" +
+//                "                                b.sql_id ,                                                               \\n" +
+//                "                                SUM( b.cpu_usage ) sql_elapsed_time                                      \\n" +
+//                "                         FROM   apm_db_info a ,                                                          \\n" +
+//                "                                krac2.ora_sql_stat_daily b                                          \\n" +
+//                "                         WHERE  TIME >= to_timestamp( :FromTime  , 'YYYYMMDDHH24MI' )                    \\n" +
+//                "                         AND    TIME <= to_timestamp( :ToTime    , 'YYYYMMDDHH24MI' )                    \\n" +
+//                "                         AND    a.db_id=b.db_id                                                          \\n" +
+//                "                         AND    a.instance_name = upper( 'krac2' )                                  \\n" +
+//                "                         AND    partition_key IN (                                                       \\n" +
+//                "                                                  SELECT partition_key                                   \\n" +
+//                "                                                  FROM   tmp_part_list                                   \\n" +
+//                "                                                 )                                                       \\n" +
+//                "                         GROUP  BY a.instance_name ,                                                     \\n" +
+//                "                                b.program_hid ,                                                          \\n" +
+//                "                                b.sql_id                                                                 \\n" +
+//                "                        ) d ,                                                                            \\n" +
+//                "                        (                                                                                \\n" +
+//                "                         SELECT a.instance_name ,                                                        \\n" +
+//                "                                b.program_hid ,                                                          \\n" +
+//                "                                SUM( b.cpu_usage ) pro_elapsed_time ,                                    \\n" +
+//                "                                ROW_NUMBER( ) over( PARTITION BY a.instance_name                         \\n" +
+//                "                                               ORDER     BY SUM( b.cpu_usage ) DESC ) AS pro_rnk         \\n" +
+//                "                         FROM   apm_db_info a ,                                                          \\n" +
+//                "                                krac2.ora_sql_stat_daily b                                          \\n" +
+//                "                         WHERE  TIME >= to_timestamp( :FromTime  , 'YYYYMMDDHH24MI' )                    \\n" +
+//                "                         AND    TIME <= to_timestamp( :ToTime  , 'YYYYMMDDHH24MI' )                      \\n" +
+//                "                         AND    a.db_id=b.db_id                                                          \\n" +
+//                "                         AND    a.instance_name = upper( 'krac2' )                                  \\n" +
+//                "                         AND    partition_key IN (                                                       \\n" +
+//                "                                                  SELECT partition_key                                   \\n" +
+//                "                                                  FROM   tmp_part_list                                   \\n" +
+//                "                                                 )                                                       \\n" +
+//                "                         GROUP  BY a.instance_name ,                                                     \\n" +
+//                "                                b.program_hid                                                            \\n" +
+//                "                        ) s                                                                              \\n" +
+//                "                 WHERE  d.instance_name = s.instance_name                                                \\n" +
+//                "                 AND    d.program_hid = s.program_hid                                                    \\n" +
+//                "                 AND    s.pro_rnk <= 10                                                                  \\n" +
+//                "                ) as b                                                                                   \\n" +
+//                "        ) as v ,                                                                                         \\n" +
+//                "        krac2.xm_hash_master x                                                                      \\n" +
+//                " where  x.hash_id=program_id                                                                             \\n" +
+//                " AND    x.hash_type='PROGRAM'                                                                            \\n" +
+//                " and partition_key IN ( SELECT partition_key FROM   tmp_part_list )                                      \\n" +
+//                " GROUP  BY instance_name ,                                                                               \\n" +
+//                "        program_id ,                                                                                     \\n" +
+//                "        pro_id ,                                                                                         \\n" +
+//                "        case when program_id = -1 then 'Others' else sql_id end ,                                        \\n" +
+//                "        x.hash_value                                                                                     \\n" +
+//                "ORDER  BY instance_name , pro_elapsed_time DESC, sql_rnk ASC;\"," +
+//                "\"bind\": [        {        \"name\": \"FromTime\",            \"value\": \"201404170000\"        },        {        \"name\": \"ToTime\",            \"value\": \"201404172359\"        }    ],    \"database\":\"maxgauge_pg_temp\"    }";
+
+            /*
+             var ABind = {};
+
+             ASQLJSON.sql_file = "MFOPA_TopSql_Graph.sql";
+             ASQLJSON.bind = [];
+
+             ABind.name = "db_id";
+             ABind.value = "4";
+             ASQLJSON.bind.push(ABind);
+             ABind = null;
+
+             ABind = {};
+             ABind.name = "from_time";
+             ABind.value = "2014-04-01 00:00:00";
+             ASQLJSON.bind.push(ABind);
+             ABind = null;
+
+             ABind = {};
+             ABind.name = "to_time";
+             ABind.value = "2014-04-01 14:40:00";
+             ASQLJSON.bind.push(ABind);
+             ABind = null;
+
+             ABind = {};
+             ASQLJSON.replace_string = [];
+             ABind.name = "sql_id";
+             ABind.value = "'60388F4167117A9C582C1FED','5C9C603B1E3DCD652E01AE5E','49FF026E0BA244DB2E4F7FBE','54D4A84B13AD3A44684F2A46','58F69DB011953F1836A2CB3F','7F2E5E6E28D980C630240F86','3F7ECF9859CD1C71713E8C97','3E92BD5549E7904504B9BE7A','47F5B9613E0C7ADA7C84C69D','163069CE43827F0C20EE0170','3886CB6952E7FB1020DD29C5','0AA82ADF1172BD9B65DD192D','2BBBD65841168D8F16FDCA96','09E9F9CD37D10C221EDAD6E6','499556AF117BD25A241E4CFE','468D53E15255F965666F8917','2AAC8C0D7242C31142DA7336','0C4A7AF63B91F3150AEA451F','452E2FF165C67DE1618885B2','4A96A09F5CC038CB35A1B1F2'";
+             ASQLJSON.replace_string.push(ABind);
+             ABind = null;
+
+             ABind = {};
+             ABind.name = "partition_key";
+             ABind.value = "10004140401";
+             ASQLJSON.replace_string.push(ABind);
+             ABind = null;
+             */
+//        var ASQLJSON = JSON.parse(ASQLJSONStr);
+
+            /*
+             var ASQLJSON = {};
+             var ABind;
+
+             ASQLJSON.sql_file = "IMXRT_ServiceStat_byGroup.sql";
+             ASQLJSON.database = "pgsql";
+
+             ASQLJSON.bind = new Array();
+
+             ABind = {};
+             ABind.name = "fromtime";
+             ABind.type = "string";
+             ABind.value = "2014-12-2 00:00:00.000";
+
+             ASQLJSON.bind.push(ABind);
+             ABind = null;
+
+             ABind = {};
+             ABind.name = "totime";
+             ABind.type = "string";
+             ABind.value = "2014-12-3 23:59:00.000";
+             ASQLJSON.bind.push(ABind);
+             ABind = null;
+
+             ASQLJSON.replace_string = new Array();
+
+             ABind = {};
+             ABind.name = "names";
+             ABind.value = "'EAI', 'EAI', 'FEP', 'GYEJUNG', 'MCA', 'SUB'";
+             ASQLJSON.replace_string.push(ABind);
+             ABind = null;
+
+             AConn.SQLExec(ASQLJSON);
+             */
+//    var ASQLJSON = {};
+
+//    ASQLJSON.sql = "delete from xapm_business_group_info where group_name = 'MCA' and (region = '' or region is null); commit;"
+            var ASQLJSON = JSON.parse('{"sql_file":"MFOPA2_PT_src_10min_Chart.sql","bind":[{"name":"fromTime","value":"2015-03-10 00:00:00"},{"name":"toTime","value":"2015-03-10 23:59:00"},{"name":"db_id","value":"3"},{"name":"statDateTime","value":""}],"replace_string":[{"name":"fromTime","value":"2015-03-10 00:00:00"},{"name":"toTime","value":"2015-03-10 23:59:00"},{"name":"db_id","value":"3"},{"name":"partitionKey","value":"10003150310"},{"name":"temptable_seq","value":"_1426040106081"}]}');
+
+            AConn.SQLExec(ASQLJSON);
+        }
+
+        /*
+         function IMXWS_TestSQL() {
+         //AConn.SQLFileExec('txn_detail_drag.sql',["from_time","2013-07-16 09:29:06","to_time","2013-07-16 13:31:52","err_count","-1","txn_name","%","txn_elapse_min","5", "txn_elapse_max", "31", "sql_elapse", "0", "sql_exec_count", "0", "fetch_count", "0", "sql_elapse_avg", "0"],true,["was_id", "333,77,771,881,991,772,882,992,443,503,553,773,883,51,1,2,3,4,4,500,600"],function(){alert(1)});
+         AConn.SQLFileExec('txn_detail_drag.sql',["from_time","2013-07-16 04:50:44","to_time","2013-07-16 04:53:13","err_count","-1","txn_name","%","txn_elapse_min","12", "txn_elapse_max", "31", "sql_elapse", "0", "sql_exec_count", "0", "fetch_count", "0", "sql_elapse_avg", "0"],1,["was_id", "333,77,771,881,991,772,882,992,443,503,553,773,883,51,1,2,3,4,4,500,600"],function(a,b){console.log(a); console.log(b);});
+         }
+         */
+    </script>
+
+<body>
+<div align="center">
+    <h1>Intermax WebSocket Daemon JavaScript Class (IMXWS) Demo</h1>
+    <h4><a href="IMXWS_Ref.html" target="_blank">IMXWS.js Reference Manual</a></h4>
+    <h4><a href="IMXWS_sql_Ref.html" target="_blank">IMXWS.js Reference Manual for SQL Developer</a></h4>
+    <br/>
+    <hr width="98%"/>
+    <br/>
+    <table cellpadding="0" cellspacing="0">
+        <tr> <!-- 화면을 양쪽으로 분활 함 -->
+            <td valign="top"><!-- 왼쪽 화면엔 전체 패킷에 대한 정보와 sql_file 호출 부분을 넣어 놓는다. -->
+                <p>IMXWS Push Data On/Off (default:off)<br/><input type="button" id="push_on" value="Push Data On"
+                                                                   onclick="IMXWS_PushDataOn();"/><input type="button"
+                                                                                                         id="push_off"
+                                                                                                         value="Push Data Off"
+                                                                                                         onclick="IMXWS_PushDataOff();"/>
+                </p>
+
+                <p>IMXWS Extract Header On/Off (default:on)<br/>
+                    <input type="button" id="extract_header_on" value="Extract Header On"
+                           onclick="IMXWS_ExtractHeaderOn()"/>
+                    <input type="button" id="extract_header_off" value="Extract Header Off"
+                           onclick="IMXWS_ExtractHeaderOff()"/></p>
+
+                <p>IMXWS Receive All Packets On/Off (default:on)<br/>
+                    <font style="font-weight:none;font-size:7pt;color:red;">현대 본 데모는 모든 패킷이 연결 돼 있어 실제 On/Off 차이가 나타나지는
+                        않음.</font><br/>
+                    <input type="button" id="receive_all_packets" value="Receive All Packets"
+                           onclick="IMXWS_AllPacketsOn()"/>
+                    <input type="button" id="receive_selected_packets" value="Receive Selected Packets"
+                           onclick="IMXWS_AllPacketsOff()"/></p>
+
+                <p>IMXWS Kepp Connection<br/>
+                    <input type="radio" name="keep_connection" value="true"
+                           onclick="IMXWS_KeepConnectionChange(this.value)">On</input><input type="radio"
+                                                                                             name="keep_connection"
+                                                                                             value="false" checked
+                                                                                             onclick="IMXWS_KeepConnectionChange(this.value)">Off</input>
+                </p>
+
+                <p>IMXWS Default Database<br/>
+                    <select id="database_list" name="database_list" onchange="IMXWS_DBChanged(this)"></select>
+                </p>
+
+                <p>
+                    IMXWS Send JSON<br/>
+                    <input type="button" id="function_sendjson" value="Send JSON Object"
+                           onclick="IMXWS_SendJSON()"/><input type="button" id="function_filljson"
+                                                              value="Fill Empty JSON Text"
+                                                              onclick="IMXWS_FillJSON()"/><br/><textarea
+                        id="function_sendjson_text" cols="70" rows="10">{}</textarea><br/>
+                    <textarea id="function_sendjson_result" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p>IMXWS SQL File Execute<br/>
+                    <font class="normal_text">SQL File Name : </font><input type="text" id="sqlfile_name"
+                                                                            value="service_info.sql"
+                                                                            style="width:250px;"><input type="button"
+                                                                                                        id="sqlfile_exec"
+                                                                                                        value="SQL File Exec."
+                                                                                                        onclick="IMXWS_ExecSQLFile()"/><br/>
+                    <font class="normal_text">Replace String (pair) : </font><input type="text" id="sqlfile_repl"
+                                                                                    value="" style="width:200px;"
+                                                                                    disabled/> <input type="checkbox"
+                                                                                                      id="sqlfile_repl_check"
+                                                                                                      onclick="IMXWS_ExecSQLFile_Repl_Click(this)"><font
+                            class="normal_text">using Replace Pair</font></input><br/>
+                    <textarea id="sqlexec_result" cols="70" rows="5"> </textarea>
+                </p>
+
+                <p>IMXWS SQL File Execute with Bind<br/>
+                    <font class="normal_text">SQL File Name : </font><input type="text" id="sqlfile_bind_name"
+                                                                            value="service_info_bindpair.sql"
+                                                                            style="width:250px;"><input type="button"
+                                                                                                        id="sqlfile_bind_exec"
+                                                                                                        value="SQL File Exec."
+                                                                                                        onclick="IMXWS_ExecSQLFileBind()"/><br/>
+                    <font class="normal_text">Bind Values : </font><input type="text" id="sqlfile_bind"
+                                                                          value="was_name,W%,host_name,WEB%"
+                                                                          style="width:200px;"><!--<input type="checkbox" id="sqlfile_check_bind_pair" checked><font class="normal_text">is Bind Pair</font></input>--><font
+                            class="normal_text">Bind</font><select id="sqlfile_check_bind_pair">
+                        <option value="0">Bind</option>
+                        <option selected value="1">Bind Pair</option>
+                        <option value="2">Bind Pair (with Type)</option>
+                    </select><br/><font class="normal_text">Replace String (pair) : </font><input type="text"
+                                                                                                  id="sqlfile_bind_repl"
+                                                                                                  value=""
+                                                                                                  style="width:200px;"
+                                                                                                  disabled/> <input
+                            type="checkbox" id="sqlfile_bind_repl_check"
+                            onclick="IMXWS_ExecSQLFile_Bind_Repl_Click(this)"><font class="normal_text">using Replace
+                        Pair</font></input><br/>
+                    <textarea id="sqlexec_bind_result" cols="70" rows="5"> </textarea>
+                </p>
+                <p>IMXWS SQL Stored Procedure Execute with Bind<br/>
+                    <font class="normal_text">Stored Procedure Name : </font><input type="text" id="sqlproc_bind_name"
+                                                                                    value="txn_detail"
+                                                                                    style="width:250px;"><input
+                            type="button" id="sqlproc_bind_exec" value="Stored Proc Exec."
+                            onclick="IMXWS_ExecSQLProcBind()"/><br/>
+                    <font class="normal_text">Bind Values : </font><input type="text" id="sqlproc_bind"
+                                                                          value="was_name,W%,host_name,WEB%"
+                                                                          style="width:200px;"><br/>
+                    <textarea id="sqlproc_bind_result" cols="70" rows="5"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS SQL File List<br/>
+                    <input type="button" id="function_sqllist" value="Retrive SQL File List" onclick="IMXWS_SQLList()"/><br/>
+                    <textarea id="function_sqllist_result" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS SQL File View<br/>
+                    <font class="normal_text">SQL File Name : </font><input type="text" id="function_sqlview_sqlfile"
+                                                                            value="service_info.sql"
+                                                                            style="width:250px;"><input type="button"
+                                                                                                        id="function_sqlview"
+                                                                                                        value="Retrive SQL File"
+                                                                                                        onclick="IMXWS_SQLView()"/><br/>
+                    <textarea id="function_sqlview_result" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS Read Text File<br/>
+                    <font class="normal_text">Text File Name : </font><input type="text" id="function_read_text"
+                                                                             value="IMXWS.html"
+                                                                             style="width:250px;"><input type="button"
+                                                                                                         id="function_readtext"
+                                                                                                         value="Retrive Text File"
+                                                                                                         onclick="IMXWS_ReadText()"/><br/>
+                    <textarea id="function_readtext_result" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p valign="top">
+                    IMXWS Format SQL<br/>
+                    <font class="normal_text">SQL</font><input type="button" id="function_formatsql" value="Format SQL"
+                                                               onclick="IMXWS_FormatSQL()"/><br/><textarea
+                        id="function_sqlformat_sql" cols="70" rows="10">select l.service_id, l.was_id, w.was_name, w.host_name, w.gather_id, w.ALERT_GROUP_NAME, w.LAST_BOOT_TIME, w.LAST_DOWN_TIME,  w.LAST_RES_SUMMARY_TIME, w.LAST_SOURCE_DOWN_TIME, w.LAST_SQL_SUMMARY_TIME, w.LAST_TXN_SUMMARY_TIME from   xapm_service_was_list l, xapm_was_info w where  l.was_id=w.was_id and    w.LAST_BOOT_TIME is not null</textarea><br/>
+                    <textarea id="function_sqlformat_result" rows="10" cols="70"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS Service Info<br/>
+                    <input type="button" id="datagather_serviceinfo" value="Retrive Service Info"
+                           onclick="IMXWS_ServiceInfo()"/><br/>
+                    <textarea id="datagather_serviceinfo_result" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS Alarm History<br/>
+                    <input type="button" id="datagather_alarmhistory" value="Retrive Alarm History"
+                           onclick="IMXWS_AlarmHistory()"/><br/>
+                    <textarea id="datagather_alarmhistory_result" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS Host Group Info<br/>
+                    <input type="button" id="datagather_hostgroupinfo" value="Retrive Host Group Info"
+                           onclick="IMXWS_HostGroupInfo()"/><br/>
+                    <textarea id="datagather_hostgroupinfo_result" rows="5" cols="70"> </textarea>
+                </p>
+                <!--
+                                <p>
+                                    IMXWS Was Session Count<br />
+                                    <input type="button" id="datagather_wassessioncount" value="Retrive Was Session Count" onclick="IMXWS_WasSessionCount()" /><br />
+                                    <textarea id="datagather_wassessioncount_result" rows="5" cols="70"></textarea>
+                                </p>
+                                <p>
+                                    IMXWS Was TPS<br />
+                                    <input type="button" id="datagather_wastps" value="Retrive Was TPS" onclick="IMXWS_WasTPS()" /><br />
+                                    <textarea id="datagather_wastps_result" rows="5" cols="70"></textarea>
+                                </p>
+                                <p>
+                                    IMXWS Was TXN Elapse<br />
+                                    <input type="button" id="datagather_wastxnelapse" value="Retrive Was TXN Elapse" onclick="IMXWS_WasTXNElapse()" /><br />
+                                    <textarea id="datagather_wastxnelapse_result" rows="5" cols="70"></textarea>
+                                </p>
+                                <p>
+                                    IMXWS Dashboard TXN Count<br />
+                                    <input type="button" id="datagather_dashboardtxncount" value="Retrive Dashboard TXN Count" onclick="IMXWS_DashboardTXNCount()" /><br />
+                                    <textarea id="datagather_dashboardtxncount_result" rows="5" cols="70"></textarea>
+                                </p>
+                                <p>
+                                    IMXWS Recent Top SQL<br />
+                                    <input type="button" id="datagather_recenttopsql" value="Retrive Recent Top SQL" onclick="IMXWS_RecentTopSQL()" /><br />
+                                    <textarea id="datagather_recenttopsql_result" rows="5" cols="70"> </textarea>
+                                </p>
+                                <p>
+                                    IMXWS Recent Top TXN<br />
+                                    <input type="button" id="datagather_recenttoptxn" value="Retrive Recent Top TXN" onclick="IMXWS_RecentTopTXN()" /><br />
+                                    <textarea id="datagather_recenttoptxn_result" rows="5" cols="70"> </textarea>
+                                </p>
+                                <p>
+                                    IMXWS Recent Top Exception<br />
+                                    <input type="button" id="datagather_recenttopexception" value="Retrive Recent Top Exception" onclick="IMXWS_RecentTopException()" /><br />
+                                    <textarea id="datagather_recenttopexception_result" rows="5" cols="70"> </textarea>
+                                </p>
+                -->
+                <p>
+                    IMXWS NH Global<br/>
+                    <input type="button" id="nhglobal" value="NH Global" onclick="IMXWS_NHGlobal()"/><br/>
+                    <textarea id="datagather_nhglobal_result" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS Client IP<br/>
+                    <input type="button" id="clientip" value="Client IP" onclick="IMXWS_ClientIP()"/><br/>
+                    <textarea id="datagather_clientip_result" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS Plug-In Function<br/>
+                    <font class="normal_text">Function Name : </font><input type="text" id="plugin_function_name"
+                                                                            value="" style="width:300px;"><br/>
+                    <font class="normal_text">DLL Name : </font><input type="text" id="plugin_dll_name" value=""
+                                                                       style="width:300px;"><br/>
+                    <font class="normal_text">Function Options : </font><input type="text" id="plugin_function_option"
+                                                                               value="" style="width:200px;"><input
+                        type="button" id="plugin_function" value="Call Plug-In Function"
+                        onclick="IMXWS_PlugInFunction()"/><br/>
+                    <textarea id="plugin_function_result" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS Add/Remove Was Server<br/>
+                    <font class="normal_text">Was Name (or ID)</font><input type="text" id="add_remove_was" value=""
+                                                                            style="width:80px;"/><input type="button"
+                                                                                                        value="Add Was"
+                                                                                                        onclick="IMXWS_Add_Was()"/><input
+                        type="button" value="Remove Was" onclick="IMXWS_RemoveWas()"/><input type="button"
+                                                                                             value="Receive All Was"
+                                                                                             onclick="IMXWS_AllWas()"/><br/>
+                    <textarea id="add_remove_was_text" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS Add/Remove DB Server<br/>
+                    <font class="normal_text">DB Name (or ID)</font><input type="text" id="add_remove_db" value=""
+                                                                           style="width:80px;"/><input type="button"
+                                                                                                       value="Add DB"
+                                                                                                       onclick="IMXWS_Add_DB()"/><input
+                        type="button" value="Remove DB" onclick="IMXWS_RemoveDB()"/><input type="button"
+                                                                                           value="Receive All DB"
+                                                                                           onclick="IMXWS_AllDB()"/><br/>
+                    <textarea id="add_remove_db_text" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS Add/Remove Web Server<br/>
+                    <font class="normal_text">Web Name (or ID)</font><input type="text" id="add_remove_web" value=""
+                                                                            style="width:80px;"/><input type="button"
+                                                                                                        value="Add Web"
+                                                                                                        onclick="IMXWS_Add_Web()"/><input
+                        type="button" value="Remove Web" onclick="IMXWS_RemoveWeb()"/><input type="button"
+                                                                                             value="Receive All Web"
+                                                                                             onclick="IMXWS_AllWeb()"/><br/>
+                    <textarea id="add_remove_web_text" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS Add/Remove Host Server<br/>
+                    <font class="normal_text">Host Name (or ID)</font><input type="text" id="add_remove_host" value=""
+                                                                            style="width:80px;"/><input type="button"
+                                                                                                        value="Add Host"
+                                                                                                        onclick="IMXWS_Add_Host()"/><input
+                        type="button" value="Remove Host" onclick="IMXWS_RemoveHost()"/><input type="button"
+                                                                                             value="Receive All Host"
+                                                                                             onclick="IMXWS_AllHost()"/><br/>
+                    <textarea id="add_remove_host_text" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS Add/Remove Option String<br/>
+                    <font class="normal_text">Option String</font><input type="text" id="add_remove_option" value=""
+                                                                         style="width:180px;"/><input type="button"
+                                                                                                      value="Add Option"
+                                                                                                      onclick="IMXWS_Add_Option()"/><input
+                        type="button" value="Remove Option" onclick="IMXWS_Remove_Option()"/><br/>
+                    <textarea id="add_remove_option_text" rows="5" cols="70"> </textarea>
+                </p>
+
+                <p>
+                    IMXWS Send EMail<br/>
+                    <font class="normal_text">Subject: </font><input type="text" id="send_mail_subject" value=""
+                                                                     style="width:230px;"><input type="button"
+                                                                                                 id="send_mail_function"
+                                                                                                 value="Send Mail"
+                                                                                                 onclick="IMXWS_SendMailFunction()"/><br/>
+                    <font class="normal_text">from - name: </font><input type="text" id="send_mail_from_name" value=""
+                                                                         style="width:120px;"/> <font
+                        class="normal_text">address: </font><input type="text" id="send_mail_from_addr" value=""
+                                                                   style="width:120px;"><br/>
+                    <font class="normal_text">to - name: </font><input type="text" id="send_mail_to_name" value=""
+                                                                       style="width:120px;"/> <font class="normal_text">address: </font><input
+                        type="text" id="send_mail_to_addr" value="" style="width:120px;"><br/>
+                    <font class="normal_text">cc - name: </font><input type="text" id="send_mail_cc_name" value=""
+                                                                       style="width:120px;"/> <font class="normal_text">address: </font><input
+                        type="text" id="send_mail_cc_addr" value="" style="width:120px;"><br/>
+                    <font class="normal_text">bcc - name: </font><input type="text" id="send_mail_bcc_name" value=""
+                                                                        style="width:120px;"/> <font
+                        class="normal_text">address: </font><input type="text" id="send_mail_bcc_addr" value=""
+                                                                   style="width:120px;"><br/>
+                    <font class="normal_text">Attachment: </font><input type="file" id="send_mail_attach" value=""
+                                                                        style="width:250px;"/><br/>
+                    <font class="normal_text">Content: </font><br/>
+                    <textarea id="send_mail_content" rows="5" cols="70"> </textarea>
+                <hr style="width:370px; " align=left>
+                <textarea id="send_mail_text" rows="5" cols="70"> </textarea>
+                </p>
+                <input type="button" value="sql exec test" onclick="IMXWS_SQLTest()"/><br/>
+            </td>
+            <td valign="top"><!-- 오른쪽 화면엔 push data 를 종류별로 분류해서 출력 해 주도록 한다. -->
+                IMXWS Console&nbsp;&nbsp;&nbsp;<input type="checkbox" id="pushdataoff" checked>Exclude Push Data</input>
+                <br/>
+                <textarea id="log_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="log_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Config console<br/>
+                <textarea id="config_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="config_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS SQLExec console<br/>
+                <textarea id="sqlexec_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="sqlexec_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Function console<br/>
+                <textarea id="function_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="function_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS DataGather console<br/>
+                <textarea id="datagather_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="datagather_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS PushData console<br/>
+                <textarea id="pushdata_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="pushdata_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Alarm History console<br/>
+                <textarea id="alarmhistory_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="alarmhistory_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Service Info console<br/>
+                <textarea id="serviceinfo_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="serviceinfo_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Activity console<br/>
+                <textarea id="activity_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="activity_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Activity (Client IP) console<br/>
+                <textarea id="activityclientip_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="activityclientip_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Was Stat console<br/>
+                <textarea id="wasstat_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="wasstat_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS DB CPU Change console<br/>
+                <textarea id="dbcpuchange_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="dbcpuchange_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS DB Stat console<br/>
+                <textarea id="dbstat_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="dbstat_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS SQL Elapse console<br/>
+                <textarea id="sqlelapse_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="sqlelapse_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Active TXN console<br/>
+                <textarea id="activetxn_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="activetxn_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Pool Monitor console<br/>
+                <textarea id="poolmonitor_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="poolmonitor_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Log History console<br/>
+                <textarea id="loghistory_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="loghistory_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Process Monitor console<br/>
+                <textarea id="processmonitor_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="processmonitor_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Process Status console<br/>
+                <textarea id="processstatus_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="processstatus_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS JVM GC Max console<br/>
+                <textarea id="jvmgcmax_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="jvmgcmax_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS JVM GC Stat console<br/>
+                <textarea id="jvmgcstat_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="jvmgcstat_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Lock Info console<br/>
+                <textarea id="lockinfo_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="lockinfo_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Server Status console<br/>
+                <textarea id="serverstatus_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="serverstatus_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Recent Top TXN console<br/>
+                <textarea id="recenttoptxn_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="recenttoptxn_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Recent Top SQL console<br/>
+                <textarea id="recenttopsql_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="recenttopsql_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Recent Top Exception console<br/>
+                <textarea id="recenttopexception_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="recenttopexception_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Web Active console<br/>
+                <textarea id="webactive_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="webactive_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Web Active Sum console<br/>
+                <textarea id="webactivesum_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="webactivesum_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS RTM Summary console<br/>
+                <textarea id="rtmsummary_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="rtmsummary_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Was TXN Summary console<br/>
+                <textarea id="wastxnsummary_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="wastxnsummary_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Was DB TXN Summary console<br/>
+                <textarea id="wasdbtxnsummary_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="wasdbtxnsummary_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Was Session Count console<br/>
+                <textarea id="wassessioncount_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="wassessioncount_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Top Was Info console<br/>
+                <textarea id="topwasinfo_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="topwasinfo_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Host Group Info console<br/>
+                <textarea id="hostgroupinfo_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="hostgroupinfo_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Was TPS console<br/>
+                <textarea id="wastps_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="wastps_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Was TXN Elapse console<br/>
+                <textarea id="wastxnelapse_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="wastxnelapse_data" cols="70" rows="10"> </textarea><br/>
+                IMXWS Dashboard TXN Count console<br/>
+                <textarea id="dashboardtxncount_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="dashboardtxncount_data" cols="70" rows="10"> </textarea><br/>
+                Was Stat OS console<br/>
+                <textarea id="wasstatos_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="wasstatos_data" cols="70" rows="10"> </textarea><br/>
+                Was Stat Bank console<br/>
+                <textarea id="wasstatbank_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="wasstatbank_data" cols="70" rows="10"> </textarea><br/>
+                WS Stat console<br/>
+                <textarea id="wsstat_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="wsstat_data" cols="70" rows="10"> </textarea><br/>
+                WS OS Stat console<br/>
+                <textarea id="wsosstat_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="wsosstat_data" cols="70" rows="10"> </textarea><br/>
+                NH Global console<br/>
+                <textarea id="nhglb_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="nhglb_data" cols="70" rows="10"> </textarea><br/>
+                Was Monitor Daily console<br/>
+                <textarea id="wasmonitordaily_console" cols="70" rows="5" border="0"> </textarea><br/>
+                <textarea id="wasmonitordaily_data" cols="70" rows="10"> </textarea><br/>
+            </td>
+        </tr>
+    </table>
+</div>
+</body>

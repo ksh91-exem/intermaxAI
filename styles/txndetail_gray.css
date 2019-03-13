@@ -1,0 +1,325 @@
+@CHARSET "UTF-8";
+
+.mx-theme-gray .rtm-txn-grid-n-detail{
+    background: #212227;
+}
+
+.mx-theme-gray .txn-detail-container{
+    background: #35383F;
+    border: 1px solid #474a53;
+}
+
+.mx-theme-gray .txn-detail-background {
+    background: #35383F;
+}
+
+.mx-theme-gray .txn-detail-background .x-splitter{
+    background: #35383F;
+}
+
+/*************************** Transaction Detail Top *******************************/
+.mx-theme-gray .txn-detail-info-container .txn-detail-info-wrap {
+    color: #ABAEB5;
+    border-bottom: 2px solid #474a53;
+}
+
+.mx-theme-gray .txn-detail-info-container .txn-detail-info-client,
+.mx-theme-gray .txn-detail-info-container .txn-detail-info-web,
+.mx-theme-gray .txn-detail-info-container .txn-detail-info-java,
+.mx-theme-gray .txn-detail-info-container .txn-detail-info-db,
+.mx-theme-gray .txn-detail-info-container .txn-detail-info-remote{
+    color: #ABAEB5;
+}
+
+.mx-theme-gray .txn-detail-info-container .txn-detail-bar{
+    border: 1px solid #212227;
+}
+
+.mx-theme-gray .txn-detail-info-container .rtm-btn:hover {
+    /*color: #fff;*/
+    background-image: -webkit-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -moz-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -ms-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -o-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: linear-gradient(top, #69e9ef  0%, #5ccbda 100%);
+
+    border-radius: 5px;
+    text-shadow: 0px 1px 0px rgba(16,126,173,.9);
+}
+
+.mx-theme-gray .txn-detail-info-container .rtm-btn .x-btn-inner{
+    color: #aeb1b9;
+}
+
+.mx-theme-gray .txn-detail-info-container .rtm-btn:hover .x-btn-inner{
+    color: #fff;
+}
+
+.mx-theme-gray .txn-detail-info-container .rtm-btn {
+    text-decoration: none;
+    color: #aeb1b9;
+    height:20px;
+    font-size: 12px;
+    border: 1px solid #3b3d41;
+    letter-spacing:0;
+
+    background-image: -webkit-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: -moz-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: -ms-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: -o-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: linear-gradient(top, #626a77 0%, #414755 100%);
+
+    border-radius: 5px;
+    text-shadow: 0px 1px 0px rgba(16,126,173,.9);
+    box-shadow: none;
+}
+
+.mx-theme-gray .txn-detail-info-container .rtm-btn:hover {
+    color: #fff;
+    background-image: -webkit-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -moz-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -ms-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -o-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: linear-gradient(top, #69e9ef  0%, #5ccbda 100%);
+
+    border-radius: 5px;
+    text-shadow: 0 1px 0 rgba(16,126,173,.9);
+}
+
+/*************************** Transaction Detail Center *******************************/
+.mx-theme-gray .txn-detail-center-path{
+    background-color: #282B32;
+}
+.mx-theme-gray .txn-detail-center-path path{
+    stroke: #999;
+    fill: #999;
+}
+
+.mx-theme-gray .txn-path-filter input{
+    background: #212227;
+    color: #ABAEB5;
+    border: 1px solid #50555C;
+}
+
+.mx-theme-gray .call-tree-checkbox{
+    color: #ABAEB5;
+}
+
+.mx-theme-gray .call-tree-filter .x-btn-inner{
+    color: #aeb1b9;
+}
+
+.mx-theme-gray .call-tree-filter:hover .x-btn-inner{
+    color: #ffffff;
+}
+
+.mx-theme-gray .call-tree-filter {
+    background-image: -webkit-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: -moz-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: -ms-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: -o-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: linear-gradient(top, #626a77 0%, #414755 100%);
+
+    border-radius: 5px;
+    text-shadow: 0px 1px 0px rgba(16,126,173,.9);
+    box-shadow: none;
+}
+
+.mx-theme-gray .call-tree-filter:hover {
+    background-image: -webkit-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -moz-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -ms-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -o-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: linear-gradient(top, #69e9ef  0%, #5ccbda 100%);
+
+    border-radius: 5px;
+    text-shadow: 0px 1px 0px rgba(16,126,173,.9);
+    opacity: 1;
+}
+
+.mx-theme-gray .txn-detail-center .txn-detail-center-side,
+.mx-theme-gray .txn-detail-bottom .txn-detail-bottom-side{
+    color: #ABAEB5;
+    border-right: 1px solid #474a53;
+}
+
+.mx-theme-gray .txn-detail-center .txn-detail-center-side li,
+.mx-theme-gray .txn-detail-bottom .txn-detail-bottom-side li{
+    border-bottom: 1px dotted #50555C;
+}
+
+.mx-theme-gray .txn-detail-center .txn-detail-center-side li.active,
+.mx-theme-gray .txn-detail-bottom .txn-detail-bottom-side li.active{
+    background-color: #282B32;
+    border-right: none;
+}
+
+/*************************** Transaction Detail Bottom *******************************/
+.mx-theme-gray .txn-detail-botton-side-sqlList{
+    border-top: 2px solid #474a53;
+}
+
+.mx-theme-gray .txn-detail-bottom-layer{
+    border-top: 2px solid #474a53;
+}
+
+.mx-theme-gray .txn-detail-bottom-layer .x-splitter{
+    background: #474a53;
+}
+
+.mx-theme-gray .txn-detail-bottom-userData{
+    color: #ABAEB5;
+}
+
+/*************************** Transaction Path Tab *******************************/
+.mx-theme-gray .txn_path_tab .x-panel-body{
+    background: #282B32;
+    border: 1px solid #474a53;
+}
+
+/*************************** Transaction Path Tree *******************************/
+.mx-theme-gray .txn-detail-background .x-tree-elbow-img.x-tree-elbow-line {
+    background-image: url(../images/xm_icon_Black_v1.png);   /* ㅏ 모양  */
+    background-position: -264px -261px;
+}
+.mx-theme-gray .txn-detail-background .x-tree-elbow-img.x-tree-elbow-end {
+    background-image: url(../images/xm_icon_Black_v1.png);   /* ㄴ 모양 */
+    background-position: -315px -261px;
+}
+
+.mx-theme-gray .txn-detail-background .x-tree-elbow-img.x-tree-elbow-plus {
+    background-image: url(../images/xm_icon_Black_v1.png);   /* ㅏ에 (+) 이미지  */
+    background-position: -186px -261px;
+}
+
+.mx-theme-gray .txn-detail-background .x-grid-tree-node-expanded .x-tree-elbow-img.x-tree-elbow-plus.x-tree-expander {
+    background-image: url(../images/xm_icon_Black_v1.png);   /* ㅏ에 (-) 이미지 */
+    background-position: -345px -261px
+}
+
+.mx-theme-gray .txn-detail-background .x-grid-tree-node-expanded .x-tree-elbow-img.x-tree-elbow-end-plus.x-tree-expander{
+    background-image: url(../images/xm_icon_Black_v1.png);   /* ㄴ  (-) 이미지*/
+    background-position: -213px -261px
+}
+
+.mx-theme-gray .txn-detail-background .x-tree-elbow-img.x-tree-elbow-end-plus{
+    background-image: url(../images/xm_icon_Black_v1.png);   /* ㄴ  (+) 이미지 */
+    background-position: -290px -261px;
+}
+
+.mx-theme-gray .txn-detail-background .x-tree-elbow-img.x-tree-elbow {
+    background-image: url(../images/xm_icon_Black_v1.png);   /*  l 모양 */
+    background-position: -236px -261px;
+}
+
+/*************************** Transaction Path button *******************************/
+.mx-theme-gray .call-tree-checkbox .rtm-btn {
+    position: absolute;
+    text-decoration: none;
+    /*color: #aeb1b9;*/
+    width: 89px;
+    height:23px;
+    float:left;
+    font-size: 12px;
+    line-weight:10px;
+    border: 1px solid #3b3d41;
+    letter-spacing:0px;
+
+    background-image: -webkit-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: -moz-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: -ms-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: -o-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: linear-gradient(top, #626a77 0%, #414755 100%);
+
+    border-radius: 5px;
+    text-shadow: 0px 1px 0px rgba(16,126,173,.9);
+    box-shadow: none;
+}
+
+.mx-theme-gray .call-tree-checkbox .rtm-btn:hover {
+    /*color: #fff;*/
+    background-image: -webkit-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -moz-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -ms-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -o-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: linear-gradient(top, #69e9ef  0%, #5ccbda 100%);
+
+    border-radius: 5px;
+    text-shadow: 0px 1px 0px rgba(16,126,173,.9);
+}
+
+.mx-theme-gray .call-tree-checkbox .rtm-btn .x-btn-inner{
+    color: #aeb1b9;
+}
+
+.mx-theme-gray .call-tree-checkbox .rtm-btn:hover .x-btn-inner{
+    color: #fff;
+}
+
+.mx-theme-gray .txn-path-filter .rtm-btn {
+    position: absolute;
+    text-decoration: none;
+    color: #aeb1b9;
+    width:103px;
+    height:20px;
+    float:left;
+    font-size: 12px;
+    border: 1px solid #3b3d41;
+    letter-spacing:0px;
+
+    background-image: -webkit-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: -moz-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: -ms-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: -o-linear-gradient(top, #626a77 0%, #414755 100%);
+    background-image: linear-gradient(top, #626a77 0%, #414755 100%);
+
+    border-radius: 5px;
+    text-shadow: 0px 1px 0px rgba(16,126,173,.9);
+    box-shadow: none;
+}
+
+.mx-theme-gray .txn-path-filter .rtm-btn:hover {
+    color: #fff;
+    background-image: -webkit-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -moz-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -ms-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: -o-linear-gradient(top, #69e9ef 0%, #5ccbda 100%);
+    background-image: linear-gradient(top, #69e9ef  0%, #5ccbda 100%);
+
+    border-radius: 5px;
+    text-shadow: 0px 1px 0px rgba(16,126,173,.9);
+}
+
+.mx-theme-gray .rtm-base .baseGridRTM .highlight{
+    background: #2E445E !important;
+}
+
+
+.mx-theme-gray .txn-detail-center .active-nav{
+    background-color: #282B32;
+    border-right: none;
+}
+
+.mx-theme-gray .tree-node {
+    color : #212227;
+    box-shadow : 1px 1px 6px #626a77;
+}
+
+.mx-theme-gray .txn-detail-info-container2 .txn-detail-info-url-label{
+    position: absolute;
+    color : #ABAEB5;
+    top: 53px;
+    left: 30px;
+}
+
+
+.mx-theme-gray .txn-detail-info-container2 .txn-detail-info-url{
+    position: absolute;
+    color: #ABAEB5;
+    top: 53px;
+    left: 60px;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}

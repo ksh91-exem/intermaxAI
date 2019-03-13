@@ -1,0 +1,416 @@
+{
+	"users":[{
+		"id"	: 1,
+		"name"	: "TRX_NAME_TYPE",
+		"value"	: "0",
+		"description"		: "txn name (정의 : 0:default, 1:parameter, 2:param_nouri, 3:attribute)",
+		"description_en"	: "A type of transaction variable used for naming the transactioin. 0=default; 1=parameter; 2=param_nouri; 3=attribute",
+		"description_ja"	: "トランザクションの命名に使用されるトランザクション変数のタイプ。 0 =デフォルト、1 =パラメータ、 2 = param_nouri 、3 =属性。"
+	}, {
+		"id"	: 2,
+		"name"	: "TRX_NAME_KEY",
+		"value"		: "없음(길이 0인 문자열, \''\'')",
+		"value_en"	: "blank(=\''\'')",
+		"value_ja"	: "空白(=\''\'')",
+		"description"		: "TRX_NAME_TYPE 설정에 따라 1의 경우, TRX_NAME_KEY의 모든 항목들을 키로 삼아 HTTP 헤더로부터 값을 얻고 transaction의 이름을 &ltrequestURI&gt?&lt키-값&키=값…&gt으로 설정한다. 2의 경우, TRX_NAME_KEY의 모든 항목들을 키로 삼아 HTTP 헤더로부터 값을 얻어 transaction을 이름을 키-값&키=값… 으로 설정한다. 3의 경우, TRX_NAME_KEY의 첫 번째 항목을 키로 삼아 HTTP 헤더로부터 transaction 이름을 추출한다.",
+		"description_en"	: "Key variables in HTTP headers. Depending on the value of TRX_NAME_TYPE, 1= transaction name will be &ltrequestURI?&gt?TRX_NAME_KEY=&ltvalue&gt&...&TRX_NAME_KEY[n]=&ltvalue&gt 2= transaction name will be TRX_NAME_KEY[0]=&ltvalue&gt&...&TRX_NAME_KEY[n]=&ltvalue&gt 3= transaction name will be TRX_NAME_KEY[0]=&ltvalue&gt",
+		"description_ja"	: "HTTPヘッダーの主要変数。 TRX_NAME_TYPEの値により、1の場合のトランザクション名は<requestURI?>?TRX_NAME_KEY=<値>&...&TRX_NAME_KEY[n]=<値> 、2の場合のトランザクション名はTRX_NAME_KEY[0]=<value>&...&TRX_NAME_KEY[n]=<値>、3の場合のトランザクション名はTRX_NAME_KEY[0]=<値>となります。"
+	}, {
+		"id"	: 3,
+		"name"	: "TRX_LOGIN_TYPE",
+		"value"	: "0",
+		"description"		: "Login Name 수집 시, 세션에서 가져올 것인지 패킷에서 가져올 것인지 Type을 설정 (정의 : 0:default, 1:attribute, 2:cookie)",
+		"description_en"	: "A type of data used for \''Login Name\'' 0=default; 1=attribute; 2=cookie",
+		"description_ja"	: "「ログイン名」に使用されるデータのタイプ。0 =デフォルト、1 =属性、2 =cookie"
+	}, {
+		"id"	: 4,
+		"name"	: "TRX_LOGIN_KEY",
+		"value"		: "없음(길이 0인 문자열, \''\'')",
+		"value_en"	: "blank(=\''\'')",
+		"value_ja"	: "空白(=\''\'')",
+		"description"		: "Login Name 수집 시 가져올 변수 값을 설정하며, TRX_LOGIN_TYPE 에서 설정한 TYPE에 따라 Login_name 값에 저장된 변수 명을 입력",
+		"description_en"	: "Name of the java variable used in a soruce code to represent the user \''Login Name\'' (e.g. \''userid\'')",
+		"description_ja"	: "ユーザーの「ログイン名」を表すためにソースコードで使用されるjava変数の名前。(例：\''userid\'')"
+	}, {
+		"id"	: 5,
+		"name"	: "TRX_IP_KEY",
+		"value"		: "없음(길이 0인 문자열, \''\'')",
+		"value_en"	: "blank(=\''\'')",
+		"value_ja"	: "空白(=\''\'')",
+		"description"		: "HTTP 헤더에서 TRX_IP_KEY를 키로 삼아 타겟 호스트의 IP 주소를 얻어오며, TRX_IP_KEY가 DEFAULT인 경우 IP 주소는 DEFAULT로 표시",
+		"description_en"	: "blank(=\''\'') = target host IP address will be from HTTP headers (X-Forwarded-For, Proxy-Client-IP, WL-Proxy-Client-IP, HTTP_CLIENT_IP, HTTP_X_FORWARDED_FOR, Client-IP). \''DEFAULT\'' = target host IP address will be from javax.servlet http.HttpServletRequest.getRemoteAddr() or \''127.0.0.1\'' other = target host IP address will be from HTTP header with TRX_IP_KEY as key",
+		"description_ja"	: "空白(=\''\'')の場合、ターゲットホストのIPアドレスは、HTTPヘッダー(X-Forwarded-For、Proxy-Client-IP、WL-Proxy-Client-IP、HTTP_CLIENT_IP、HTTP_X_FORWARDED_FOR、Client-IP)からきます。\''DEFAULT\''の場合、ターゲットホストのIPアドレスはjavax.servlet で、http.HttpServletRequest.getRemoteAddr()または \''127.0.0.1\''からきます。otherの場合、ターゲットホストのIPアドレスはTRX_IP_KEYをキーとするHTTPヘッダーからきます。"
+	}, {
+		"id"	: 6,
+		"name"	: "TRX_ERR_TYPE",
+		"value"	: "0",
+		"description"		: "trx_err_type을 1로 설정 시, 기존 txn error처리는 무시하고 response status가 500일때만 txn error로 취급",
+		"description_en"	: "1=Ignore all transactional errors except for the response status 500 error",
+		"description_ja"	: "1にすると、応答ステータスが500エラーを除くすべてのトランザクションエラーを無視する。"
+	}, {
+		"id"	: 7,
+		"name"	: "APP_SLEEP",
+		"value"	: "0 sec",
+		"description"		: "(단위 : sec)",
+		"description_en"	: "(unit : second)"
+	}, {
+		"id"	: 8,
+		"name"	: "ACTIVE_PERIOD",
+		"value"	: "3 sec",
+		"description"		: "실시간 Transaction 발생 주기 값을 표시 (단위 : sec)",
+		"description_en"	: "Refresh interval of Active Transaction on RTM (unit : second)",
+		"description_ja"	: "RTMでのアクティブトランザクションのリフレッシュ間隔(単位：秒)"
+	}, {
+		"id"	: 9,
+		"name"	: "ACTIVE_TOP_COUNT",
+		"value"	: "all",
+		"description"		: "JSPD에서 보내는 Active Transaction의 Max개수를 정할 수 있는 옵션 값이며, 미 설정 시 모든 Transaction을 전송",
+		"description_en"	: "Maximum number of active transactions of which the details will be sent out. (chronologically ordered)",
+		"description_ja"	: "詳細が送信されるアクティブトランザクションの最大数 (時系列順)"
+	}, {
+		"id"	: 10,
+		"name"	: "ACTIVE_ELAPSE_TIME",
+		"value"	: "0 ms",
+		"description"		: "Transaction Elapse Time이 설정한 수치 이상인 경우에만 JSPD에서 보내도록 설정할 수 있는 옵션 값(단위 : ms)",
+		"description_en"	: "Minimum Transaction Elapse Time of which the details will be sent out (unit : millisecond)",
+		"description_ja"	: "詳細が送信される最小トランザクション実行時間(単位：ミリ秒)"
+	}, {
+		"id"	: 11,
+		"name"	: "CURR_TRACE_TXN",
+		"value"	: "*:3000",
+		"description"		: "설정한 시간을 초과하는 class method를 수집하는 옵션 값",
+		"description_en"	: "Minimum Transaction Elapse Time of which the called class methods data will be collected.",
+		"description_ja"	: "呼び出されたクラスメソッドのデータが収集されるトランザクションの最小実行時間。"
+	}, {
+		"id"	: 12,
+		"name"	: "CURR_TRACE_LEVEL",
+		"value"	: "99",
+		"description"		: "Call Tree의 수집 범위 설정 옵션 0 ~99 까지 설정 가능. (단위 : %), 90초과 : 전체 수집, 1~89: 지정한 %만큼 수집, 0: 수집안함",
+		"description_en"	: "Collect Call Tree range of setup options can be set from 0 to 99.(unit : %), Over 90: Full collection, 1 to 89: Collected by specified percentage, 0: Do not collect",
+		"description_ja"	: "セットアップオプションのコールツリーの収集範囲は0から99まで設定できます。(単位：%)90以上：全体の収集、1～89：指定した%を収集、0：収集しない"
+	}, {
+		"id"	: 13,
+		"name"	: "TRACE_JDBC",
+		"value"	: "true",
+		"description"		: "class method를 수집 시 JDBC 메소드 수집 여부 설정 값 false 시 JDBC 메소드를 제외 하고 수집. ( 단, getConnection 메소드는 수집) true 시 모든 메소드 수집.",
+		"description_en"	: "Whether to exclude JDBC library methods from the call tree data collection. false=Exclude any JDBC library methods except for \''getConnection\''. true=Collect all JDBC library methods.",
+		"description_ja"	: "コール・ツリー・データ収集からJDBCライブラリーメソッドを除外するかどうかの設定。 falseは、 「getConnection」を除くすべてのJDBCライブラリメソッドを除外します。 Trueは、すべてのJDBCライブラリメソッドを収集します。"
+	}, {
+		"id"	: 14,
+		"name"	: "METHOD_DEBUG",
+		"value"	: "false",
+		"description"		: "Method별 수행시간 수집 여부를 위한 옵션 값을 나타내며, true이면 method 수행시간이 0인 method도 Call Tree에 표시됨(어플리케이션 디버깅 시 사용). false인 경우, 수행시간이 0인 method는 콜트리에서 표시되지 않음",
+		"description_en"	: "Whether to collect class method data of which the elapse time equals 0 second. TRUE=Collect all class methods being called. FALSE=Exclude any methods with elapse time of 0 second.",
+		"description_ja"	: "実行時間が0秒のクラスメソッドデータを収集するかどうかの設定。 TRUEは、呼び出されているすべてのクラスメソッドを収集します。 FALSEは、経過時間が0秒のメソッドを除外し、収集しません。"
+	}, {
+		"id"	: 15,
+		"name"	: "EXCLUDE_SERVICE",
+		"value"	: "gif,js,css,xml",
+		"description"		: "URL을 검색하여 EXCLUDE_SERVICE 옵션 값에 포함된 URL은 Transaction에서 제외하는 옵션 값",
+		"description_en"	: "Exclude collecting transactional data of which the URL contains given Strings.",
+		"description_ja"	: "指定された文字列がURLに含まれているトランザクションデータの収集を除外します。"
+	}, {
+		"id"	: 16,
+		"name"	: "INCLUDE_EXCEPTION",
+		"value"	: "none",
+		"description"		: "INCLUDE_EXCEPTION에 등록한 Exception 인 경우, 사용자가 예외처리를 하더라도 예외 Transaction으로 처리함. 트랜잭션 모니터에서 빨간점(예외)로 표시되며, 예외 전문도 표시됨. 해당 값이 설정안되어 있더라도 기본적으로  java.sql.SQLException과 Sub Class는 수집된다. (ex : java.naming.NameNotFoundException)",
+		"description_en"	: "Regardless of the exceptions being handled or not, any transactions with such excpetions will be considered to have that exception event and will appear as red dots on the transaction monitor graph. Even if that value is not the setting is to collect java.sql.SQLException and Sub Class. (Ex: java.naming.NameNotFoundException) ",
+		"description_ja"	: "例外が処理されているかどうかにかかわらず、そのような例外を伴うすべてのトランザクションはその例外イベントを持つとみなされ、そのままjava.SQLExceptionおよびSub Classを収集します。(例：java.naming.NameNotFoundException)"
+	}, {
+		"id"	: 17,
+		"name"	: "EXCLUDE_EXCEPTION",
+		"value"	: "none",
+		"description"		: "예외로 발생되었지만 예외 Transaction으로 관리하고 싶지 않은 Exception에 대해서 등록. 본 예외를 발생시키는 Transaction은 정상 Transaction으로 간주함",
+		"description_en"	: "Any transactions with the given exceptions will always be considered normal.",
+		"description_ja"	: "指定した例外のあるすべてのトランザクションを、常に正常とみなします。"
+	}, {
+		"id"	: 18,
+		"name"	: "PRIORITY_LEVEL",
+		"value"	: "none",
+		"description"		: "Active Transaction 임계치 개수를 뜻한다. 10이면 10개 active transaction이 수행될 때 추가로 트랜잭션이 유입되면 URL 리다이렉션된다. (ex:10)",
+		"description_en"	: "Active Transaction threashold level.  (If the number of active transactions exceeds the given number, any new transactions will be redirected to \''REDIRECT_URL\''). (ex:10)",
+		"description_ja"	: "アクティブトランザクションの閾値レベル。(アクティブトランザクションの数が所定の数を超えた場合、新しいトランザクションはすべて「REDIRECT_URL」にリダイレクトされます) (例：10)"
+	}, {
+		"id"	: 19,
+		"name"	: "REDIRECT_URL",
+		"value"	: "none",
+		"description"		: "PRIORITY_LEVEL 에 넣어 준 값 이상이 되면 넘어갈 페이지 주소. (ex : error.jsp)",
+		"description_en"	: "Redirect URL. (ex : error.jsp)",
+		"description_ja"	: "リダイレクトURL (例：error.jsp)"
+	}, {
+		"id"	: 20,
+		"name"	: "RESP_HTML_TID",
+		"value"	: "false",
+		"description"		: "Web서버 모니터링 할 때 true로 설정. True로 설정 시 Web모니터링 시 Web URL호출과 WAS연계 매핑정보를 가져오며, 설정되지 않으면 WAS ID연계정보가 입력되지 않는다. 웹서버 모니터링 Agent가 설치되어 있어야 한다",
+		"description_en"	: "Whether to monitor Web Servers TRUE=With web agent being installed, Web URLs and associated WAS data will be mapped.",
+		"description_ja"	: "Webサーバーを監視するかどうかの設定。TRUE = インストールされたWebエージェント、Web URLと関連するWASデータがマッピングされます。"
+	}, {
+		"id"	: 21,
+		"name"	: "RESP_HTML_SCRIPT",
+		"value"	: "false",
+		"description"		: "Response time기능 사용 여부 설정하는 옵션 값",
+		"description_en"	: "Whether to use \''Response time\'' feature. (Requires javascript code)",
+		"description_ja"	: "「応答時間」機能を使用するかどうかの設定。(javascriptコードが必要)"
+	}, {
+		"id"	: 22,
+		"name"	: "RESP_HTML_ELAPSE_TIME",
+		"value"	: "50 ms",
+		"description"		: "Response time 기능 사용 시 클라이언트 응답간이 설정 값 이상의 데이터만 수집하는 옵션 (단위 : ms)",
+		"description_en"	: "Minimum client response time required to collect data (unit : millisecond)",
+		"description_ja"	: "データ収集に必要なクライアントの応答時間の最小値。(単位：ミリ秒)"
+	}, {
+		"id"	: 23,
+		"name"	: "RT_RMI",
+		"value"	: "false",
+		"description"		: "Remote Call 수집 여부 설정하는 옵션",
+		"description_en"	: "Whether to collect the Remote Call data",
+		"description_ja"	: "リモートコールデータを収集するかどうかの設定。"
+	}, {
+		"id"	: 24,
+		"name"	: "RT_RMI_VENDOR",
+		"value"	: "ext",
+		"description"		: "외부호출 관련 서비스를 사용하는 클래스 패키지명을 설정. jspd-ext.jar를 사용하기 때문에 기본값으로 ext로 사용하며, 사용자는 별도 설정을 변경하지 않음",
+		"description_en"	: "Class package name of the remote call related services. jspd-ext.jar is used by default.",
+		"description_ja"	: "リモートコール関連サービスのクラスパッケージ名。 「jspd-ext.jar」がデフォルトで使用されます。"
+	}, {
+		"id"	: 25,
+		"name"	: "RT_RMI_TYPE",
+		"value"	: "3",
+		"description"		: "RT_RMI_TYPE = 1이면 P Key1이 변경, RT_RMI_TYPE = 2이면 C Key1이 변경, RT_RMI_TYPE = 3이면 Key1이 mode에 관계없이 변경. P는 원격 호출하는 WAS서버, C는 원격 호출을 받아서 수행하는 WAS서버, PC는 원격호출을 보내기도 하고 호출 받아서 수행도 하는 WAS서버인 경우 설정",
+		"description_en"	: "1=Parent Server, 2=Child Server, 3=Parent and/or Child Server.",
+		"description_ja"	: "1 =親サーバー、2 =子サーバー、3 =親サーバーおよび/または子サーバー。"
+	}, {
+		"id"	: 26,
+		"name"	: "RT_RMI_ELAPSE_TIME",
+		"value"	: "0 ms",
+		"description"		: "Remote Call수집대상 data의 Elapse Time 최소값 설정하는 옵션",
+		"description_en"	: "Minimum remote elapse time to collect Remote Call data.",
+		"description_ja"	: "リモートコールデータを収集するための最小リモート実行時間。"
+	}, {
+		"id"	: 27,
+		"name"	: "RT_FILE",
+		"value"	: "0x10",
+		"description"		: "파일 open/close를 콜트리에 보여줄 지 여부",
+		"description_en"	: "Each digit after 0x represents file open / close respectively.  0=ignore, 1=collect, e.g. 0x11 = collect both file open/close methods ",
+		"description_ja"	: "0xの後の各桁は、ファイルのオープン/クローズを表します。0=無視する、1=収集する、0x11=ファイルのオープン/クローズの両方のメソッドを収集します。"
+	}, {
+		"id"	: 28,
+		"name"	: "RT_SOCKET",
+		"value": "0x10",
+		"description"		: "socket open/close를 콜트리에 보여줄 지 여부",
+		"description_en"	: "Each digit after 0x represents socket open / close respectively. 0=ignore, 1=collect, e.g. 0x11 = collect both socket open/close methods ",
+		"description_ja"	: "0xの後の各桁はソケットのオープン/クローズを表します。0=無視する、1=収集する、0x11=ソケットのオープン/クローズの両方のメソッドを収集します。"
+	}, {
+		"id"	: 29,
+		"name"	: "MTD_PARAM_TRACE",
+		"value"	: "false",
+		"description"		: "Class와 metohd를 설정하여 Method의 파라미터 값을 수집하도록 하는 옵션",
+		"description_en"	: "Whether to collect the method parameter values.",
+		"description_ja"	: "メソッドのパラメータ値を収集するかどうかの設定。"
+	}, {
+		"id"	: 30,
+		"name"	: "COMPRESS_SQL",
+		"value"	: "false",
+		"description"		: "65k 이상일 때, 압축여부를 설정하는 옵션",
+		"description_en"	: "Whether to compress SQL when exceeds 65k."
+	}, {
+		"id"	: 31,
+		"name"	: "LIMIT_SQL",
+		"value"	: "20",
+		"description"		: "SQL문장 텍스트 길이가 영문 20자(byte) 미만인 경우 수집 대상에서 제외하는 옵션",
+		"description_en"	: "Minimum SQL text length to be collected.",
+		"description_ja"	: "収集されるSQLテキストの最小長。"
+	}, {
+		"id"	: 32,
+		"name"	: "BIND_SIZE",
+		"value"	: "2048",
+		"description"		: "한 SQL당 수집하는 bind 변수 값의 최대 크기를 지정하는 옵션으로 바인드 변수가 설정값 이상이 되면 데이터 수집에서 제외",
+		"description_en"	: "Maximum size of SQL bind variable. (If exceeds, will be ignored).",
+		"description_ja"	: "SQLバインド変数の最大サイズ。(超えている場合は無視されます)"
+	}, {
+		"id"	: 33,
+		"name"	: "BIND_ELAPSE_TIME",
+		"value"	: "50ms",
+		"description"		: "txn 내 SQL 수행 시간이 설정된 값 이상이면 바인드값을 수집하도록 하는 옵션",
+		"description_en"	: "Minimum SQL elapse time to collect SQL bind variable values.",
+		"description_ja"	: "SQLバインド変数値を収集するための最小SQL実行時間。"
+	}, {
+		"id"	: 34,
+		"name"	: "TXN_CPU_TIME",
+		"value"	: "false",
+		"description"		: "thread CPU time을 수집할 지 여부",
+		"description_en"	: "whether to collect transaction thread CPU time",
+		"description_ja"	: "トランザクションスレッドのCPU時間を収集するかどうかの設定。"
+	}, {
+		"id"	: 35,
+		"name"	: "THROW_TXN_FETCH_COUNT",
+		"value"	: "0",
+		"description"		: "txn내의 SQL문의 Fetch Count의 합이 설정된 값 이상이면 트랜잭션 수행 중 exception이 일어나고 수행을 종료 시키는 옵션",
+		"description_en"	: "Transactional fetch count threshold to throw an Exception and terminate the transaction.",
+		"description_ja"	: "例外をスローしてトランザクションを終了するためのトランザクションフェッチ数の閾値。"
+	}, {
+		"id"	: 36,
+		"name"	: "THROW_SQL_FETCH_COUNT",
+		"value"	: "0",
+		"description"		: "Sql의 fetch count가 설정 값 이상이면 sql 수행 중 exception이 일어나고 수행을 종료 시킨다. SQL단위로 max값 설정",
+		"description_en"	: "SQL fetch count threshold to throw an Exception and terminate the transaction.",
+		"description_ja"	: "例外をスローしてトランザクションを終了させるSQLフェッチ数の閾値。"
+	}, {
+		"id"	: 37,
+		"name"	: "THROW_EXCLUDE_SERVICE",
+		"value"		: "없음(길이 0인 문자열, \''\'')",
+		"value_en"	: "blank(=\''\'')",
+		"value_ja"	: "空白(=\''\'')",
+		"description"		: "FETCH COUNT 예외처리 설정에 적용된 수치가 적용되지 않는 트랜잭션을 설정하는 옵션으로 해당 트랜잭션은 fetch count에 관계없이 수행 종료하지 않고 정상 처리",
+		"description_en"	: "Service of which bypass both THROW_TXN_FETCH_COUNT and THROW_SQL_FETCH_COUNT critieria. Regardless of the fetch count value, transactions of the given service will not be terminated.",
+		"description_ja"	: "THROW_TXN_FETCH_COUNTとTHROW_SQL_FETCH_COUNTの両方の基準をバイパスするサービス。フェッチ数値に関係なく、指定されたサービスのトランザクションは終了しません。"
+	}, {
+		"id"	: 38,
+		"name"	: "LOG_ALERT",
+		"value"	: "1:java.lang.OutOfMemoryError,2:container {0} booted",
+		"description"		: "WAS 서버 로그 기록된 것을 파싱해서 보여주는 옵션으로 RT 위빙 후 해당 옵션을 설정해야 함",
+		"description_en"	: "To show WAS log of the selected type. (This option must be set after RT-weaving).",
+		"description_ja"	: "選択したタイプのWASログを表示します。(このオプションは、RT-設定後に設定する必要があります)"
+	}, {
+		"id"	: 39,
+		"name"	: "DEBUG",
+		"value"	: "0x000000000",
+		"description"		: "0x를 제외한 9개의 0이 순서대로 RMI, HTML, RESPONSE, CLASS, GC, UDP, TCP, TRACE, DEBUG값을 의미. 해당 순서의 값을 1로 변경하면 해당 값 관련 데이터의 값만 수집",
+		"description_en"	: "Each digit after 0x represents RMI, HTML, RESPONSE, CLASS, GC, UDP, TCP, TRACE, and DEBUG respectively. Set the value of digit(s) to '1' to collect the corresponding information. 0x000000001=Collect DEBUG data.",
+		"description_ja"	: "0xの後の各桁は、それぞれRMI、HTML、RESPONSE、CLASS、GC、UDP、TCP、TRACE、およびDEBUGを表します。対応する情報を収集するには、桁の値を'1'に設定します。0x000000001= DEBUGデータを収集します。"
+	}, {
+		"id"	: 40,
+		"name"	: "TXN_ELAPSE_TIME",
+		"value"	: "0ms",
+		"description"		: "설정한 시간 이상의 트랜잭션만 수집(단위: ms)",
+		"description_en"	: ""
+	}, {
+		"id"	: 41,
+		"name"	: "USE_SESSIONID_FOR_WEBID",
+		"value"	: "false",
+		"description"		: "세션 방식으로 사용자 수를 집계한다.(Jeus만 가능)",
+		"description_en"	: ""
+	}, {
+		"id"	: 42,
+		"name"	: "UDP_BUFFER_CLEAR_PERIOD",
+		"value"	: "6000 minutes(min 5 minutes)",
+		"description"		: "설정된 시간동안 사용되지 않은 udp buffer 제거(단위: minutes)",
+		"description_en"	: ""
+	}, {
+		"id"	: 43,
+		"name"	: "USE_TRACE_COLLECTION_LEAK",
+		"value"	: "false",
+		"description"		: "Java Collection Leak 추적 기능 사용 여부",
+		"description_en"	: ""
+	}, {
+		"id"	: 44,
+		"name"	: "TRACE_COLLECTION_SIZE",
+		"value"	: "1000",
+		"description"		: "Java Collection Leak 최소 크기",
+		"description_en"	: ""
+	}, {
+		"id"	: 45,
+		"name"	: "TRACE_COLLECTION_STACKTRACE_SIZE",
+		"value"	: "10000",
+		"description"		: "Java Collection Leak 경계 수준 설정",
+		"description_en"	: ""
+	}, {
+		"id"	: 46,
+		"name"	: "TRACE_COLLECTION_REPORT_PERIOD",
+		"value"	: "600000 ms (10 minutes)",
+		"description"		: "Java Collection Leak 사용 정보 전송 주기 (단위: ms)",
+		"description_en"	: ""
+	}, {
+		"id"	: 47,
+		"name"	: "LOG_PATH",
+		"value"		: "없음(길이 0인 문자열, \''\'')",
+		"value_en"	: "blank(=\''\'')",
+		"value_ja"	: "空白(=\''\'')",
+		"description"		: "로그 경로 설정, 사용시 절대 경로 입력하여야 함",
+		"description_en"	: ""
+	}, {
+		"id"	: 48,
+		"name"	: "USE_TRACE_ORACLE",
+		"value"	: "false",
+		"description"		: "MAXGAUGE for Oracle과의 연계 활성화",
+		"description_en"	: ""
+	}, {
+		"id"	: 49,
+		"name"	: "TRX_NAME_USE_ENCODING",
+		"value"	: "false",
+		"description"		: "트랜잭션이름의 인코딩을 변경할지 여부",
+		"description_en"	: ""
+	}, {
+		"id"	: 50,
+		"name"	: "TRX_NAME_ENCODING_FROM",
+		"value"	: "ISO-8859-1",
+		"description"		: "수집된 트랜잭션 이름의 인코딩(was의 url 인코딩 타입)",
+		"description_en"	: ""
+	}, {
+		"id"	: 51,
+		"name"	: "TRX_NAME_ENCODING_TO",
+		"value"	: "UTF-8",
+		"description"		: "해당 인코딩으로 트랜잭션 이름을 변경한다",
+		"description_en"	: ""
+	}, {
+		"id"	: 52,
+		"name"	: "GET_SID_WHEN_STMT",
+		"value"	: "false",
+		"description"		: "DB세션id(sid) 조회 시점을 statement 사용 시점으로 변경 여부",
+		"description_en"	: ""
+	}, {
+		"id"	: 53,
+		"name"	: "USE_JMX",
+		"value"	: "false",
+		"description"		: "JVM GC 관련 지표들을 JMX를 이용하여 수집함(JAVA 1.5 이상)",
+		"description_en"	: ""
+	}, {
+		"id"	: 54,
+		"name"	: "DISABLE_JDBC_ALARM",
+		"value"	: "false",
+		"description"		: "두가지 알람을 disable 시킴(XM_JDBC_CONN_NOTCLOSED, XM_JDBC_NOT_COMMIT_ROLLBACK)",
+		"description_en"	: ""
+	}, {
+		"id"	: 55,
+		"name"	: "USE_LONG_SQL",
+		"value"	: "false",
+		"description"		: "SQL 문장 텍스트 길이를 100K 까지 확장하여 수집하는 옵션(TRUE: 100K까지 수집, FALSE: 64K까지 수집)",
+		"description_en"	: ""
+	}, {
+		"id"	: 56,
+		"name"	: "DISABLE_SQL_BIND",
+		"value"	: "false",
+		"description"		: "SQL 바인드 변수 수집 여부(TRUE: 미수집, FALSE: 수집)",
+		"description_en"	: ""
+	}, {
+		"id"	: 57,
+		"name"	: "ENABLE_ENCRYPT_SQL_BIND",
+		"value"	: "false",
+		"description"		: "SQL 바인드 변수 암호화 여부(JSPD PROTOCOL6 이상)",
+		"description_en"	: ""
+	}, {
+		"id"	: 58,
+		"name"	: "ENABLE_ENCRYPT_LOGIN_NAME",
+		"value"	: "false",
+		"description"		: "로그인명(LOGIN_NAME) 암호화 여부(JSPD PROTOCOL6 이상)",
+		"description_en"	: ""
+	}, {
+		"id"	: 59,
+		"name"	: "USE_REPLACE_NUMBER_PATH",
+		"value"	: "false",
+		"description"		: "path에 숫자가 들어가져 있으면 ### 으로 치환 해주는 기능 (RESTFul API의 서버인 경우 대응)",
+		"description_en"	: ""
+	}, {
+		"id"	: 60,
+		"name"	: "THREAD_DUMP_MAX_SIZE",
+		"value"	: "2",
+		"description"		: "쓰레드 덤프의 최대 크기를 지정(min:2 max:10)",
+		"description_en"	: ""
+	}, {
+		"id"	: 61,
+		"name"	: "MTD_LIMIT",
+		"value"	: "10000",
+		"description"		: "한 트랜잭션에서 수집하는 콜트리 제한",
+		"description_en"	: ""
+	}]
+ }

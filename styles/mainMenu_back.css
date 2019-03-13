@@ -1,0 +1,208 @@
+    @font-face {
+        font-family: 'NanumGothic'!important;
+        src: url('./fonts/NanumGothic.ttf') format('truetype') !important;
+    }
+    @font-face {
+        font-family: 'Roboto Condensed'!important;
+        src: url('./fonts/RobotoCondensed-Regular.ttf') format('truetype') !important;
+    }
+
+
+    /* ===================================== <  Original Menu >  Right Top View ======================================*/
+    #MenuBtn {
+        position : fixed;
+        background-image: url(../images/Menu_Image/etc/menu.png);
+        width  : 26px;
+        height : 26px;
+        top    : 15px;
+        right  : 14px;
+        z-index: 10;
+    }
+
+    #MenuBtn.btnon{
+        background-image: url(../images/Menu_Image/etc/menu_over.png);
+    }
+
+
+/*  Modify Code  */
+    #descBorad {
+        position : fixed;
+        background-color : #515151;
+        opacity: 0.96;
+        width  : 470px;
+        height : 315px;
+        top    : 65px;
+        right  : 18px;
+        -webkit-border-bottom-right-radius: 17px;
+        -webkit-border-bottom-left-radius: 17px;
+        visibility: hidden;
+        z-index : 99999;
+    }
+    #descBorad.active{
+        visibility: visible;
+    }
+
+    #MenuBorad{
+        position : fixed;
+        background-color: #ffffff;
+        width  : 170px;
+        height : 310px;
+        top    : 65px;
+        right  : 23px;
+        -webkit-border-bottom-right-radius: 17px;
+        -webkit-border-bottom-left-radius: 17px;
+        visibility: hidden;
+        z-index : 99999;
+    }
+    #MenuBorad.active{
+        visibility: visible;
+    }
+
+
+    #MenuNav{
+        position: relative;
+        display: block;
+        background: url(../images/Menu_Image/etc/MenuTitle.png) no-repeat;
+        height : 39px;
+        border-bottom: 1px solid;
+        border-bottom-color: #C7C7C7;
+    }
+
+    #MenuClose{
+        cursor: pointer;        
+        position: fixed;
+        display: inline-block;
+        background: url(../images/Menu_Image/etc/mouse_normal.bmp) center center no-repeat;
+        width : 39px;
+        height : 39px;
+        right : 23px;
+        border-left: 1px solid;
+        border-bottom: 1px solid;
+        border-color: #C7C7C7;
+        /*padding : 8px 8px 7px 8px;*/
+    }
+    #MenuClose:hover {
+        background: url(../images/Menu_Image/etc/mouse_Down.bmp) center no-repeat;
+    }
+
+
+    #MenuList {
+        position: relative;
+        display: block;
+        background-color: #ffffff;
+    }
+
+    #MenuFooter{
+        position: relative;
+        display: block;
+        background-color : #EAEAEA;
+        height : 39px;
+        -webkit-border-bottom-right-radius: 15px;
+        -webkit-border-bottom-left-radius: 15px;
+        border-top: 1px solid;
+        border-color: #C7C7C7;
+    }
+
+    #SetConfig{
+        cursor: pointer;
+        float: left;
+        text-align: right;
+        height : 39px;
+        width : 90px;
+        font-family: 'Roboto Condensed', sans-serif;        
+        margin : 8px 0px 0px 10px;
+        background: url(../images/Menu_Image/etc/Config_Off.png) 0px 1px no-repeat;
+    }
+
+    #SetConfig:hover{
+         background: url(../images/Menu_Image/etc/Config_On.png) 0px 1px no-repeat;
+    }
+
+    #BuildNum{
+        cursor: default;
+        float: right;
+        text-align: left;
+        height : 39px;
+        width : 150px;
+        font-family: 'Roboto Condensed', sans-serif;        
+        margin : 8px 10px 0px 0px;
+    }    
+
+    .categorize{
+        display: inline-block;
+        /*background-color : #f2ffc0;*/
+        height : 100%;
+        border-left: 1px solid;
+        border-left-color: #C7C7C7;
+    }
+
+    .categorize > a > span{
+        display: inline-block;
+        width : 100%;
+        font-size : 13px;
+        font-family: 'Roboto Condensed', sans-serif;
+        font-weight: bold;
+        text-align: left;
+        padding: 5px 0px 5px 20px;
+        color : #000000;
+    }
+
+    .subList > a > span{
+        display: table;
+        font-size : 12px;
+        font-family: 'Roboto Condensed', sans-serif;
+        text-align: left;
+        padding: 0px 0px 0px 20px;
+        color : #1c1c1c;
+    }
+
+    .subList > a > span:hover{
+        /*font-weight: bold;*/
+        cursor: pointer;
+        color : #5cdfdc;
+    }
+
+    a.Dotline{
+        display: block;
+        height : 5px;
+        background: url(../images/Menu_Image/etc/DotLine.png) 16px no-repeat;
+        padding: 0px 0px 4px 0px;
+        /*background-color : #ffe5dc;*/
+    }
+
+    div#Menuimage{
+       position: absolute;
+       top : 30px;
+       left : 22px;
+       width : 233px;
+       height: 117px;
+       background-color : #515151;
+    }
+
+    div#MenudescTitle{
+        position: absolute;
+        top : 160px;
+        left : 22px;
+        width : 233px;
+        height: 15px;
+        background-color : #515151;
+        font-size : 14px;
+        font-family: 'NanumGothic', sans-serif;
+        text-align: left;
+        color : #FFFFFF;
+        /*font-family: 'Archivo Narrow', sans-serif;*/
+    }
+
+    div#Menudescript{
+        position: absolute;
+        top : 190px;
+        left : 22px;
+        width : 233px;
+        height: 120px;
+        background-color : #515151;
+        font-size : 11px;
+        font-family: 'NanumGothic', sans-serif;
+        text-align: left;
+        color : #d0d0d0;
+    }
+

@@ -1,0 +1,4 @@
+﻿{
+    "status": "critical",
+    "description": "Database(코어뱅킹) SQL(cj0071dbyqf0c) wait event(library cache lock) 과다 증가"
+}

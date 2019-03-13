@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>bullet</title>
+
+    <style>
+    @font-face {
+        font-family: 'Meiryo UI';
+        src: local('Meiryo UI'), url('../styles/fonts/MeiryoUI.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+    </style>
+</head>
+<body style="overflow: hidden;scrolling:no;">
+<script type="text/javascript" src="../Exem/chart/ActivityBullet.js"></script>
+<script type="text/javascript" src="../lib/crop/html2canvas.js"></script>
+<canvas width="0" height="0" style="" id="canvas_1"></canvas>
+<canvas width="0" height="0" style="" id="canvas_2"></canvas>
+<canvas width="0" height="0" style="" id="canvas_3"></canvas>
+<canvas width="0" height="0" style="" id="canvas_4"></canvas>
+<canvas width="0" height="0" style="" id="canvas_5"></canvas>
+<script>
+    function save_image(){
+        html2canvas( document.body, {});
+        window.html2canvas_image = html2canvas( document.body, {
+            onrendered: function(canvas) {
+                var image = canvas.toDataURL();
+                if ( image.length > 4000 ) {
+                    window.html2canvas_image_raw = image;
+                }
+                //window.open(image);
+            }
+        });
+        document.body.html2canvas_image = window.html2canvas_image;
+    }
+
+    window.html2canvas_image = null;
+    window.html2canvas_image_raw = null;
+    document.body.html2canvas_image = null;
+
+    var update_limit_count = 0;
+
+    function initSaveCanvas() {
+        if ( window.html2canvas_image_raw || update_limit_count > 10 ) {
+            return;
+        }
+
+        this.save_image();
+        update_limit_count++;
+
+        setTimeout(function() {
+            initSaveCanvas();
+        }, 1000 );
+    }
+
+    window.addEventListener('load',function() {
+        update_limit_count = 0;
+        setTimeout(function() {
+            initSaveCanvas();
+        }, 1000);
+    });
+
+    window.addEventListener('resize',function() {
+        update_limit_count = 0;
+        setTimeout(function() {
+            initSaveCanvas();
+        }, 1000 );
+    });
+</script>
+</body>
+</html>

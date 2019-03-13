@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<link rel="stylesheet" href="./styles/crop/jquery.Jcrop.css" type="text/css" />
+<link rel="stylesheet" type="text/css" href="../extjs/resources/ext-theme-gray/ext-theme-gray-all.css"/>
+
+<script type="text/javascript" src="../lib/jquery-1.7.min.js"></script>
+<script type="text/javascript" src="../lib/crop/jquery.Jcrop.js"></script>
+<script type="text/javascript" src="../lib/crop/html2canvas.js"></script>
+<script type="text/javascript" src="../lib/crop/pixastic.jquery.js"></script>
+<script type="text/javascript" src="../lib/crop/pixastic.core.js"></script>
+<script type="text/javascript" src="../lib/crop/actions/crop.js"></script>
+
+<!--   Save 버튼땜에 쓰임 -->
+ <!--<script type="text/javascript" src="../extjs/build/ext-all-debug.js"></script>-->
+<script type="text/javascript" src="../extjs/build/ext-all.js"></script>
+
+<style>
+body { background-color:#cdcdcd; overflow:hidden;padding:'0px';margin:'0px';};
+.outputlink { position: absolute; 
+top: -1px;
+left: -1px;
+} ;
+</style>
+	
+<script>
+
+var cleanUp = function(a) {
+  a.textContent = 'Downloaded';
+  if(a.dataset)
+	  a.dataset.disabled = true;
+
+  // Need a small delay for the revokeObjectURL to work properly.
+  setTimeout(function( a ) {
+    window.URL.revokeObjectURL(a.href);
+    //a.remove();
+    delete a;
+  }, 300, a);
+};
+
+function procDownloadImg( ADataUrl /* string */ )
+{
+	var ABlod = dataURItoBlob(ADataUrl);
+	//console.log( ABlod );
+	var filename = "";
+	filename = ADataUrl.split(',')[1].substring(0,30);
+	
+	var a = window.document.createElement('a');
+
+   // 파일명
+	a.download = 'download.png';
+	a.href = window.URL.createObjectURL(ABlod);
+	a.textContent = 'Download ready';
+	
+	a.dataset.downloadurl = [MIME_TYPE, a.download, a.href].join(':');
+	a.draggable = true; // Don't really need, but good practice.		
+ 
+    // 다운로드 시킴, 
+	 a.click();
+	 cleanUp(this);
+
+}
+
+
+
+
+function dataURItoBlob(dataURI) {
+	  // convert base64 to raw binary data held in a string
+	  // doesn't handle URLEncoded DataURIs - see SO answer #6850276 for code that does this
+	  var byteString = atob(dataURI.split(',')[1]);
+
+	  // separate out the mime component
+	  var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+	  // write the bytes of the string to an ArrayBuffer
+	  var ab = new ArrayBuffer(byteString.length);
+	  var ia = new Uint8Array(ab);
+	  for (var i = 0; i < byteString.length; i++) {
+	      ia[i] = byteString.charCodeAt(i);
+	  }
+
+	  // write the ArrayBuffer to a blob, and you're done
+	  var bb = new Blob([ab],{type: mimeString});
+	  //bb.append(ab);
+	  return bb; //.getBlob(mimeString);
+	}
+
+	const MIME_TYPE = 'image/png';
+
+	
+	var pixastic_parseonload = true;
+	
+
+	function downloadimage()
+	{
+		// parent 에서 eval 로 실행해서 그런지, window 로 접근해야함.
+		var AIMG = $('#imgp')[0];
+
+		// window.scrollTo( 0, 0 );
+		//console.log( AIMG )
+		// select_range = { x : 0,y : 0,x2 : 0,y2: 0,w: 0,h : 0 };
+		var ss = Pixastic.process(AIMG, "crop", {
+			rect : {
+				left : select_range.x , top : select_range.y , width : select_range.w, height: select_range.h 
+			}
+		});
+		
+		//console.log(select_range,ss, AIMG)		
+		procDownloadImg( ss.toDataURL() );
+		
+		parent.eval("setTimeout(function(){Ext.getCmp('cropimage_window').destroy()},100)");
+				
+
+	}
+	
+
+   // 외부에서 이미지 받음
+	function procImg( ADataUrl /* string */ )
+	{
+		var ABlod = dataURItoBlob(ADataUrl);
+		filename = ADataUrl.split(',')[1].substring(0,30);		
+		var AIMG = document.body.getElementsByClassName('imgp')[0];
+		AIMG.src = ADataUrl;
+		
+		setTimeout( function(){showCrop()}, 10 );
+	}
+	
+	var bjcrop = null;
+    function showCrop()
+    {
+      // 초기 사이즈임 position x,y  to x,y  w, h  임
+	    var c = {	h: 203,
+		    		w: 918,
+	    			x: 247,
+	    			x2: 1165,
+	    			y: 82,
+	    			y2: 285,
+	    		};
+	    
+	    if( !bjcrop )
+	    {
+	    	bjcrop = $.Jcrop('#cropdiv') ;
+	    	bjcrop.setOptions({ 
+            // 이벤트 연결함. set_range, proc_onRelease
+// 	    		onSelect : set_range,
+	    		onChange : set_range ,
+	    		onRelease : proc_onRelease,
+	    		minSize: [ 120, 120 ] 
+	    	});
+	    }
+	    bjcrop.setSelect([c.x,c.y,c.x2,c.y2]);
+
+    }
+    
+    select_range = { x : 0,y : 0,x2 : 0,y2: 0,w: 0,h : 0 };
+    function set_range( c )
+    {
+    	select_range.x   = c.x;
+    	select_range.x2  = c.x2;
+    	select_range.y   = c.y;
+    	select_range.y2  = c.y2;
+    	select_range.h   = c.h;
+    	select_range.w   = c.w;
+    	  
+    	if( nT == -1 )
+    	{
+    		nT = setTimeout(function(){  
+    			//console.log('timer');
+
+           // 다운로드 버튼 위치를 옮겨줌
+    			var a = $('#outputlink');     			
+    			a.css({
+    		        position: "absolute",
+    		        top: (c.y2+10) + "px",
+    		        left: ( c.x2 - 120 ) + "px",
+    		        'z-index' : 1000,
+    		        'display':'',
+    		        height: 30,
+    	    		width : 120,
+    	    		
+    		    });
+
+    			
+    			nT = -1;
+    			
+    		});
+    	}
+    }
+    
+    var nT = -1;
+    
+    function proc_onRelease()
+    {
+       // 사용자가 선택을 취소하면, Crop 창을 닫고 종료시킨다. Esc  or unCrop
+      
+		parent.eval("setTimeout(function(){Ext.getCmp('cropimage_window').destroy()},100)");
+
+    }
+    
+    
+    // onload event   
+    Ext.onReady(function()
+    {
+       // 다운로드 버튼 만듬
+    	Ext.create('Ext.Button', 
+    	{ 
+    		id : 'bbbb',
+    		height: 30,
+    		width : 120,
+    		text : '<b>Save Image</b>', 
+    		renderTo: 'outputlink', 
+    		handler : function()
+    		{
+            // 선택영역 다운로드
+    			downloadimage();
+    		}
+    	});
+  });
+</script>
+</head>	
+<body>
+
+<div id ='cropdiv'>
+<img id='imgp' class='imgp'/>
+</div>
+
+<div class='outputlink' id='outputlink' ></div>
+
+
+
+</body>
+
+</html>

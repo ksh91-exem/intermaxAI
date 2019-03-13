@@ -1,0 +1,95 @@
+﻿    hideBulletTxnLevel           :    Activiti Monitor 화면에서 Critical, Warning, Normal 등 트랜잭션 레벨 표시 유무 설정
+                                      (true: 레벨 비표시, false: 레빌 표시)
+
+    topologyEnableCloud          :    토폴로지 뷰에서 외부 연계(HTTP, TCP 등) 구름모양 아이콘 표시 유무 설정
+                                      (true: 구름 표시, false: 구름 비표시, 단 WebEnv 테이블에 구름이 표시되게 구성이 저장된 경우는 표시됨)
+
+    topologyEnableTmax           :    토폴로지 뷰에서 TMAX 아이콘 표시 유무 설정
+                                      (true: TMAX 아이콘 표시, false: TMAX 아이콘 비표시, 단 WebEnv 테이블에 아이콘이 표시되게 구성이 저장된      경우는 표시됨)
+
+    topologyCloudFullName        :    토폴로지 뷰에서 외부 연계(HTTP, TCP 등) 아이콘에 표시되는 텍스트 처리 유무
+                                      (true: 받은 문자 그대로 표시, false: 내부에서 문자를 잘라서 표시)
+
+    useRealtimeMultiTab          :    실시간 모니터링 화면에서 WAS만 볼지 WAS 이외의 데이터 들도 볼지 설정
+                                      (false: WAS만 표시, true: WAS, TP, WEB, E2E 등 표시 가능)
+
+    useTxnTrendMonitor           :    트랜잭션 모니터 더블클릭 시 창기추이 모니터 팝업 발생 유무 설정
+                                      (true: 팝업 발생, false: 팝업 미발생)
+
+    useElapseDistribution        :    트랜잭션 모니터의 영역 드래그 이벤트의 동작 변경 설정 (SSG 전용) 
+                                      (true : 장기추이모니터 트랜잭션 상세 팝업 표출, false : PA 트랜잭션 조회 표출)  
+
+    usePcidFilter                :    트랜잭션 조회 조건에서 PCID 항목 표시 유무 설정 (ssg 전용)
+                                      (true: 조건 표시, false: 조건 미표시)
+
+    useTxnPathBizGroup           :    트랜잭션 상세 화면 내 경로 탭에서 박스를 업무 그룹 단위 표시 설정( Hynix 전용)
+                                      (true: 업무 그룹 단위 표시, false: 개별 표시)
+
+    useTxnPathAsyncMethod        :    트랜잭션 상세 화면 내 경로 탭에서 어싱크에 대한 표시 설정 (Hynix 전용)
+                                      (true: connect 박스에 async 표시, false: async 관련 경로 표시)
+
+    useTxnResponseChart          :    트랜잭션 조회 화면에서 응답 시간 차트만 조회 하는 토글 버튼 사용 유무
+                                      (true : 토글 버튼 사용, false : 토글 버튼 미사용)
+
+    isAutoIDScaleVersion         :    WAS ID 자동 발급/해제 기능 사용 유무
+                                      (true: WAS ID Auto Scale 사용, false: WAS ID Auto Scale 미사용)
+
+    useRemoteTreeColor           :    실시간 화면의 리모트 트리에 색상을 표시 유무 설정
+                                      (true : 색상 표시 사용, false : 색상 표시 미사용)
+
+    useExtMaxGaugeDetail         :    MaxGauge와 연동 유무를 설정하는 값 (베타 버전)
+                                      (true: 연동함, false: 연동안함)
+
+    useExtMaxGaugeURL            :    연동 대상이 되는 MaxGauge URL (베타 버전)
+                                      (ex. 'http://127.0.0.1:8080')
+
+    useExecuteScript             :    실시간 및 환경설정 화면에서 스크립트 실행 기능 사용 유무 설정
+                                      (true: 스크립트 실행 및 설정을 할 수 있는 기능 표시, false: 스크립트 실행 및 설정을 할 수 있는 기능 숨김)
+
+    useEtoePaMenu                :    EotE 화면에서 PA 메뉴 표시 유무 설정
+                                      (true: 메뉴 표시, false: 메뉴 숨김)
+
+    useTxnDetailTimeLine         :    트랜잭션 상세 화면 내 라인타임 화면 사용 유무 설정
+                                      (true: 타임라인 표시, false: 타임라인 미표시)
+
+    hideTierIDColumn             :    에이전트 설정 > ETE Tier ID 콤보 박스 표시 유무 설정
+                                      (true: 콤보박스 미표시, false: 콤보박스 표시)
+
+    useActiveTxnTableLimit       :    XAPM_ACTIVE_TXN 테이블 조회시 limit 사용 유무 설정 (limit는 500으로 고정)
+                                      (true: limit 조건 사용, false: limit 조건 사용하지 않음)
+
+    useTxnDetailBrowserTimeTab   :    사용자 응답시간 통계 화면에서 트랜잭션조회 -브라우저 시간 탭 사용 유무
+                                      (true: 브라우저시간 탭 표시, false: 브라우저시간 탭 미표시)
+
+    isBusinessPerspectiveMonitoring : 업무관점 모니터링 사용 유무 설정
+                                      (true: 사용, false: 미사용)
+
+    useOTP                       :    OTP사용 유무 설정 (신세계 전용)
+                                      (true: 사용, false: 미사용)
+
+    useTidForDebugInTxnDetail    :    트랜잭션 상세 > 콜트리, 콜트리 팝업에서 TID 표시 여부 설정
+                                      (true: 사용, false: 미사용)
+
+    userAlert                    :    사용자 알람과 관련한 옵션 (하이닉스 전용)
+      |-- isUsed                 :    사용자 알람 사용 유무 (true: 사용, false: 미사용)
+      |-- isDashBoard            :    xapm_alert_server_set 테이블에 dash_enable, rtm_enalbe 컬럼 사용 여부 (true: 사용, false: 미사용)
+
+    linkPopup                    :    실시간 액티브 트랜잭션 > GUID 컬럼 클릭시 URL 링크 연계 옵션 (우리은행 전용)
+      |-- isUsed                 :    팝업 연계 사용 여부 (true: 사용, false: 미사용)
+      |-- url                    :    연결할 URL (ex. 'http://127.0.0.1:8080')
+
+    useBizDashURL                :    업무 대시보드(WAS) 화면으로 연계할 URL (ex. 'http://127.0.0.1:8080')
+
+    etoeLinkForTxnPath           :    트랜잭션 상세 조회 화면에서 E2E 연계 관련 기능 관련 옵션. (우리은행 전용)
+      |-- isUsed                 :    E2E 연계 사용 여부 (true: 사용, false: 미사용)
+      |-- grouping
+      |     |-- name             :    그룹핑 이름 설정 (ex. 'Grouping')
+      |     |-- make             :    그룹핑 사용 여부 (true: 사용, flase: 미사용)
+      |     |-- refElapseTime    :    C Box 중에서 elapse time이 설정된 값 미만인 트랜잭션을 하나의 Box로 그룹핑 (ex. 1000) <- 단위 ms
+      |-- destValue              :    연계여부 확인 조건(해당 트랜잭션의 dest 값과 비교) (ex. 'http://10.10.30.110')
+      |-- url                    :    외부로 연결줄 URL (ex. 'http://10.10.30.117:8000/intermax/RTM/')
+
+
+    useEtoEChartMonitoring      :   업무별 모니터링 화면 구성 설정. (EtoE 트랜잭션 모니터 기준)
+                                    ( true: 모니터링 서버 -> TP, CD 기준,  점차트 -> EtoE 트랜잭션 모니터
+                                     false: 모니터링 서버 -> WAS, TP 기준, 점차트 -> WAS 트랜잭션 모니터 )

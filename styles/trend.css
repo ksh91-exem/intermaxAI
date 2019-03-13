@@ -1,0 +1,11 @@
+.trend-waslist-ul {
+    padding: 10px;
+}
+.trend-waslist-li {
+    margin-bottom: 5px;
+    padding: 3px;
+    cursor:pointer;
+}
+.trend-waslist-li.selected {
+    color: white;
+}

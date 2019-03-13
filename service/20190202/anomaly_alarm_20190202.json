@@ -1,0 +1,12 @@
+{
+    "description": ["인스턴스 및 트랜잭션 문제 발생","30초 지연거래: EWL41210T", "CBS DB: WPCBS1, WPCBS2, WPCBS3"],
+    "date": "2019-02-02 00:00:00",
+    "status": {
+        "transaction": "critical",
+        "instance": "critical"
+    },
+    "details": {
+        "transaction": "30초 지연거래",
+        "instance": "CBS DB"
+    }
+}

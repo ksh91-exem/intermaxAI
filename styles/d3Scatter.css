@@ -1,0 +1,163 @@
+p.title {
+    font-family: '맑은 고딕';
+    font-size: 18px;
+    font-weight: 600;
+    color: black;
+}
+
+/*.axis path, .axis line {*/
+    /*fill: none;*/
+    /*shape-rendering: crispEdges;*/
+/*}*/
+
+.scatterGrid line {
+    fill: none;
+    stroke: #ccc;
+    stroke-dasharray: 1,1;
+    shape-rendering: crispEdges;
+}
+.scatterGrid path {
+    fill: none;
+    stroke: #ccc;
+    shape-rendering: crispEdges;
+}
+
+.axis text {
+    font-family: 'helvetica-neue', arial;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+text.label {
+    font-family: 'helvetica-neue', arial;
+    font-size: 10px;
+    font-weight: 200;
+}
+text.labelTxnName {
+    font-family: 'Courier New';
+    font-size: 11px;
+    font-weight: 100;
+}
+text.labelTxnNameOver {
+    font-family: 'Courier New';
+    font-size: 11px;
+    font-weight: 100;
+}
+text.labelTxnNameOver2 {
+    font-family: 'Courier New';
+    font-size: 14px;
+    font-weight: 400;
+}
+text.changeScaleLabel {
+    font-family: 'helvetica-neue', arial;
+    font-size: 16px;
+    font-weight: 800;
+}
+text.activityLabel {
+    font-family: 'helvetica-neue', arial;
+    font-size: 22px;
+    font-weight: 800;
+}
+text.activeBigCount {
+    font-family: 'helvetica-neue', arial;
+    font-size: 12px;
+    font-weight: 200;
+}
+text.grpActiveCount {
+    font-family: 'helvetica-neue', arial;
+    font-size: 17px;
+    font-weight: 800;
+}
+text.grpName {
+    font-family: 'helvetica-neue', arial;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+rect.tile {
+    shape-rendering: crispEdges;
+}
+rect.tileBack {
+    shape-rendering: crispEdges;
+}
+rect.stripeBar {
+    shape-rendering: crispEdges;
+}
+rect.activeBigBar {
+    shape-rendering: crispEdges;
+    /*stroke: #101B53;*/
+    /*stroke-width: 1px;*/
+}
+rect.txnCountBarMax {
+    shape-rendering: crispEdges;
+}
+rect.txnCountBarYesterday {
+    shape-rendering: crispEdges;
+}
+rect.txnCountBarToday {
+    shape-rendering: crispEdges;
+}
+
+rect.scatter {
+    fill: #0085CF;
+}
+rect.slowScatter {
+    fill: #E6841D;
+}
+rect.exceptionScatter {
+    fill: red;
+}
+
+rect.selectZone {
+    fill: #999;
+    opacity: 0;
+}
+rect.lastSelectedZone {
+    fill: #349BE7;
+    fill-opacity: 0.4;
+    stroke: #349BE7;
+    stroke-width: 1px;
+}
+rect.lastSelectedZoneDetail {
+    fill: #349BE7;
+    fill-opacity: 0.4;
+    stroke: #349BE7;
+    stroke-width: 1px;
+    cursor: move;
+}
+
+text.scoreBoard {
+    font-family: 'helvetica-neue', arial;
+    font-size: 20px;
+    font-weight: 200;
+    color: #999;
+}
+
+circle.focus {
+    fill: #666;
+    opacity: .2;
+}
+
+#charts {
+    padding: 10px 0;
+}
+
+.reset {
+    padding-left: 1em;
+    font-size: smaller;
+    color: #ccc;
+}
+
+.axis text {
+    font: 10px sans-serif;
+}
+
+.brush rect.extent {
+    fill: steelblue;
+    fill-opacity: .125;
+}
+
+.brush .resize path {
+    fill: #eee;
+    stroke: #666;
+}

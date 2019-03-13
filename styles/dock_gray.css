@@ -1,0 +1,267 @@
+
+.mx-theme-gray .icon {
+    font-family: 'GELIcons';
+    font-size: 30px;
+    color: #00317A;
+}
+
+
+/******************************************* Box Layer Css ********************************************/
+.mx-theme-gray div.box-container{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    padding: 6px; 
+}
+
+.mx-theme-gray div.box-container-layer{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #333;    
+}
+
+
+
+
+/******************************************* Drag N Drop ********************************************/
+
+.mx-theme-gray div.ui-state-active{
+    border: 2px dashed #8E9194 !important;
+    overflow: hidden;
+}
+
+.mx-theme-gray .xm-dragging{
+    border: 2px solid #333;
+    box-shaodw: 2px 2px 2px #000;
+/*     opacity: 0.3; */
+}
+
+.mx-theme-gray .ui-draggable-dragging{
+    opacity: 0.3;
+}
+
+/******************************** drag direct css *************************************/
+/******************** container direct **********************/
+.mx-theme-gray div.xm-root-direct{
+    display:none;
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    background-image: url(../images/xm_icon_Black_v1.png);
+    z-index: 300000;
+}
+
+.mx-theme-gray div.xm-root-direct.top{
+    top: 20px;
+    background-position: -286px -5px;    
+}
+
+.mx-theme-gray div.xm-root-direct.top:hover{
+    background-position: -322px -5px;
+}
+
+.mx-theme-gray div.xm-root-direct.bottom{
+    bottom: 20px;
+    background-position: -286px -41px;
+}
+
+.mx-theme-gray div.xm-root-direct.bottom:hover{
+    background-position: -322px -41px;
+}
+
+.mx-theme-gray div.xm-root-direct.left{
+    left: 20px;  
+    background-position: -286px -113px;
+}
+
+.mx-theme-gray div.xm-root-direct.left:hover{
+    background-position: -322px -113px;
+}
+
+.mx-theme-gray div.xm-root-direct.right{
+    right: 20px;
+    background-position: -286px -149px;
+}
+
+.mx-theme-gray div.xm-root-direct.right:hover{
+    background-position: -322px -149px;
+}
+/******************** child direct **********************/
+.mx-theme-gray div.xm-direct{
+    position: absolute;
+    height: 100px;
+    display: none;
+    z-index: 300000;
+    left: 45%; 
+}
+
+.mx-theme-gray div.xm-direct .wrap{
+    margin: 0 auto;
+    width: 105px;
+    height: 105px;
+}
+
+.mx-theme-gray div.xm-direct .wrap .xm-direct-background{
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    width: 76px;
+    height: 74px;
+    background-image: url(../images/xm_icon_Black_v1.png);
+    background-position: -286px -185px;
+    z-index: -1;
+}
+
+.mx-theme-gray div.xm-direct .top{ 
+    width: 100%;
+    height: 35px;
+    text-align: center;
+}
+
+.mx-theme-gray div.xm-direct .top span{
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    background-image: url(../images/xm_icon_Black_v1.png);
+    background-position: -286px -5px;
+}
+
+.mx-theme-gray div.xm-direct .top span:hover{
+    background-position: -322px -5px;
+}
+
+.mx-theme-gray div.xm-direct .bottom{    
+    width: 100%;
+    height: 35px;
+    text-align: center;
+}
+
+.mx-theme-gray div.xm-direct .bottom span{
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    background-image: url(../images/xm_icon_Black_v1.png);
+    background-position: -286px -41px;
+}
+
+.mx-theme-gray div.xm-direct .bottom span:hover{
+    background-position: -322px -41px;
+}
+
+.mx-theme-gray div.xm-direct .xm-direct-center-wrap{
+    width: 100%;
+    height: 35px; 
+}
+
+.mx-theme-gray div.xm-direct .left{
+    width: 35px;
+    height: 35px;
+    float: left;
+    background-image: url(../images/xm_icon_Black_v1.png);
+    background-position: -286px -113px;
+}
+
+.mx-theme-gray div.xm-direct .left:hover{
+    background-position: -322px -113px;
+}
+
+.mx-theme-gray div.xm-direct .right{
+    width: 35px;
+    height: 35px;
+    float: right;
+    background-image: url(../images/xm_icon_Black_v1.png);
+    background-position: -286px -149px;
+}
+
+.mx-theme-gray div.xm-direct .right:hover{
+    background-position: -322px -149px;
+}
+
+.mx-theme-gray div.xm-direct .center{
+    float: left;
+    width: 35px;
+    height: 35px;
+    background-image: url(../images/xm_icon_Black_v1.png);
+    background-position: -286px -77px;
+}
+
+.mx-theme-gray div.xm-direct .center:hover{
+    background-position: -322px -77px;
+}
+
+.mx-theme-gray div.xm-direct.xm-dock-tab .right{
+    visibility: hidden;
+}
+
+.mx-theme-gray div.xm-direct.xm-dock-tab .left{
+    visibility: hidden;
+}
+
+.mx-theme-gray div.xm-direct.xm-dock-tab .top{
+    visibility: hidden;
+}
+
+.mx-theme-gray div.xm-direct.xm-dock-tab .bottom{
+    visibility: hidden;
+}
+
+/******************************** header tool *************************************/
+.mx-theme-gray div.xm-header-dock{
+    position:absolute;
+    top:0px;
+    right:10px;
+    width: 112px;
+    height: 25px;
+    z-index:10000;
+    cursor:pointer;
+    display:none;
+}
+
+.mx-theme-gray div.xm-header-dock .icon{
+    font-size: 27px;
+    color: #222;
+    float: left;
+    padding:0px 2px;
+    background-image: url(../images/xm_icon_Black_v1.png);
+    width: 58px;
+    height: 25px;
+    position: absolute;
+}
+
+/* .mx-theme-gray div.xm-header-dock div.active{ */
+/*     background-position-y: -225px; */
+/*     z-index: 2; */
+/* } */
+
+.mx-theme-gray div.xm-header-dock div.xm-dock:hover{
+    background-position: -60px -250px;
+    z-index: 2;
+}
+
+.mx-theme-gray div.xm-header-dock div.xm-close:hover{
+    background-position: 0px -250px;
+    z-index: 2;
+}
+
+.mx-theme-gray div.xm-header-dock .xm-dock{    
+    background-position: -60px -225px    
+}
+
+.mx-theme-gray div.xm-header-dock .xm-close{
+    background-position: 0px -225px;
+    top: 0px;
+    left: 48px;
+}
+
+.mx-theme-gray div.xm-header-dock .xm-dock-menu-tool{
+    background-position: 0px -275px;
+    top: 0px;
+    left: -46px;
+    display: none;
+}
+
+.mx-theme-gray div.xm-header-dock .xm-dock-menu-tool:hover{
+    background-position: 0px -300px;
+    z-index: 2;
+}

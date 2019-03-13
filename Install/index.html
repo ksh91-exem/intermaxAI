@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="shortcut icon" href="../images/favicon.ico" >
+    <link rel="stylesheet" type="text/css" href="../extjs/packages/ext-theme-gray/build/resources/ext-theme-gray-all.css"/>
+    <link rel="stylesheet" media="screen" href="../lib/handsontable/dist/jquery.handsontable.full.css">
+</head>
+<body>
+
+
+<style>
+    @font-face {
+        font-family: 'Droid Sans'!important;
+        src: url('../styles/fonts/DroidSans.woff') format('woff') !important;
+    }
+
+    @font-face {
+        font-family: 'Droid Sans Bold'!important;
+        src: url('../styles/fonts/DroidSans-Bold.woff') format('woff') !important;
+    }
+
+    div.header-log{
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        height: 30px;
+        width: 150px;
+        overflow: hidden;
+    }
+
+    div.header-log-global{
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        height: 30px;
+        width: 185px;
+        overflow: hidden;
+    }
+
+    div.header-log > p {
+        float: left;
+        line-height: 24px;
+    }
+
+    div.rtm-header-log-global{
+        position: absolute;
+        top: 15px;
+        left: 212px;
+        height: 30px;
+        width: 250px;
+        overflow: hidden;
+    }
+
+    div.rtm-header-log{
+        position: absolute;
+        top: 15px;
+        left: 118px;
+        height: 30px;
+        width: 250px;
+        overflow: hidden;
+    }
+
+    div.rtm-header-log-global > p {
+        float: left;
+        line-height: 24px;
+    }
+
+    div.rtm-header-log > p {
+        float: left;
+        line-height: 24px;
+    }
+
+    p.header-line{
+        border-right: 1px solid #6F6A6A;
+        margin: 7px 10px;
+        height: 11px;
+    }
+
+    p.header-line-global{
+        border-right: 1px solid #6F6A6A;
+        margin: 7px ;
+        height: 11px;
+    }
+
+    p.header-title{
+        margin: 0px;
+        color: white;
+        font-size: 15px ;
+        font-family: 'Droid Sans';
+    }
+
+
+    /*###### image #############################################################*/
+    div.main-img{
+        /*position: absolute;*/
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        /*top: 55px;*/
+        /*left: 135px;*/
+        width: 1001px;
+        height: 723px;
+        z-index: 1;
+        background-image: url(/intermax/Install/image/Install_image_4/step1_bg_nonText_s.png);
+    }
+
+
+    p.cancel-btn{
+        position: absolute;
+        top: 650px;
+        left: 841px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_4/next_bt_NonText_off.png);
+        text-align: center;
+        font-size:12px;
+        color: #f5f5f5;
+        padding-top: 5px;
+    }
+
+    p.cancel-btn:hover{
+        position: absolute;
+        top: 650px;
+        left: 841px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_4/next_bt_NonText_on.png);
+        text-align: center;
+        font-size:12px;
+        color: #83C7CE;
+        padding-top: 5px;
+    }
+
+
+    p.back-btn{
+        position: absolute;
+        top: 650px;
+        left: 589px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_4/next_bt_NonText_off.png);
+        text-align: center;
+        font-size:12px;
+        color: #f5f5f5;
+        padding-top: 5px;
+    }
+
+    p.back-btn:hover{
+        position: absolute;
+        top: 650px;
+        left: 589px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_4/next_bt_NonText_on.png);
+        text-align: center;
+        font-size:12px;
+        color: #83C7CE;
+        padding-top: 5px;
+    }
+
+
+    p.config-btn{
+        position: absolute;
+        top: 650px;
+        left: 715px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_4/next_bt_NonText_off.png);
+        text-align: center;
+        font-size:12px;
+        color: #f5f5f5;
+        padding-top: 5px;
+    }
+
+
+    p.config-btn:hover{
+        position: absolute;
+        top: 650px;
+        left: 715px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_4/next_bt_NonText_on.png);
+        text-align: center;
+        font-size:12px;
+        color: #83C7CE;
+        padding-top: 5px;
+    }
+
+
+    p.next-btn{
+        position: absolute;
+        top: 650px;
+        left: 715px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_4/next_bt_NonText_off.png);
+        text-align: center;
+        font-size:12px;
+        color: #f5f5f5;
+        padding-top: 5px;
+    }
+
+
+    p.next-btn:hover{
+        position: absolute;
+        top: 650px;
+        left: 715px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_4/next_bt_NonText_on.png);
+        text-align: center;
+        font-size:12px;
+        color: #83C7CE;
+        padding-top: 5px;
+    }
+
+
+    /*#######################################################################*/
+
+    p.main-title{
+        position: absolute;
+        top: 4px;
+        left: 33px;
+        width: 465px;
+        height: 300px;
+        z-index: 1;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    div.grid-area{
+        position: absolute;
+        top: 328px;
+        left: 42px;
+        z-index: 1;
+        width: 465px;
+        height: 300px;
+    }
+
+    div.db-grid-area{
+        position: absolute;
+        top: 328px;
+        left: 42px;
+        z-index: 1;
+        width: 465px;
+        height: 300px;
+        z-index: 1;
+    }
+
+    p.grid-title{
+        position: absolute;
+        top: -39px;
+        left: 3px;
+        z-index: 1;
+        font-size: 14px;
+    }
+
+    div.exp-area{
+        position: absolute;
+        top     : 164px;
+        left    : 569px;
+        width   : 400px;
+        height  : 464px;
+        z-index : 1;
+        overflow: auto;
+        line-height: 16px;
+    }
+    div.exp-area::-webkit-scrollbar {width: 8px; height: 8px; border: 3px solid #fff; }
+    div.exp-area::-webkit-scrollbar-button:start:decrement {display: none;}
+    div.exp-area::-webkit-scrollbar-button:end:increment   {display: none;}
+    div.exp-area::-webkit-scrollbar-track {background: #efefef; -webkit-box-shadow: inset 0 0 4px rgba(0,0,0,.2)}
+    div.exp-area::-webkit-scrollbar-corner {width: 12px; height: 12px;background: #50555C;}
+    div.exp-area::-webkit-scrollbar-thumb {background: rgba(0,0,0,.2); -webkit-box-shadow: inset 0 0 4px rgba(0,0,0,.1)}
+
+
+    p.dg-text{
+        position: absolute;
+        top: 303px;
+        left: 293px;
+        color: #8F8A8A;
+        text-shadow: none;
+        text-align: left;
+        font-size: 11px;
+    }
+
+    p.agent-text{
+        position: absolute;
+        top: 438px;
+        left: 242px;
+        color: white;
+        text-shadow: none;
+        font-size: 11px;
+    }
+
+    p.agentdb-text{
+        position: absolute;
+        top: 438px;
+        left: 342px;
+        color: white;
+        text-shadow: none;
+        font-size: 11px;
+    }
+
+    p.step1-title{
+        position: absolute;
+        top: 65px;
+        left: 165px;
+        z-index: 1;
+        text-align: center;
+        text-shadow: 0 1px 1px rgba(0,0,0,.3); !important;
+        font-size: 14px;
+        color: #ffffff;
+    }
+
+    p.step1-sub-title{
+        position: absolute;
+        top: 109px;
+        left: 47px;
+        z-index: 1;
+        font-size: 16px;
+    }
+
+
+    p.step2-title{
+        position: absolute;
+        top: 65px;
+        left: 651px;
+        z-index: 1;
+        text-align: center;
+        text-shadow: 0 1px 1px rgba(0,0,0,.3); !important;
+        font-size: 14px;
+        color: #ffffff;
+    }
+
+
+    p.step2-sub-title{
+        position: absolute;
+        top: 109px;
+        left: 47px;
+        z-index: 1;
+        font-size: 16px;
+    }
+
+
+    p.was-off{
+        position: absolute;
+        top: 136px;
+        left: 45px;
+        width: 450px;
+        height: 109px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_4/wepapp_Btt_NoneText_Off.png);
+        text-align: center;
+        padding-top: 79px;
+        padding-right: 5px;
+        color: #3B4248;
+        text-shadow:0px 1px 0px #C5D0D8;
+    }
+
+
+    p.was-off:hover{
+        position: absolute;
+        top: 136px;
+        left: 45px;
+        width: 450px;
+        height: 109px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_4/wepapp_Btt_NonText_On.png);
+        padding-top: 79px;
+        padding-right: 5px;
+        color: #ffffff;
+        text-shadow: 0 1px 1px rgba(0,0,0,.3); !important;
+    }
+
+
+    p.was-title{
+        position: absolute;
+        top: 265px;
+        left: 59px;
+        z-index: 1;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+
+    p.was-content{
+        position: absolute;
+        top: 291px;
+        left: 59px;
+        z-index: 1;
+        line-height: 1.5;
+        color: #8F8A8A;
+    }
+
+
+    /*
+       textarea{
+            border: none;
+            width:100%;
+            height: 100%;
+            margin:5px 0;
+            padding:3px;
+            font-family: "Droid Sans";
+        }
+    */
+
+    /*########### was+db ########################################################################################*/
+    p.wasdb-trial{
+        position: absolute;
+        top: 139px;
+        left: 570px;
+        z-index: 2;
+        cursor: pointer;
+        color: #A10202;
+        text-shadow:0px 1px 0px #cccccc;
+    }
+
+    p.wasdb-off{
+        position: absolute;
+        top: 136px;
+        left: 503px;
+        width: 450px;
+        height: 109px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_4/webAppDB_btt_NonText_off.png);
+        text-align: center;
+        padding-top: 79px;
+        padding-right: 5px;
+        color: #3B4248;
+        text-shadow:0px 1px 0px #C5D0D8;
+    }
+
+    p.wasdb-off:hover{
+        position: absolute;
+        top: 136px;
+        left: 503px;
+        width: 450px;
+        height: 109px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_4/webAppDB_btt_NonText_on.png);
+        padding-top: 79px;
+        padding-right: 5px;
+        color: #ffffff;
+        text-shadow: 0 1px 1px rgba(0,0,0,.3); !important;
+    }
+
+
+    p.wasdb-title{
+        position: absolute;
+        top: 265px;
+        left: 541px;
+        z-index: 1;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+
+    p.wasdb-content{
+        position: absolute;
+        top: 291px;
+        left: 541px;
+        z-index: 1;
+        line-height: 1.5;
+        color: #8F8A8A;
+    }
+
+    p.close-btn{
+        position: absolute;
+        top: 8px;
+        left: 958px;
+        width: 17px;
+        height: 17px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_3/WindowClose_Btt_Off.png);
+        text-align: center;
+        font-size:12px;
+        color: #f5f5f5;
+        padding-top: 5px;
+    }
+
+
+    p.close-btn:hover{
+        position: absolute;
+        top: 8px;
+        left: 958px;
+        width: 17px;
+        height: 17px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/intermax/Install/image/Install_image_3/WindowClose_Btt_On.png);
+        text-align: center;
+        font-size:12px;
+        color: #83C7CE;
+        padding-top: 5px;
+    }
+
+    p.was-count{
+        position: absolute;
+        top: 193px;
+        left: 324px;
+        width: 25px;
+        height: 25px;
+        background-image: url(/intermax/Install/image/Install_image_4/DBWAS_Count.png);
+        text-align: center;
+        line-height: 24px;
+        /*border-radius: 100px;*/
+        /*padding: 5px 5px;*/
+        color: #fff;
+        z-index: 2;
+        /*opacity: .7;*/
+        /*background-color: #123A62;*/
+    }
+
+    p.db-count{
+        position: absolute;
+        top: 193px;
+        left: 445px;
+        width: 25px;
+        height: 25px;
+        background-image: url(/intermax/Install/image/Install_image_4/DBWAS_Count.png);
+        text-align: center;
+        line-height: 24px;
+        color: #fff;
+        z-index: 2;
+    }
+
+    p.was-temp-area{
+        position: absolute;
+        background-color: white;
+        width: 50px;
+        height: 50px;
+        left: 311px;
+        top: 178px;
+        z-index: 1;
+        opacity: .7;
+    }
+
+
+    p.db-temp-area{
+        position: absolute;
+        background-color: white;
+        width: 50px;
+        height: 50px;
+        left: 432px;
+        top: 178px;
+        z-index: 1;
+        opacity: .7;
+    }
+
+    p.user{
+        position: absolute;
+        left: 202px;
+        top: 232px;
+        z-index: 1;
+        font-size: 12px;
+        color: #E1DEDA;
+        font-family: "Droid Sans";
+    }
+
+    p.web{
+        position: absolute;
+        left: 80px;
+        top: 232px;
+        z-index: 1;
+        font-size: 12px;
+        color: #E1DEDA;
+        font-family: "Droid Sans";
+    }
+
+    p.was{
+        position: absolute;
+        left: 324px;
+        top: 232px;
+        z-index: 1;
+        font-size: 12px;
+        color: #4D9AFE;
+        font-family: "Droid Sans Bold"
+        /*font-weight: bold;*/
+        /*text-shadow: 0 1px 1px rgba(0,0,0,.3); !important;*/
+    }
+
+
+    p.db{
+        position: absolute;
+        left: 449px;
+        top: 232px;
+        z-index: 1;
+        font-size: 12px;
+        color: #E1DEDA;
+        font-family: "Droid Sans";
+    }
+
+    p.db-disabled{
+        position: absolute;
+        top: 179px;
+        left: 433px;
+        width: 48px;
+        height: 48px;
+        background-image: url(/intermax/Install/image/Install_image_1/icon_db_dis.png);
+    }
+
+</style>
+
+
+<div id="homediv" style="position:absolute; width: 100%; height: 100%"></div>
+
+<script type="text/javascript" src="../lib/zlib.min.js"></script>
+<script type="text/javascript" src="../lib/IMXWS.js"></script>
+<script type="text/javascript" src="../lib/jquery-1.7.min.js"></script>
+
+<script type="text/javascript" src="../lib/jquery.flot.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.pie.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.resize.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.selection.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.categories.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.crosshair.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.stack.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.symbol.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.time.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.tooltip.min.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.orderBars.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.axislabels.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.tickrotor.js"></script>
+<script type="text/javascript" src="../lib/jquery.colorhelpers.min.js"></script>
+
+<script type="text/javascript" src="../lib/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="text/javascript" src="../lib/jquery.event.drag-2.2.js"></script>
+<script type="text/javascript" src="../lib/jquery.event.drop-2.2.js"></script>
+<script type="text/javascript" src="../lib/jquery.bullet.js"></script>
+<script type="text/javascript" src="../lib/jquery.clippy.js"></script>
+<script type="text/javascript" src="../lib/jquery.zclip.js"></script>
+<script type="text/javascript" src="../lib/jquery.jsPlumb.min.js"></script>
+
+<script src="../lib/handsontable/dist/jquery.handsontable.full.js"></script>
+<script type="text/javascript" src="../extjs/build/ext-all.js"></script>
+
+<script type="text/javascript" src="app.js"></script>
+
+</script>
+
+</body>
+</html>

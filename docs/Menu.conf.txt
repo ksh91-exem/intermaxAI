@@ -1,0 +1,161 @@
+﻿Menu Show/Hide Description
+
+1. 대분류 명칭 설명
+    - decription : 메뉴 설정이 동작하는 버전에 대한 설정
+    - categories : 메뉴 창에서 볼드체로 나타나는 대분류 메뉴
+    - menu       : 메뉴 창에서 나타나는 각각의 메뉴
+    - configMenu : 환경설정 창에서 나타나는 각각의 메뉴
+
+2. 소분류 명칭 설명
+    - Dashboard : 실시간 대시보드 (RTM Dashboard) 
+        - M_dashRealtimeMonitor         : 실시간 모니터링(기본) / RealTime Monitor (Default) 
+        - M_dashRealtimeMonitor2        : 실시간 모니터링(변형) / RealTime Monitor (Modified)
+        - M_dashRealtimeMonitor3        : 실시간 모니터링 통합 뷰 / RealTime Monitor (All)
+        - M_dashRealtimeMonitor4        : 그룹 모니터링 뷰 / Group Monitoring View
+        - M_dashManagerView             : 매니저 뷰 / Manager View
+        - M_dashMultiInstance           : 멀티인스턴스 로드 밸런스 / Multiple Instance View
+        - M_dashWasDbView               : WAS-DB 연계뷰 / WAS-DB linked View
+        - M_dashSysResource             : 시스템 리소스 / System Resource View
+        - M_dashMemory                  : 메모리 / Memory View
+        - M_dashActiveUser              : 사용자 / User View
+
+    - E2EMonitor : 실시간 대시보드 (RTM Dashboard)
+        - M_dashBusinessView            : 업무 대시보드(구간) / Business Dashboard(Tier)
+        - M_dashBusinessView2           : 업무 대시보드(그룹) / Business Dashboard(Group)
+        - M_dashBusinessViewWas         : 업무 대시보드(WAS) / Business Dashboard(WAS)
+
+    - Realtime1 : 실시간 도킹 프레임 첫 컬럼 (Docking Frame)
+        - M_rtmActivityMonitor          : Activity 모니터 / Activity Monitor
+        - M_rtmActivityGroup            : Activity 그룹 모니터 / Activity Group Monitor
+        - M_rtmActiveTxnCount           : 액티브 트랜잭션 건수 / Active Transaction Count
+        - M_rtmActiveTxnGroupCount      : 그룹별 액티브 트랜잭션 건수 / Active Transaction Group Count
+        - M_rtmActiveTxnList            : 액티브 트랜잭션 / Active Transaction
+        - M_rtmTransactionMonitor       : 트랜잭션 모니터 / Transaction Monitor
+        - M_rtmPerformanceStat          : 최근 서버별 성능 지표 / Performance Stat
+        - M_rtmPerformanceTotalStat     : 최근 성능 지표(합계) / Performance Total Stat
+        - M_rtmServiceStatTrend         : 금일 서비스 지표 / Service Stat
+        - M_rtmVisitorCounter           : 금일 방문자 수 / Today Visitor Count
+        - M_rtmTxnExecutionCount        : 금일 시간당 수행 건수 / Today Transaction Execution Count
+        - M_rtmAlertInfo                : 알람 정보 / Alarm Info
+        - M_rtmGCStat                   : GC 지표 / GC Stat
+        - M_rtmUsageCpu                 : CPU 사용량 / CPU Usage
+        - M_rtmConnectionPool           : 커넥션 풀 모니터 / Connection Pool Monitor
+
+    - Realtime2 : 실시간 도킹 프레임 두번째 컬럼 ('')
+        - M_rtmDatabase                 : DB 지표 / DB Statistics
+        - M_rtmActiveTxnLockTree        : 락 트리 / Lock Tree
+        - M_rtmActiveTxnRemoteTree      : 리모트 트리 / Remote Tree
+        - M_rtmTopTransaction           : 상위 트랜잭션 / Realtime TOP Transaction
+        - M_rtmTopSQL                   : 상위 SQL / Realtime TOP SQL
+        - M_rtmTablespaceUsage          : 테이블 스페이스 사용 현황 / Tablespace Usage
+        - M_rtmAgentList                : 에이전트 목록 / Agent List
+        - M_rtmDiskUsage                : 디스크 사용률 / Disk Usage
+        - M_rtmProcessStatus            : 프로세스 감시 / Process Status
+
+    - RealtimeTP : TP
+        - M_rtmTPActivityMonitor        : Activity 모니터 / Activity Monitor
+        - M_rtmTPActiveTxnCount         : 액티브 트랜잭션 건수 / Active Transaction Count
+        - M_rtmTPUsageCpu               : CPU 사용량 / CPU Usage
+        - M_rtmTPTransactionMonitor     : 트랜잭션 모니터 / Transaction Monitor
+        - M_rtmTPActiveTxnList          : 액티브 트랜잭션 / Active Transaction
+        - M_rtmTPActiveTxnRemoteTree    : 리모트 트리 / Remote Tree
+        - M_rtmTPTrendStat              : 최근 서버별 성능 지표 (서버별) / Performance Stat
+        - M_rtmTPAlertInfo              : 알람 정보 / Alarm Info
+        - M_rtmTPAlertLight             : 알람 발생 내역 / Alarm Log History
+        - M_rtmTPTopTransaction         : 상위 트랜잭션 / Realtime TOP Transaction
+        - M_rtmTPTopSQL                 : 상위 SQL / Realtime TOP SQL
+        - M_rtmTPDiskUsage              : 디스크 사용률 / Disk Usage
+        - M_rtmTPTmadmin                : 실시간 tmadmin / Realtime tmadmin
+        - M_rtmTPSlog                   : TP Slog / TP Slog
+
+    - RealtimeWeb : WEB
+
+    - RealtimeTUX : Tuxedo
+
+    - RealtimeCD : C Daemon
+
+    - RealtimeAI : AI 도킹 프레임 (AI Docking Frame)
+
+    - Panalysis : 성능 분석 (Performance Analysis)
+        - M_PerformanceTrend            : 성능 추이 분석 / Performance Trend
+        - M_TransactionTrend            : 트랜잭션 조회 / Transaction Trend
+        - M_DBTrend                     : DB 성능 추이 분석 / DB Trend
+        - M_StackDumpViewer             : 스레드 덤프 보기 / Thread Dump Viewer
+        - M_DiffSource                  : 소스 변경 추적 / Trace of Modified Source
+        - M_EnvDiff                     : 환경 설정 변경 추적 / Diff Env
+        - M_ClientResponseTime          : 화면 응답 시간 조회 / Client Response Time
+        - M_ComparisonTrend             : 성능 비교 분석 / Performance Comparison Analysis
+ 
+    - Tools : 도구 (Tools)
+        - M_ScriptManager               : 스크립트 매니저 / Script Manager
+
+    - Pstatistics : 성능 통계 (Performance Statistics)
+        - M_TopTransaction              : 상위 트랜잭션 통계 / TOP Transaction Summary
+        - M_TopSQL                      : 상위 SQL 통계 / TOP SQL Summary
+        - M_TransactionHistory          : 트랜잭션 별 통계 추이 / Transaction Summary
+        - M_SQLHistory                  : SQL 수행 조회 / SQL Summary
+        - M_ExceptionHistory            : 예외(에러) 발생 조회 / Exception Summary
+        - M_BusinessTxnSummary          : 업무 처리 통계 / Business Transaction Summary
+        - M_WASWorkloadHistory          : 에이전트 작업량 비교 / Agent Workload Summary
+        - M_AlertHistory                : 알람 발생 내역 / Alert Summary
+        - M_ClientHistory               : 사용자 응답시간 조회 / Client Summary
+        - M_EtoEResponseTrend           : EtoE 응답시간 추이 / EtoE Response Trend
+        - M_WebStat                     : 웹 서버 성능 통계 / Webserver Summary
+        - M_DailySummary                : 일일 통계 / One-day Summary
+
+    - Report : 레포트 (Report)
+        - M_AnalysisReport              : 분석 보고서 / Analysis Report
+        - M_AnalysisReportConfiguration : 분석 보고서 설정 / Analysis Report Configuration
+
+3. 환경 설정 메뉴
+    - 환경 설정 / Configuration
+        - config_wasname                : 에이전트 설정 / Agent Settings
+        - config_service                : 서비스 설정 / Service Settings
+        - config_businessgroup          : 업무 그룹 설정 / Business Group Settings
+        - config_db_setting             : DB 설정 / DB Settings
+        - config_webserver_setting      : 웹 서버 설정 / WebServer Settings
+
+    - 사용자 설정 / User Configuration    
+        - config_myview                         : 내 설정 / My Configuration
+        - config_userlist                       : 사용자 설정 / User Accounts
+        - config_userpermission                 : 사용자 권한 설정 / User Privileges
+        - config_user_access_ip_setting         : 사용자 접속 IP 설정 / User Access IP Settings
+        - config_userservice                    : 서비스별 사용자 권한 설정 / Service Privileges
+        - config_user_service_ordering          : 서비스 표시 순서 설정 / Service Order Settings
+        - config_groupwas_ordering              : 에이전트 표시 순서 설정 / Group/Agent Order Settings
+        - config_trace_list_setting             : 트레이스 설정 / Trace Setting
+        - config_sms_destination_agent_setting  : SMS 대상 에이전트 설정 / SMS Destination Agent Settings
+        - config_report_setting                 : 레포트 설정 / Report Setting
+
+    - 알람 설정 / Alert Configuration
+        - config_alertWAS                       : WAS 에이전트 목록 / WAS Agent List
+        - config_alertDB                        : DB 목록 / DB List
+        - config_alertHost                      : 호스트 목록 / Host List
+        - config_alertAPIM                      : CDM 에이전트 목록 / APIM Agent List
+        - config_alertTP                        : TPM 에이전트 목록 / TP Agent List
+        - config_alertBusiness                  : 업무 목록 / Business List
+
+    - 업무 설정 / Business Configuration
+        - config_alertBusinessTxnName           : 업무 트랜잭션명 / Business Transaction Name
+        - config_alertBusinessClassName         : 업무 클래스명 / Business Class Name 
+        - config_blockSettings                  : 업무 차단 설정 / Business Block Settings
+        - config_blockListHistory               : 업무 차단 내역 / Business Block History
+        - config_businessRegister               : 업무 등록 / Business Register
+        - config_businessTierExclusionRegister  : 업무 구간 제외 등록 / Business Tier Exclusion Register
+
+    - 저장 DB 설정 / Repository Configuration
+        - config_alertParitionManager           : 파티션 매니자 / Partition Manager
+        
+    - JSPD 속성 설정 / JSPD Property Configuration
+        - config_propertyconfig                 : JSPD 속설 설정 / JSPD Property Configuration
+
+    - 발송 이력 / Sender History
+        - config_senderHistory                  : 발송 이력 / Sender History
+
+    - ETE 설정 / ETE Configuration
+        - config_tier_code_enrollment           : 구간 코드 등록 / Tier Code Enrollment
+        - config_tier_information               : 구간 정보 관리 / Tier Information Management
+        - config_tier_information_ordering      : 구간 정보 순서 설정 / Tier Information Order Settings
+
+    - AI 설정 / AI Configuration
+        - config_ai_trainning                   : AI 학습 설정 / AI Learning Setting

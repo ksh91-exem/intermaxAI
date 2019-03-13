@@ -1,0 +1,440 @@
+@CHARSET "UTF-8";
+/****************************************** 전체 공통 ************************************/
+
+div.header-log{
+    width: 260px;
+    height: 70px;
+    background: none;
+    top: 0px;
+    left: 0px;
+}
+
+div.header-log p{
+    color: #bac6d2;
+    font-size: 20px;
+    text-indent: 30px;
+    float: none;
+}
+
+div.header-log div{
+    color: #838f9b;
+    text-indent: 50px;
+    font-size: 14px;
+}
+
+* {
+    /*font-family: "Roboto Condensed" !important;*/
+    /*font-family: "Roboto Condensed";*/
+}
+
+div#connectionConfig{
+    position: absolute;
+    top: 23px;
+    left: 270px;
+    width: 20px;
+    height: 25px;
+    z-index: 1;
+    background-image: url(../../images/xm_icon_v1_b.png);
+    background-position: -27px -193px;
+    cursor: pointer;
+}
+
+div#connectionConfig:hover{
+    background-position: -5px -193px;
+}
+
+/* pa 그리드는 전체 적용됩니다. */
+.config_tab .x-column-header {
+    background-image: none;
+    background: #F5F5F5;
+    border-right: 1px solid #dddddd;
+}
+
+.config_tab .x-column-header-over {
+    background-image: none;
+    background: #F0F0F0;
+}
+
+.config_tab .x-grid-header-ct {
+    /*border-bottom-color: #c5c5c5;*/
+    background-image: none;
+    background-color: #f5f5f5;
+}
+
+/********************************************** config-base ****************************************************/
+/***************************************************************************************************************/
+
+
+/********************************************** config ***************************************************/
+/* 콤보박스 화살표테두리 */
+.config_tab .x-form-trigger-default{
+    position: inherit;
+    height: 100%;
+    right: 0px;
+    top: 0px;
+    /*background: transparent url(../../extjs/packages/ext-theme-gray/resources/images/form/trigger.gif) no-repeat;*/
+    background: transparent url(../../extjs/resources/ext-theme-gray/images/form/trigger.gif) no-repeat;
+    border-width: 0 0 1px;
+    border-color: #b5b8c8;
+    border-style: solid;
+}
+
+/* 탭 엑스표시 */
+.config_tab .x-tab-default .x-tab-close-btn{
+    width: 11px;
+    height: 11px;
+    top: 2px;
+    right: 2px;
+    /*background: url(../../extjs/packages/ext-theme-gray/resources/images/tab/tab-default-close.gif);*/
+    background: transparent url(../../extjs/packages/ext-theme-gray/build/resources/images/tab/tab-default-close.gif) no-repeat;
+    display: inherit;
+}
+
+.config_tab .x-tab-default .x-tab-close-btn-over{
+    /*background-position: -70px -24px;*/
+}
+
+.config_tab .x-tab-over .x-tab-close-btn{
+    display: inherit;
+}
+
+
+
+/*액티브 된 tab*/
+div.config_tab .x-tab.x-tab-active .x-tab-wrap .x-tab-button .x-tab-inner{
+    font-family: tahoma ;
+    font-size: 11px;
+    font-weight: bold;
+    color: #333;
+}
+
+
+/* connection pool alert configuration renderer */
+.config_alert_pool_grid_renderer {
+    background: #379df0;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.config_alert_pool_grid_renderer:hover {
+    background: #008DFF;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.config_tab span.x-btn-inner-default-small {
+    font-size: 11px;
+}
+
+/***************************************************************************************************************/
+.config_tab .xm-config-toggle .x-grid-cell div * {
+   font-size: 12px !important;
+}
+.config_tab .xm-config-toggle .x-grid-cell-inner {
+    padding: 2px 6px 2px 6px;
+}
+.config_tab .xm-config-toggle .x-grid-cell-inner-treecolumn {
+    padding: 3px 6px 4px 6px;
+}
+.config_tab .xm-config-toggle .modify-row {
+    background-color: #90EE90;
+}
+.config_tab .xm-config-toggle .modify-row.allow {
+    background-color: #e3effb;
+}
+.config_tab .xm-config-toggle .modify-row.reject {
+    background-color: #ffe8e8;
+}
+.xm-config-valide-row.reject {
+    background-image: url(../../images/Arrow_Red.png);
+    background-repeat: no-repeat;
+    background-position-x: 53px;
+}
+.xm-config-valide-row.allow {
+    font-weight: bold;
+    color: #e40b0b;
+    background-image: url(../../images/Arrow_Gray.png);
+    background-repeat: no-repeat;
+    background-position-x: 53px;
+}
+
+/***************************************************************************************************************/
+
+.config_tab .x-tree-elbow-img.x-tree-elbow-line {
+    background-image: url(../../images/xm_icon_v1_b.png);   /* ㅏ 모양  */
+    background-position: -264px -261px;
+}
+.config_tab .x-tree-elbow-img.x-tree-elbow-end {
+    background-image: url(../../images/xm_icon_v1_b.png);   /* ㄴ 모양 */
+    background-position: -315px -261px;
+}
+.config_tab .x-tree-elbow-img.x-tree-elbow-plus {
+    background-image: url(../../images/xm_icon_v1_b.png);   /* ㅏ에 (+) 이미지  */
+    background-position: -186px -261px;
+}
+.config_tab .x-grid-tree-node-expanded .x-tree-elbow-img.x-tree-elbow-plus.x-tree-expander {
+    background-image: url(../../images/xm_icon_v1_b.png);   /* ㅏ에 (-) 이미지 */
+    background-position: -345px -261px
+}
+.config_tab .x-grid-tree-node-expanded .x-tree-elbow-img.x-tree-elbow-end-plus.x-tree-expander{
+    background-image: url(../../images/xm_icon_v1_b.png);   /* ㄴ  (-) 이미지*/
+    background-position: -213px -261px
+}
+.config_tab .x-tree-elbow-img.x-tree-elbow-end-plus{
+    background-image: url(../../images/xm_icon_v1_b.png);   /* ㄴ  (+) 이미지 */
+    background-position: -290px -261px;
+}
+.config_tab .x-tree-elbow-img.x-tree-elbow {
+    background-image: url(../../images/xm_icon_v1_b.png);   /*  l 모양 */
+    background-position: -236px -261px;
+}
+
+/***************************************************************************************************************/
+
+.config_tab .xm-config-toggle label.x-toggle-slide-label-on{
+    background: linear-gradient(to bottom, rgba(228,11,11,1) 0%,rgba(228,11,11,1) 100%) ;
+    background: -ms-linear-gradient(top, #e40b0b  0%, #e40b0b 100%) !important;
+    color: #fff !important;
+    text-shadow: 0px 1px 0px rgba(16,126,173,.9); !important;
+    box-shadow: none !important;
+    line-height: 10px !important;
+    font-weight: normal;
+}
+.config_tab .xm-config-toggle label.x-toggle-slide-label-off,
+.config_tab .xm-config-toggle label.x-toggle-slide-label-off2 {
+    background: linear-gradient(to bottom, rgba(63,76,107,1) 0%,rgba(63,76,107,1) 100%) ;
+    background: -ms-linear-gradient(top, #3F4249  0%, #3F4249 100%) !important;
+    color: #fff !important;
+    text-shadow: 0px 1px 0px rgba(16,126,173,.9); !important;
+    box-shadow: none !important;
+    line-height: 10px !important;
+    font-weight: normal;
+}
+.config_tab .xm-config-toggle .x-toggle-slide-thumb {
+    background: -webkit-linear-gradient(top, #f0eff0 0%, #dbdadb 100%) !important;
+    background: -ms-linear-gradient(top, #f0eff0 0%, #dbdadb 100%); !important;
+    height: 16px !important;
+    width : 47px !important;
+    border-radius: 5px !important;
+    border : none;
+    text-align: center;
+}
+.config_tab .xm-config-toggle .x-toggle-slide-thumb:before {
+    width : 6px;
+    height: 6px;
+    content: '';
+    position: relative;
+    top : 2px;
+    display: inline-block;
+    background-image: url(../../images/Toggle.png);
+    background-repeat: no-repeat;
+}
+.config_tab .xm-config-toggle .x-toggle-slide-container{
+    overflow: inherit !important;
+    height: 16px !important;
+    border-radius: 5px !important;
+}
+.config_tab .xm-config-toggle .x-toggle-slide-container:before{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: -1px;
+    top: -1px;
+    content: '';
+    border: 1px solid #49A7F2;
+    border-radius: 5px;
+}
+.config_tab .xm-config-toggle .x-toggle-slide-container div.holder{
+    height: 16px !important;
+}
+
+
+/***********************************Group / Agent / Service Order Settings*****************************************/
+.x-btn.realign-column-moveupbtn {
+    background-image: url(../../images/up.png);
+    cursor: pointer;
+}
+.x-btn.realign-column-moveupbtn:hover {
+    background-image: url(../../images/up.png);
+    cursor: pointer;
+}
+
+.x-btn.realign-column-moveupbtn.disabledstate {
+    background-image: url(../../images/up.png);
+    cursor: default;
+}
+
+.x-btn.realign-column-movedownbtn{
+    background-image: url(../../images/dn.png);
+    cursor: pointer;
+}
+
+.x-btn.realign-column-movedownbtn:hover{
+    background-image: url(../../images/dn.png);
+    cursor: pointer;
+}
+.x-btn.realign-column-movedownbtn.disabledstate {
+    background-image: url(../../images/dn.png);
+    cursor: default;
+}
+
+
+/*.realign-column-moveleftbtn{*/
+    /*background-image: url(../../images/xm_icon_v1.png);*/
+    /*background-position: -1px -601px;*/
+    /*cursor: pointer;*/
+/*}*/
+/*.realign-column-moveleftbtn:hover{*/
+    /*background-image: url(../../images/xm_icon_v1.png);*/
+    /*background-position: -29px -601px;*/
+
+/*}*/
+
+/*.realign-column-moverightbtn{*/
+    /*background-image: url(../../images/xm_icon_v1.png);*/
+    /*background-position: -57px -601px;*/
+    /*cursor: pointer;*/
+/*}*/
+/*.realign-column-moverightbtn:hover{*/
+    /*background-image: url(../../images/xm_icon_v1.png);*/
+    /*background-position: -85px -601px;*/
+    /*cursor: pointer;*/
+/*}*/
+
+/*.realign-column-moveleftallbtn{*/
+    /*background-image: url(../../images/xm_icon_v1.png);*/
+    /*background-position: -1px -626px;*/
+    /*cursor: pointer;*/
+/*}*/
+
+/*.realign-column-moveleftallbtn:hover{*/
+    /*background-image: url(../../images/xm_icon_v1.png);*/
+    /*background-position: -29px -626px;*/
+    /*cursor: pointer;*/
+/*}*/
+
+/*.realign-column-moverightallbtn{*/
+    /*background-image: url(../../images/xm_icon_v1.png);*/
+    /*background-position: -57px -626px;*/
+    /*cursor: pointer;*/
+/*}*/
+/*.realign-column-moverightallbtn:hover{*/
+    /*background-image: url(../../images/xm_icon_v1.png);*/
+    /*background-position: -85px -626px;*/
+    /*cursor: pointer;*/
+/*}*/
+
+/*.exem-realign-grid .x-grid-row-checker {*/
+    /*background: url(../../images/xm_icon_v1.png);*/
+    /*width: 16px;*/
+    /*height: 16px;*/
+    /*margin-top: 3px;*/
+    /*background-position: -5px -177px;*/
+    /*cursor: pointer;*/
+/*}*/
+
+/*.exem-realign-grid .x-grid-row-selected .x-grid-row-checker {*/
+    /*background-position: -5px -160px;*/
+/*}*/
+
+/*.exem-realign-grid  .x-grid-cell-row-checker .x-grid-cell-inner {*/
+    /*padding : 1px 4px 3px 4px;*/
+/*}*/
+
+/*.exem-realign-grid .x-grid-cell-inner {*/
+    /*text-overflow: ellipsis;*/
+    /*padding : 7px 5px 4px 6px;*/
+/*}*/
+
+
+.circle-red {
+    width: 12px;
+    height: 12px;
+    background: #e42526;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    border-radius: 6px;
+}
+
+.circle-blue {
+    width: 12px;
+    height: 12px;
+    background: #42a5f6;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    border-radius: 6px;
+}
+
+.circle-yellow {
+    width: 12px;
+    height: 12px;
+    background: #ffd300;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    border-radius: 6px;
+}
+
+.x-grid-td {
+    vertical-align: middle;
+}
+
+.x-grid-cell-inner {
+    height: 20px;
+}
+
+.x-LineTPSChart-default-cell .x-grid-cell-inner {
+    height: 60px;
+}
+
+.x-LineElapseChart-default-cell .x-grid-cell-inner {
+    height: 60px;
+}
+
+.x-TimeLine-default-cell .x-grid-cell-inner {
+    height: 60px;
+}
+
+.x-ActiveTxn-default-cell .x-grid-cell-inner {
+    height: 60px;
+}
+
+.x-TaskStatus-default-cell .x-grid-cell-inner {
+    height: 60px;
+}
+
+.x-TaskStatus-default-cell canvas{
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.x-grid-cell-inner-tree-checkcolumn {
+    padding: 1px 6px 3px 6px;
+}
+
+.grid-cell-button {
+    background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #f9f9f9), color-stop(1, #e9e9e9));
+    background:-webkit-linear-gradient(top, #f9f9f9 5%, #e9e9e9 100%);
+    border-radius:6px;
+    /*background-color:#ffffff;*/
+    /*border:1px solid #dcdcdc;*/
+    cursor:pointer;
+    color:#666666;
+    font-weight:bold;
+    padding-left:10px;
+    text-decoration:none;
+}
+.grid-cell-button:hover {
+    background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #e9e9e9), color-stop(1, #f9f9f9));
+    background:-webkit-linear-gradient(top, #e9e9e9 5%, #f9f9f9 100%);
+    background-color:#f6f6f6;
+}
+.grid-cell-button:active {
+    position:relative;
+    top:1px;
+}
+
+.disabled-opacity-change {
+    opacity: 1 !important;
+}

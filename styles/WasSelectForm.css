@@ -1,0 +1,104 @@
+#wasLayer{
+    display: none;
+    position: absolute;
+    overflow: hidden;
+    width: 240px;
+    height: 300px;
+    background-color: #3892d3;
+    border-top: 6px solid #3892d3;
+    border-bottom: 4px solid #3892d3;
+    border-left: 3px solid #3892d3;
+    border-right: 3px solid #3892d3;
+    border-radius: 6px;
+    box-shadow: 1px 1px 1px #aaa;
+    padding: 3px 0px 0px 8px;
+    z-index: 10;
+}
+
+#wasLayer .was-list-header{
+    color: white;
+    font-weight: bold;
+    line-height: 15px;
+    font-family: arial,helvetica,verdana,sans-serif;
+    font-size: 13px;
+    text-transform: none;
+}
+
+#wasLayer .was-list-content{
+    overflow: auto;
+    width: 100%;
+    height: 250px;
+    background-color: #fff;
+    border: 2px solid #e0e0e0;
+    padding-left: 12px;
+}
+
+#wasLayer .was-list-content>ul{
+    padding-left: 0px;
+    margin: 0;
+}
+
+#wasLayer .was-list-content .was-select-all{
+    margin-top: 2px;
+    margin-right: 4px;
+    text-align: right;
+}
+
+#wasLayer .was-list-content ul.was-list-child{
+    padding-left: 28px;
+    padding-top: 4px;
+}
+
+#wasLayer .was-list-bottom{
+    text-align: center;
+}
+
+#wasLayer .was-list-bottom #wasSelectOk{
+    width: 70px;
+    border: 0px;
+    border-radius: 3px;
+    vertical-align: -webkit-baseline-middle;
+    background-color: #add2ed;
+    height: 18px;
+}
+
+#wasLayer .toggle{
+    display: inline-block;
+    width: 16px;
+    height: 17px;
+}
+
+#wasLayer .toggle.expand {
+    background: url('../../InterMax/resources/themes/images/default/tree/elbow-plus-nl.gif') no-repeat right top;
+    cursor: pointer;
+}
+
+#wasLayer .toggle.collapse {
+    background: url('../../InterMax/resources/themes/images/default/tree/elbow-end-minus-nl.gif') no-repeat right top;
+    cursor: pointer;
+}
+
+#wasLayer  label{
+    margin-left: 2px;
+}
+
+#wasLayer .form-close{
+    display: inline-block;
+    position: absolute;
+    color: #000;
+    top: 1px;
+    right: 8px;
+    cursor: pointer;
+    width: 29px;
+    text-align: center;
+    background-color: #add2ed;
+    border-radius: 3px;
+}
+
+#wasLayer .form-close:hover{
+    opacity: 0.5;
+}
+
+#wasLayer .part-opacity{
+    opacity: 0.5;
+}

@@ -1,0 +1,33 @@
+{
+    "date": "2019-02-02 00:00:00",
+    "result_date": "2019-01-16 14:09:00",
+    "body": {
+        "1": {
+            "tr_cd": "EFN7C110Q",
+            "svc_id": "EFN7C110QS",
+            "host_name": "wcbsap1p",
+            "svr_id": "TNEFNLINKS_1801",
+            "count": 22,
+            "avg_exe_time": 25517564.59090909,
+            "avg_db_exe_time": 25314783.5
+        },
+        "2": {
+            "tr_cd": "EFN7C110Q",
+            "svc_id": "EFN7C110QS",
+            "host_name": "wcbsap3p",
+            "svr_id": "TNEFNLINKS_1801",
+            "count": 26,
+            "avg_exe_time": 25146684.384615384,
+            "avg_db_exe_time": 25053117.653846152
+        },
+        "3": {
+            "tr_cd": "EFN7C110Q",
+            "svc_id": "EFN7C110QS",
+            "host_name": "wcbsap2p",
+            "svr_id": "TNEFNLINKS_1801",
+            "count": 37,
+            "avg_exe_time": 24595174.56756757,
+            "avg_db_exe_time": 24537216.513513513
+        }
+    }
+}

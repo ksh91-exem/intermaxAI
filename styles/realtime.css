@@ -1,0 +1,518 @@
+﻿/*
+  Splitter    PA 쪽에도 영향이 갑니다...따로 class를 사용하셔야 할것 같습니다
+*/
+/*.x-splitter-horizontal {*/
+    /*background-color: #aaaaaa;*/
+/*}*/
+
+/*path {*/
+    /*stroke: steelblue;*/
+    /*stroke-width: 1;*/
+    /*fill: none;*/
+/*}*/
+
+/************************************* Window ***************************************/
+
+.xm-window-base{
+    border: 9px solid #424242 !important;
+    border-radius: 8px;
+    /*     background: #424242 !important; */
+    overflow : visible;
+}
+
+
+div.xm-window-base.x-hide-offsets{
+    background: #fff !important;
+}
+
+.xm-window-base.x-resizable-over > .x-resizable-handle{
+    opacity: 0;
+}
+
+.xm-window-base .x-resizable-handle-north{
+    top: -7px;
+}
+
+.xm-window-base .x-resizable-handle-west{
+    left: -7px;
+}
+
+.xm-window-base .x-resizable-handle-east{
+    right: -7px;
+}
+
+.xm-window-base .x-resizable-handle-south{
+    bottom: -7px;
+}
+
+.xm-window-base .x-resizable-handle-northeast{
+    top: -7px;
+    right: -7px;
+}
+
+.xm-window-base .x-resizable-handle-northwest{
+    top: -7px;
+    left: -7px;
+}
+
+.xm-window-base .x-resizable-handle-southeast{
+    bottom: -7px;
+    right: -7px;
+}
+
+.xm-window-base .x-resizable-handle-southwest{
+    bottom: -7px;
+    left: -7px;
+}
+
+.xm-window-body-alertwindow{
+    position: absolute;
+    padding: 0px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    background: #EEEEEE;
+}
+
+.xm-window-body{
+    position: absolute;
+    padding: 4px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    background: #FFF;
+}
+
+.xm-window-body > div.x-box-inner{
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.xm-window-base div.xm-window-base-header{
+    width: 100% !important;
+    left: 0px!important;
+    padding-top: 7px;
+    border-bottom: 1px solid #B6B6B6 !important;
+}
+
+
+.xm-window-base div.xm-window-base-header div.x-header-body{
+    width: 100% !important;
+    height: 100% !important;
+    background: #424242;
+}
+
+.xm-window-base div.xm-window-base-header div.x-header-body div.x-box-inner{
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.xm-window-base div.xm-window-base-header div.x-header-body div.x-box-inner .x-box-target{
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.xm-window-base div.xm-window-base-header div.x-header-body div.x-box-inner .x-header-text{
+    margin: 24px;
+    font-size: 16px;
+    font-family: 'Droid Sans';
+}
+
+.xm-window-base div.xm-window-base-header div.x-header-body div.x-box-inner .x-header-text-container{
+    width: 100% !important;
+    height: 100% !important;
+    line-height: 32px;
+    background: #fff;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.xm-window-base div.xm-window-base-header div.x-header-body div.x-box-inner .x-tool-maximize{
+    position: absolute;
+    left: -32px;
+}
+
+.xm-window-base div.xm-window-base-header div.x-header-body div.x-box-inner .x-tool-restore{
+    position: absolute;
+    left: -32px;
+}
+
+.xm-window-base div.xm-window-base-header div.x-header-body div.x-box-inner .x-tool-close{
+    left: -25px;
+    position: absolute;
+    background : url(/intermax/images/Menu_Image/etc/mouse_normal.bmp) center center no-repeat;
+
+}
+/*********************************************************************************************************/
+
+.lbl-text-align {
+    text-align: right;
+    display: block;
+    font-family:"Droid Sans";
+    font-size:12px;
+    /*font-weight:bold;*/
+    font-style:normal;
+}
+
+.grid-group-text {
+    background-color: #ffffff;
+    color: #14b4be;
+}
+
+.grid-gray-text {
+    background-color: #ffffff;
+    color: #aaaaaa;
+}
+
+.grid-normal-text {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.round-corner-set {
+    border-radius: 8px;
+}
+
+.cfg_userid_input {
+    border-bottom-color: #b3b3b3;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-left-color: #b3b3b3;
+    border-left-style: solid;
+    border-left-width: 1px;
+    border-right-color: #b3b3b3;
+    border-right-style: solid;
+    border-right-width: 1px;
+    border-top-color: #b3b3b3;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-top-style: solid;
+    border-top-width: 1px;
+    line-height: 22px;
+    padding-left: 5px;
+}
+
+.x-rtmain-used-round-panel {
+    -moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+    -webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+    box-shadow:inset 0px 1px 0px 0px #ffffff;
+    background-color:transparent;
+    -webkit-border-top-left-radius:5px;
+    -moz-border-radius-topleft:5px;
+    border-top-left-radius:5px;
+    -webkit-border-top-right-radius:5px;
+    -moz-border-radius-topright:5px;
+    border-top-right-radius:5px;
+    -webkit-border-bottom-right-radius:5px;
+    -moz-border-radius-bottomright:5px;
+    border-bottom-right-radius:5px;
+    -webkit-border-bottom-left-radius:5px;
+    -moz-border-radius-bottomleft:5px;
+    border-bottom-left-radius:5px;
+    border:1px solid #ffffff;
+    /*border:1px solid #bcbcbc;*/
+}
+
+.x-config-used-round-panel {
+    -moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+    -webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+    box-shadow:inset 0px 1px 0px 0px #ffffff;
+    background-color:transparent;
+    -webkit-border-top-left-radius:3px;
+    -moz-border-radius-topleft:3px;
+    border-top-left-radius:3px;
+    -webkit-border-top-right-radius:3px;
+    -moz-border-radius-topright:3px;
+    border-top-right-radius:3px;
+    -webkit-border-bottom-right-radius:3px;
+    -moz-border-radius-bottomright:3px;
+    border-bottom-right-radius:3px;
+    -webkit-border-bottom-left-radius:3px;
+    -moz-border-radius-bottomleft:3px;
+    border-bottom-left-radius:3px;
+    border:1px solid #dcdcdc;
+}
+
+.x-btn-config-default {
+    -moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+    -webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+    box-shadow:inset 0px 1px 0px 0px #ffffff;
+    background-color:transparent;
+    -webkit-border-top-left-radius:3px;
+    -moz-border-radius-topleft:3px;
+    border-top-left-radius:3px;
+    -webkit-border-top-right-radius:3px;
+    -moz-border-radius-topright:3px;
+    border-top-right-radius:3px;
+    -webkit-border-bottom-right-radius:3px;
+    -moz-border-radius-bottomright:3px;
+    border-bottom-right-radius:3px;
+    -webkit-border-bottom-left-radius:3px;
+    -moz-border-radius-bottomleft:3px;
+    border-bottom-left-radius:3px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-left: 2px;
+    margin-right: 2px;
+    text-indent:0;
+    border:1px solid #dcdcdc;
+    display:inline-block;
+    color:#777777;
+    font-family:"Tahoma";
+    font-size:12px;
+    font-weight:bold;
+    font-style:normal;
+    height:23px;
+    line-height:50px;
+    width:70px;
+    text-decoration:none;
+    text-align:center;
+    text-shadow:1px 1px 0px #ffffff;
+}
+
+.x-btn-config-default:active {
+     position:relative;
+     top:1px;
+ }
+
+.x-btn-config-special {
+    display: inline-block;
+    text-decoration: none;
+    color: #fff;
+    width:80px;
+    height:20px;
+
+    padding-top: 4px;
+    font-size: 13px;
+    border: 1px solid #107ead;
+
+    background-image: -webkit-linear-gradient(top, #56b1d8 0%, #1e97cc 100%);
+    background-image: -moz-linear-gradient(top, #56b1d8 0%, #1e97cc 100%);
+    background-image: -ms-linear-gradient(top, #56b1d8 0%, #1e97cc 100%);
+    background-image: -o-linear-gradient(top, #56b1d8 0%, #1e97cc 100%);
+    background-image: linear-gradient(top, #56b1d8 0%, #1e97cc 100%);
+
+    border-radius: 3px;
+    text-shadow: 0px 1px 0px rgba(16,126,173,.9);
+    box-shadow:
+    inset 0px 3px 0px rgba(255,255,255,.13),
+    inset 0px 1px 0px rgba(255,255,255,.33),
+    inset 0px 0px 4px rgba(7,68,169,.43);
+}
+
+
+.x-btn-config-special:hover {
+    display: inline-block;
+    text-decoration: none;
+    color: #fff;
+    width:80px;
+    height:20px;
+    font-weight: bold;
+    padding-top: 4px;
+    font-size: 13px;
+    border: 1px solid #107ead;
+
+    background-image: -webkit-linear-gradient(top, #0e79a7 0%, #052e40 100%);
+    background-image: -moz-linear-gradient(top, #0e79a7 0%, #052e40 100%);
+    background-image: -ms-linear-gradient(top, #0e79a7 0%, #052e40 100%);
+    background-image: -o-linear-gradient(top, #0e79a7 0%, #052e40 100%);
+    background-image: linear-gradient(top, #0e79a7 0%, #052e40 100%);
+
+    border-radius: 3px;
+    text-shadow: 0px 1px 0px rgba(16,126,173,.9);
+    box-shadow:
+    inset 0px 3px 0px rgba(149,207,231,.13),
+    inset 0px 1px 0px rgba(149,207,231,.43),
+    inset 0px 0px 4px rgba(149,207,231,.25);
+}
+
+#BullArea {
+    position: relative;
+    width: 300px;
+    height: 40px;
+    border: 1px solid #000;
+}
+
+.axis {
+    shape-rendering: crispEdges;
+}
+
+.rt_x line {
+    stroke: lightgrey;
+}
+
+.rt_x .minor {
+    stroke-opacity: .5;
+}
+
+.rt_x path {
+    display: none;
+}
+
+g .rt_y line, g .rt_y path {
+    fill: none;
+    stroke: #999;
+    shape-rendering: crispEdges;
+}
+
+g .dbStatChart .tick text {
+    font: 8pt "Droid Sans";
+    /*font: 8px imaxval;*/
+    fill: #999;
+}
+
+g .statChart .tick text {
+    font: 8px imaxval;
+    fill: #999;
+}
+
+g .rt_service_stat {
+    font: 8px imaxval;
+    fill: #999;
+}
+
+/*g .tick line {*/
+     /*fill: #555555;*/
+/*}*/
+
+g .tick text {
+    /*font: 8px imaxval;*/
+    font: 8pt "Droid Sans";
+    fill: #999;
+}
+
+g .tick text:lang(ja) {
+    font-size: 11px !important;
+}
+
+/*g .tick line {*/
+    /*fill: #cccccc;*/
+/*}*/
+
+g .tick path.domain {
+    fill: #555555;
+}
+
+.activetxn-autorefresh-label {
+    font: 8px imaxval;
+    color: #000;
+}
+
+.activetxn-groupname-label {
+    font: 12px NanumGothic;
+    color: #000000;
+}
+
+.activetxn-selectall-label {
+    font: 12px NanumGothic;
+    color: #000000;
+}
+
+.checkbox label:before {
+    border-radius: 3px;
+}
+
+
+/*
+input[type=checkbox] + label:before {
+    content: "\2713";
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .2);
+    font-size: 15px;
+    color: #eeeeee;
+    text-align: center;
+    line-height: 15px;
+}
+*/
+
+/*
+input[type=checkbox]:checked + label:before {
+    content: "\2713";
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .2);
+    font-size: 15px;
+    color: #555555;
+    text-align: center;
+    line-height: 15px;
+}
+*/
+
+text.dbname-ellipsis:hover {
+    overflow: visible;
+}
+
+body {
+    font: 10px sans-serif;
+}
+
+.line.line0 {
+    stroke: steelblue;
+}
+
+.line.line1 {
+    stroke: indianred;
+}
+
+.overlay {
+    fill: none;
+    pointer-events: all;
+}
+
+.focus circle {
+    fill: none;
+}
+
+.focus circle.y0 {
+    stroke: blue;
+}
+
+.focus circle.y1 {
+    stroke: red;
+}
+
+.focus line {
+    stroke: purple;
+    shape-rendering: crispEdges;
+}
+
+.focus line.y0 {
+    stroke: steelblue;
+    stroke-dasharray: 3 3;
+    opacity: .5;
+}
+
+.focus line.y1 {
+    stroke: indianred;
+    stroke-dasharray: 3 3;
+    opacity: .5;
+}
+
+.brush .extent {
+    stroke: #fff;
+    fill-opacity: .125;
+    shape-rendering: crispEdges;
+}
+
+.rt_scatterGrid line {
+    stroke-dasharray: 1,1;
+    stroke: #cccccc;
+}
+
+/*.axis .rt_text {*/
+    /*font: 8px 'imaxval';*/
+/*}*/
+
+.baseGridRTM .x-column-header {
+    background-image: none;
+    background: #F5F5F5;
+    border-right: 1px solid #dddddd;
+}
+
+.baseGridRTM .x-column-header-over {
+    background-image: none;
+    background: #F0F0F0;
+}
+
+.baseGridRTM .x-grid-header-ct {
+    /*border-bottom-color: #c5c5c5;*/
+    background-image: none;
+    background-color: #f5f5f5;
+}

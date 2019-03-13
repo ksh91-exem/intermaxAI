@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="shortcut icon" href="../images/favicon.ico" >
+    <link rel="stylesheet" type="text/css" href="../extjs/packages/ext-theme-gray/build/resources/ext-theme-gray-all.css"/>
+    <link rel="stylesheet" media="screen" href="../lib/handsontable/dist/jquery.handsontable.full.css">
+
+</head>
+<body>
+
+
+<style>
+    @font-face {
+        font-family: 'Droid Sans'!important;
+        src: url('../styles/fonts/DroidSans.woff') format('woff') !important;
+    }
+
+    @font-face {
+        font-family: 'Droid Sans Bold'!important;
+        src: url('../styles/fonts/DroidSans-Bold.woff') format('woff') !important;
+    }
+
+    div.header-log{
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        height: 30px;
+        width: 150px;
+        overflow: hidden;
+    }
+
+    div.header-log > p {
+        float: left;
+        line-height: 24px;
+    }
+
+    div.rtm-header-log{
+        position: absolute;
+        top: 15px;
+        left: 120px;
+        height: 30px;
+        width: 150px;
+        overflow: hidden;
+    }
+
+    div.rtm-header-log > p {
+        float: left;
+        line-height: 24px;
+    }
+
+    p.header-line{
+        border-right: 1px solid #6F6A6A;
+        margin: 7px 10px;
+        height: 11px;
+    }
+
+    p.header-title{
+        margin: 0px;
+        color: white;
+        font-size: 15px ;
+        font-family: 'Droid Sans';
+    }
+
+
+    /*###### image #############################################################*/
+    div.step1{
+        /*position: absolute;*/
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        /*top: 55px;*/
+        /*left: 135px;*/
+        width: 1001px;
+        height: 723px;
+        z-index: 1;
+        background-image: url(/Intermax5/Install/image/Install_image_3/step01.png);
+    }
+
+
+    div.eng_step1{
+        /*position: absolute;*/
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        /*top: 55px;*/
+        /*left: 135px;*/
+        width: 1001px;
+        height: 723px;
+        z-index: 1;
+        background-image: url(/Intermax5/Install/image/Install_image_3/eng_step01.png);
+    }
+
+    p.cancel-btn{
+        position: absolute;
+        top: 650px;
+        left: 841px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/Intermax5/Install/image/Install_image_3/Cancel_Btt_Off.png);
+    }
+
+    p.cancel-btn:hover{
+        position: absolute;
+        top: 650px;
+        left: 841px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/Intermax5/Install/image/Install_image_3/Cancel_Btt_On.png);
+    }
+
+
+    p.back-btn{
+        position: absolute;
+        top: 650px;
+        left: 589px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/Intermax5/Install/image/Install_image_3/back_btt_Off.png);
+    }
+
+    p.back-btn:hover{
+        position: absolute;
+        top: 650px;
+        left: 589px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/Intermax5/Install/image/Install_image_3/back_btt_On.png);
+    }
+
+
+    p.config-btn{
+        position: absolute;
+        top: 650px;
+        left: 715px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/Intermax5/Install/image/Install_image_3/Config_Btt_Off.png);
+    }
+
+    p.config-btn:hover{
+        position: absolute;
+        top: 650px;
+        left: 715px;
+        width: 118px;
+        height: 28px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/Intermax5/Install/image/Install_image_3/Config_Btt_On.png);
+    }
+
+
+    div.grid-area{
+        position: absolute;
+        top: 331px;
+        left: 42px;
+        width: 465px;
+        height: 300px;
+        z-index: 1;
+    }
+
+    p.was-off{
+        position: absolute;
+         top: 136px;
+         left: 45px;
+         width: 450px;
+         height: 109px;
+         z-index: 1;
+         cursor: pointer;
+         background-image: url(/Intermax5/Install/image/Install_image_3/wepapp_Btt_Off.png);
+     }
+
+    p.was-off:hover{
+        position: absolute;
+        top: 136px;
+        left: 45px;
+        width: 450px;
+        height: 109px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/Intermax5/Install/image/Install_image_3/wepapp_Btt_On.png);
+    }
+
+    p.close-btn{
+        position: absolute;
+        top: 8px;
+        left: 958px;
+        width: 17px;
+        height: 17px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/Intermax5/Install/image/Install_image_3/WindowClose_Btt_Off.png);
+    }
+
+
+    p.close-btn:hover{
+        position: absolute;
+        top: 8px;
+        left: 958px;
+        width: 17px;
+        height: 17px;
+        z-index: 1;
+        cursor: pointer;
+        background-image: url(/Intermax5/Install/image/Install_image_3/WindowClose_Btt_On.png);
+    }
+
+    p.was-count{
+        position: absolute;
+        top: 193px;
+        left: 324px;
+        border-radius: 100px;
+        padding: 5px 5px;
+        color: #fff;
+        z-index: 2;
+        opacity: .7;
+        background-color: #123A62;
+    }
+
+
+
+</style>
+
+
+<div id="homediv" style="position:absolute; width: 100%; height: 100%"></div>
+
+<script type="text/javascript" src="../lib/zlib.min.js"></script>
+<script type="text/javascript" src="../lib/IMXWS.js"></script>
+<script type="text/javascript" src="../lib/jquery-1.7.min.js"></script>
+
+<script type="text/javascript" src="../lib/jquery.flot.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.pie.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.resize.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.selection.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.categories.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.crosshair.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.stack.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.symbol.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.time.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.tooltip.min.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.orderBars.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.axislabels.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.tickrotor.js"></script>
+<script type="text/javascript" src="../lib/jquery.colorhelpers.min.js"></script>
+
+<script type="text/javascript" src="../lib/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="text/javascript" src="../lib/jquery.event.drag-2.2.js"></script>
+<script type="text/javascript" src="../lib/jquery.event.drop-2.2.js"></script>
+<script type="text/javascript" src="../lib/jquery.bullet.js"></script>
+<script type="text/javascript" src="../lib/jquery.clippy.js"></script>
+<script type="text/javascript" src="../lib/jquery.zclip.js"></script>
+<script type="text/javascript" src="../lib/jquery.jsPlumb.min.js"></script>
+
+<script src="../lib/handsontable/dist/jquery.handsontable.full.js"></script>
+<script type="text/javascript" src="../extjs/build/ext-all.js"></script>
+
+<script type="text/javascript" src="app.js"></script>
+
+</script>
+
+</body>
+</html>

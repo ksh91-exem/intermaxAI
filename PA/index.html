@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>InterMax</title>
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <style>
+
+        /* animate the drops*/
+        html,body,div,span,h1,h2,h3,h4,h5,h6,p,a,img,small,strong,dl,dt,dd,ol,ul,li,label,table,tbody,tfoot,thead,tr,th,td,canvas,footer,audio {
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            -ms-box-sizing: border-box;
+            box-sizing: border-box;
+            font-family: 'Droid Sans', NanumGothic;
+        }
+
+        html {
+            text-rendering: optimizeLegibility;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+            -ms-overflow-x: hidden;
+        }
+
+        body{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #f5fafd;
+            min-height: 550px;
+            min-width: 1050px;
+            overflow: hidden;
+        }
+
+        @font-face {
+            font-family: 'Droid Sans';
+            src: url('../styles/fonts/DroidSans.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        @font-face {
+            font-family: 'Meiryo UI';
+            src: url('../styles/fonts/MeiryoUI.ttf') format('ttf') !important;
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        .main-loading{
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            -webkit-animation: mainLoading 0.7s ease-in-out;
+            -moz-animation: mainLoading 0.7s ease-in-out;
+            -o-animation: mainLoading 0.7s ease-in-out;
+            animation: mainLoading 0.7s ease-in-out;
+            overflow: hidden;
+        }
+
+        .fade-out{
+            -webkit-animation: fadeOut 1s ease-in-out;
+            -moz-animation: fadeOut 1s ease-in-out;
+            -o-animation: fadeOut 1s ease-in-out;
+            animation: fadeOut 1s ease-in-out;
+        }
+
+        @-webkit-keyframes mainLoading {
+            0% {
+                display:none;
+                opacity: 0;
+            }
+            1% {
+                display: block ;
+                opacity: 0;
+            }
+            100% {
+                display: block ;
+                opacity: 1;
+            }
+        }
+        @keyframes mainLoading {
+            0% {
+                display:none;
+                opacity: 0;
+            }
+            1% {
+                display: block ;
+                opacity: 0;
+            }
+            100% {
+                display: block ;
+                opacity: 1;
+            }
+        }
+
+        @-webkit-keyframes fadeOut {
+            0% {
+                display: block;
+                opacity: 1;
+            }
+            99% {
+                opacity: 0;
+            }
+            100% {
+                display: none ;
+            }
+        }
+        @keyframes fadeOut {
+            0% {
+                display: block;
+                opacity: 1;
+            }
+            99% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 0;
+                display: none ;
+            }
+        }
+        
+        /*************************************** 국가별 style *****************************************/
+        /* 일본 */
+        body.ja * {
+            font-family: Meiryo UI !important;
+        }
+
+        #main .login-left-area{
+            position: relative;
+            float: left;
+            width: 30%;
+            height: 100%;
+
+            /*-webkit-transition: all 0.5s ease-in-out;*/
+            /*-moz-transition: all 0.5s ease-in-out;*/
+            /*-ms-transition: all 0.5s ease-in-out;*/
+            /*-o-transition: all 0.5s ease-in-out;*/
+            /*transition: all 0.5s ease-in-out;*/
+        }
+
+        #main .login-left-area img{
+            width: 100%;
+            height: 100%;
+        }
+
+        #main .login-logo{
+            position: absolute;
+            top: 60px;
+            right: 70px;
+            width: 288px;
+            height: 73px;
+            background-image: url(../images/login_logo_intermax.png);
+        }
+        
+        #main .login-logo.global{
+            position: absolute;
+            top: 60px;
+            right: 70px;
+            width: 338px;
+            height: 92px;
+            background-image: url(../images/login_logo.png);
+        }
+
+        #main .login-symbol{
+            position: absolute;
+            top: 35%;
+            right: 46px;
+            width: 113px;
+            height: 116px;
+            background-image: url(../images/login_symbol_logo.png);
+        }
+
+        #main .login-type-container{
+            position: absolute;
+            top: 56%;
+            right: 46px;
+            width: 300px;
+            height: 77px;
+            color: #fff;
+            text-align: right;
+            -webkit-perspective: 100;
+            -moz-perspective: 100;
+            -ms-perspective: 100;
+            perspective: 100;
+
+        }
+        #main .login-type{
+            position: absolute;
+            width: 100%;
+            height: 31px;
+            margin: 5px 0px;
+            cursor: default;
+            z-index: 1;
+            -webkit-transition: all 0.5s;
+            -moz-transition: all 0.5s;
+            -ms-transition: all 0.5s;
+            -o-transition: all 0.5s;
+            transition: all 0.5s;
+        }
+
+        #main .login-type:hover .login-icon{
+            /*-webkit-transform: rotateX(-360deg);*/
+            /*-moz-transform: rotateX(-360deg);*/
+            /*-ms-transform: rotateX(-360deg);*/
+            /*-o-transform: rotateX(-360deg);*/
+            /*transform: rotateX(-360deg);*/
+
+            -webkit-animation: flip 1s ease-in-out ;
+            -moz-animation: flip 1s ease-in-out;
+            -o-animation: flip 1s ease-in-out;
+            animation: flip 1s ease-in-out;
+        }
+
+        @keyframes flip {
+            0% {
+                -webkit-transform: rotateX(0deg);
+                -moz-transform: rotateX(0deg);
+                -ms-transform: rotateX(0deg);
+                -o-transform: rotateX(0deg);
+                transform: rotateX(0deg);
+            }
+            50% {
+                -webkit-transform: rotateX(-360deg);
+                -moz-transform: rotateX(-360deg);
+                -ms-transform: rotateX(-360deg);
+                -o-transform: rotateX(-360deg);
+                transform: rotateX(-360deg);
+            }
+            100% {
+                -webkit-transform: rotateX(0deg);
+                -moz-transform: rotateX(0deg);
+                -ms-transform: rotateX(0deg);
+                -o-transform: rotateX(0deg);
+                transform: rotateX(0deg);
+            }
+        }
+
+        @-webkit-keyframes flip {
+            0% {
+                -webkit-transform: rotateX(0deg);
+                -moz-transform: rotateX(0deg);
+                -ms-transform: rotateX(0deg);
+                -o-transform: rotateX(0deg);
+                transform: rotateX(0deg);
+            }
+            50% {
+                -webkit-transform: rotateX(-360deg);
+                -moz-transform: rotateX(-360deg);
+                -ms-transform: rotateX(-360deg);
+                -o-transform: rotateX(-360deg);
+                transform: rotateX(-360deg);
+            }
+            100% {
+                -webkit-transform: rotateX(0deg);
+                -moz-transform: rotateX(0deg);
+                -ms-transform: rotateX(0deg);
+                -o-transform: rotateX(0deg);
+                transform: rotateX(0deg);
+            }
+        }
+
+        #main .login-rtm{
+            /*top: 0px;*/
+            top: 38px;
+            opacity: 0.3;
+        }
+
+        #main .login-pa{
+            /*top: 38px;
+            opacity: 0.3;*/
+            top: 0px;
+        }
+
+        #main .login-type div{
+            float: right;
+        }
+
+        #main .login-type .login-icon{
+            background-image: url(../images/xm_icon_v1_b.png);
+            width: 31px;
+            height: 31px;
+            margin-right: 18px;
+        }
+
+        #main .login-rtm .login-icon{
+            background-position: -57px -350px;
+        }
+
+        #main .login-pa .login-icon{
+            background-position: -57px -383px;
+        }
+
+        #main .login-name{
+            line-height: 31px;
+            font-size: 18px;
+        }
+
+        #main .login-arrow{
+            position: absolute;
+            top: 7px;
+            left: -68px;
+            width: 14px;
+            height: 25px;
+            background-image: url(../images/xm_icon_v1_b.png);
+            background-position: -123px -350px;
+            z-index: 2;
+        }
+
+        #main .login-right-area{
+            position: relative;
+            width: 70%;
+            height: 100%;
+            float: left;
+            padding-left: 63px;
+            background: #f5fafd;
+        }
+
+        #main .login-field-area{
+            position: absolute;
+            top: 56%;
+            height: 77px;
+            padding-top: 4px;
+        }
+
+        #main .loading-area{
+            position: absolute;
+            top: 56%;
+            height: 77px;
+            width: 100%;
+            padding-top: 4px;
+            display: none;
+        }
+
+        #main .text-field{
+            width: 209px;
+            height: 31px;
+            border: none;
+            font-size: 16px;
+            text-indent: 10px;
+            background-image: url(../images/login_text_bg.png);
+            background-repeat: no-repeat;
+            margin-right: 7px;
+        }
+
+        #main .text-field:focus{
+            background-image: none;
+            box-shadow: 0 0 5px rgba(32, 128, 208, 1);
+        }
+
+        #main .login-field-btn{
+            display: block;
+            float: right;
+            height: 31px;
+            width: 209px;
+            text-align: center;
+            line-height: 31px;
+            font-size: 18px;
+            font-family: 'Droid Sans', NanumGothic;
+            color: #fff;
+            cursor: pointer;
+            outline: none;
+            border-radius: 5px;
+            box-shadow: 0px 1px 0px #11374e;
+            background-image: -webkit-linear-gradient(top, #0dabc4 0%, #1193b5 1%, #0a82a5 50%, #047094 70%, #00668e 100%);
+            background-image: -moz-linear-gradient(top, #0dabc4 0%, #1193b5 1%, #0a82a5 50%, #047094 70%, #00668e 100%);
+            background-image: -ms-linear-gradient(top, #0dabc4 0%, #1193b5 1%, #0a82a5 50%, #047094 70%, #00668e 100%);
+            background-image: -o-linear-gradient(top, #0dabc4 0%, #1193b5 1%, #0a82a5 50%, #047094 70%, #00668e 100%);
+            background-image: linear-gradient(top, #0dabc4 0%, #1193b5 1%, #0a82a5 50%, #047094 70%, #00668e 100%);
+            border: none;
+        }
+
+        #main .login-field-btn:focus{
+            box-shadow: 1px 1px 6px #000;
+        }
+        
+        #main .login-field-btn:active{
+            box-shadow: 1px 1px 6px #000;
+        }
+
+        #main .login-remember-user{
+            margin-top: 11px;
+        }
+
+        #main .login-remember-user label{
+            font-size: 15px;
+            color: #4f5759;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"]{
+            display: none;
+        }
+
+        input[type="checkbox"] + label{
+            font-size: 14px;
+            color: #4f5759;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] + label span {
+            display:inline-block;
+            position: relative;
+            top: 3px;
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+            background-image: url(../images/xm_icon_v1_b.png);
+            background-position: -5px -177px;
+        }
+
+        input[type="checkbox"]:checked + label span {
+            background-position: -5px -160px
+        }
+
+        #idIframe{
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
+
+        .login-change-area{
+            position: absolute;
+            top: 35%;
+            width: 640px;
+            text-align: center;
+            display: none;
+
+            -webkit-transition: all 0.5s;
+            -moz-transition: all 0.5s;
+            -ms-transition: all 0.5s;
+            -o-transition: all 0.5s;
+            transition: all 0.5s;
+        }
+
+        .login-change-field-wrap h2{
+            font-size: 24px;
+            color: #444;
+            margin: 20px 0px;
+        }
+        .login-change-field label{
+            display: inline-block;
+            width: 175px;
+            height: 33px;
+            font-size: 16px;
+            color: #4B4B4B;
+            text-align: left;
+        }
+
+        .login-change-area #idBtn_change_ok{
+            float: none;
+            display: inline-block;
+        }
+
+        .login-change-caution{
+            /*display: none;*/
+            margin: 10px 0px;
+        }
+
+        .login-change-caution h2{
+            color: #F00;
+            font-size: 16px;
+        }
+
+        .login-change-caution .policy-text{
+            display: inline-block;
+            width: 366px;
+            color: #F00;
+            font-size: 14px;
+            text-align: left;
+            margin-left: 6px;
+        }
+
+        .login-change-caution .policy-icon{
+            display: inline-block;
+            width: 12px;
+            height: 11px;
+            background-image: url(../images/xm_icon_v1_b.png);
+            background-position: -296px -284px;
+        }
+
+        .login-change-caution div.checked{
+            opacity: 0.2
+        }
+
+        .login-change-caution div.checked .policy-icon{
+            background-position: -297px -297px;
+        }
+
+        .login-change-caution div.checked .policy-text{
+            color: #000;
+        }
+
+        .alert-window-background{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.2);
+            z-index: 3;
+            display: none;
+        }
+
+        .alert-window{
+            position: absolute;
+            background: #2FA9F6;
+            padding: 20px;
+            box-shadow: 1px 1px 1px #000;
+        }
+
+        .alert-window > div{
+            position:relative;
+            float: left;
+            font-size: 14px;
+            color: #fff;
+            margin-right: 10px;
+        }
+
+        div.alert-window-title{
+            border-right: 2px solid #0082B6;
+            padding-right: 10px;
+        }
+
+        div.alert-window-close{
+            position: absolute;
+            top: 6px;
+            right: 0px;
+            font-size: 14px;
+            background: #126FAA;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        div.alert-window-close:hover{
+            opacity: 0.7;
+        }
+
+        input[disabled]{
+            opacity: 0.3;
+        }
+
+        #rtmLoadingConatiner{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        .pa-loading-content{
+            background-image:url(../images/PA_ld_Title.png);
+            width:628px;
+            height:95px;
+        }
+
+        .rtm-loading-content{
+            background-image:url(../images/RealTime.png);
+            width:625px;
+            height:80px;
+        }
+        
+        /** BEGIN CSS **/
+        @keyframes rotate-loading {
+            0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+            100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+        }
+        
+        @-moz-keyframes rotate-loading {
+            0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+            100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+        }
+        
+        @-webkit-keyframes rotate-loading {
+            0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+            100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+        }
+        
+        @-o-keyframes rotate-loading {
+            0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+            100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+        }
+        
+        @keyframes rotate-loading {
+            0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+            100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+        }
+        
+        @-moz-keyframes rotate-loading {
+            0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+            100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+        }
+        
+        @-webkit-keyframes rotate-loading {
+            0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+            100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+        }
+        
+        @-o-keyframes rotate-loading {
+            0%  {transform: rotate(0deg);-ms-transform: rotate(0deg); -webkit-transform: rotate(0deg); -o-transform: rotate(0deg); -moz-transform: rotate(0deg);}
+            100% {transform: rotate(360deg);-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); -o-transform: rotate(360deg); -moz-transform: rotate(360deg);}
+        }
+        
+        @keyframes loading-text-opacity {
+            0%  {opacity: 0}
+            20% {opacity: 0}
+            50% {opacity: 1}
+            100%{opacity: 0}
+        }
+        
+        @-moz-keyframes loading-text-opacity {
+            0%  {opacity: 0}
+            20% {opacity: 0}
+            50% {opacity: 1}
+            100%{opacity: 0}
+        }
+        
+        @-webkit-keyframes loading-text-opacity {
+            0%  {opacity: 0}
+            20% {opacity: 0}
+            50% {opacity: 1}
+            100%{opacity: 0}
+        }
+        
+        @-o-keyframes loading-text-opacity {
+            0%  {opacity: 0}
+            20% {opacity: 0}
+            50% {opacity: 1}
+            100%{opacity: 0}
+        }
+        
+        .loading-container,
+        .loading {
+            height: 30px;
+            position: relative;
+            width: 30px;
+            border-radius: 100%;
+        }
+        
+        .loading-container {
+            float:left;
+            margin-top: 5px;
+        }
+        
+        .loading-area .loading{
+            border-color: transparent #666 transparent #666;
+        }
+        
+        .loading {
+            border: 2px solid transparent;
+            border-color: transparent #fff transparent #fff;
+            -moz-animation: rotate-loading 1.5s linear 0s infinite normal;
+            -moz-transform-origin: 50% 50%;
+            -o-animation: rotate-loading 1.5s linear 0s infinite normal;
+            -o-transform-origin: 50% 50%;
+            -webkit-animation: rotate-loading 1.5s linear 0s infinite normal;
+            -webkit-transform-origin: 50% 50%;
+            animation: rotate-loading 1.5s linear 0s infinite normal;
+            transform-origin: 50% 50%;
+        }
+        
+        /*.loading-container:hover .loading {*/
+            /*border-color: transparent #2b7de4 transparent #2b7de4;*/
+        /*}*/
+        .loading-container:hover .loading,
+        .loading-container .loading {
+            -webkit-transition: all 0.5s ease-in-out;
+            -moz-transition: all 0.5s ease-in-out;
+            -ms-transition: all 0.5s ease-in-out;
+            -o-transition: all 0.5s ease-in-out;
+            transition: all 0.5s ease-in-out;
+        }
+        
+        #loading-text {
+            -moz-animation: loading-text-opacity 2s linear 0s infinite normal;
+            -o-animation: loading-text-opacity 2s linear 0s infinite normal;
+            -webkit-animation: loading-text-opacity 2s linear 0s infinite normal;
+            animation: loading-text-opacity 2s linear 0s infinite normal;
+            color: #ffffff;
+            font-family: "Helvetica Neue, "Helvetica", ""arial";
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: 45px;
+            opacity: 0;
+            position: absolute;
+            text-align: center;
+            text-transform: uppercase;
+            top: 0;
+            width: 100px;
+        }
+
+    </style>
+</head>
+<body>
+<script type="text/javascript" src="../common/browserCheck.js"></script>
+<div id="main" class="main-loading">
+    <!-- 왼쪽 -->
+    <div class="login-left-area">
+        <img src="../images/loginLeft_bg.png">
+        <div class="login-logo global"></div>
+        <div class="login-symbol"></div>
+        <div class="login-type-container"></div>
+    </div>
+    <!-- 오른쪽 -->
+    <div class="login-right-area">
+        <!-- 로그인 -->
+        <div class="login-field-area">
+            <div class="login-field"></div>
+            <div class="login-remember-user"></div>
+            <div class="login-arrow"></div>
+        </div>
+        <div class="loading-area"></div>
+        <!-- 로그인 패스워드 변경 -->
+        <div class="login-change-area">
+            <div class="login-change-field-wrap"></div>
+            <div class="login-change-caution"></div>
+        </div>
+    </div>
+</div>
+
+<iframe id="idIframe" src="" ></iframe>
+
+<div id="rtmLoadingConatiner">
+    <img src="../images/loginLeft_bg.png" style="width:102%;height:100%;">
+    <div style="position:absolute;top:42%;left:36%;width:625px;height:300px;">
+        <div id="loadingTitle" class="rtm-loading-content"></div>
+        <div id="rtmLoadingLayer" style="width:100%;"></div>
+    </div>
+</div>
+<script type="text/javascript" src="../lib/zlib.min.js"></script>
+<script type="text/javascript" src="../lib/IMXWS.js"></script>
+<script type="text/javascript" src="../lib/jquery-1.7.min.js"></script>
+<script type="text/javascript" src="../common/locale/exem-config-lang.js"></script>
+<script type="text/javascript" src="boot.js"></script>
+
+</body>
+</html>

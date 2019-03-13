@@ -1,0 +1,50 @@
+{
+    "description": "EWL41210T 서비스 문제 발생",
+    "date": "2019-02-02 00:00:00",
+    "result_date": "2019-02-02 00:00:00",
+    "header": {
+        "service": [
+            "EWL41210T"
+        ],
+        "host": [
+            "wcbsap1p",
+            "wcbsap2p",
+            "wcbsap3p"
+        ]
+    },
+    "body": [
+        {
+            "wcbsap1p": [
+                "WPCBS1"
+            ],
+            "WPCBS1": {
+                "EWL41210T": {
+                    "count": 100,
+                    "status": "critical"
+                }
+            }
+        },
+        {
+            "wcbsap2p": [
+                "WPCBS2"
+            ],
+            "WPCBS2": {
+                "EWL41210T": {
+                    "count": 100,
+                    "status": "critical"
+                }
+            }
+        },
+        {
+            "wcbsap3p": [
+                "WPCBS3"
+            ],
+            "WPCBS3": {
+                "EWL41210T": {
+                    "count": 100,
+                    "status": "critical"
+                }
+            }
+        }
+    ]
+}

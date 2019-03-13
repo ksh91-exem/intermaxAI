@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>InterMax</title>
+    <link rel="shortcut icon" href="/intermax/images/favicon.ico" >
+    <link rel="stylesheet" type="text/css" href="../extjs/packages/ext-theme-gray/build/resources/ext-theme-gray-all.css"/>
+    <link rel="stylesheet" type="text/css" href="../styles/jquery-ui-1.8.16.custom.css"/>
+    <link rel="stylesheet" type="text/css" href="../styles/codemirror.css"/>
+    <link rel="stylesheet" type="text/css" href="../styles/merge.css"/>
+    <link rel="stylesheet" type="text/css" href="../styles/txndetail.css" />
+    <link rel="stylesheet" type="text/css" href="../styles/WasSelectForm.css" />
+    <link rel="stylesheet" type="text/css" href="../styles/d3Scatter.css" />
+    <link rel="stylesheet" type="text/css" href="../styles/realtime.css" />
+    <link rel="stylesheet" type="text/css" href="../styles/toggle-slide.css" />
+
+    <link rel="stylesheet" type="text/css" href="../styles/trend.css" />
+    <link rel="stylesheet" type="text/css" href="../styles/main.css" />
+    <link rel="stylesheet" type="text/css" href="../styles/pikaday.css" />
+    <link rel="stylesheet" type="text/css" href="../PA/styles/crop/jquery.Jcrop.css"/>
+    <link rel="stylesheet" type="text/css" href="../PA/styles/PATheme_v1.css"/>
+
+    <link rel="stylesheet" type="text/css" href="../styles/mainMenu.css" />
+    <link rel="stylesheet" media="screen" href="../lib/handsontable/dist/jquery.handsontable.full.css">
+    <link href="//fonts.googleapis.com/css?family=Droid+Sans:400|Source+Sans Pro:200italic,200,300italic,300,400italic,400,600italic,600,700italic,700,900italic,900|Archivo+Black:400" rel="stylesheet" type="text/css">
+
+    <style>
+        @font-face {
+            font-family: 'Aller';
+            src: url('../styles/fonts/Aller_Rg.ttf') format('cleartype');
+        }
+
+        @font-face {
+            font-family: 'Aller Bold';
+            src: url('../styles/fonts/Aller_Bd.ttf') format('cleartype');
+        }
+
+        @font-face {
+            font-family: 'NanumGothic'!important;
+            src: url('../styles/fonts/NanumGothic.ttf') format('truetype') !important;
+        }
+
+        @font-face {
+            font-family: 'NanumGothicBold'!important;
+            src: url('../styles/fonts/NanumGothicBold.ttf') format('truetype') !important;
+        }
+
+        @font-face {
+            font-family: 'imaxval'!important;
+            src: url('../styles/fonts/imaxval.ttf') format('truetype') !important;
+        }
+
+        @font-face {
+            font-family: 'Roboto Condensed Light'!important;
+            src: url('../styles/fonts/RobotoCondensed-Light.ttf') format('truetype') !important;
+        }
+
+        @font-face {
+            font-family: 'Roboto Condensed Italic'!important;
+            src: url('../styles/fonts/RobotoCondensed-Italic.ttf') format('truetype') !important;
+        }
+
+        @font-face {
+            font-family: 'Roboto Condensed Light Italic'!important;
+            src: url('../styles/fonts/RobotoCondensed-LightItalic.ttf') format('truetype') !important;
+        }
+
+        @font-face {
+            font-family: 'Roboto Condensed'!important;
+            src: url('../styles/fonts/RobotoCondensed-Regular.ttf') format('truetype') !important;
+        }
+
+        @font-face {
+            font-family: 'FritzQuadrata'!important;
+            src: url('../styles/fonts/FrizQuadrataRegular.woff') format('truetype') !important;
+        }
+
+
+        @font-face {
+            font-family: 'PT Sans'!important;
+            src: url('../styles/fonts/PTC55F.ttf') format('truetype') !important;
+        }
+
+
+        @font-face {
+            font-family: 'PT Sans'!important;
+            font-style: normal;
+            font-weight: 700;
+            src: url('../styles/fonts/PTC75F.ttf') format('truetype') !important;
+        }
+
+        @font-face {
+            font-family: 'Droid Sans'!important;
+            font-style: normal;
+            font-weight: 400;
+            src: url('../styles/fonts/DroidSans.woff') format('truetype') !important;
+        }
+
+        @font-face {
+            font-family: 'Droid Sans'!important;
+            font-style: normal;
+            font-weight: 700;
+            src: url('../styles/fonts/DroidSans-Bold.woff') format('truetype') !important;
+        }
+
+        html {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: #c6e0e8;
+            font-family: 'Droid Sans' ;
+            /*font-family: 'Roboto Condensed';*/
+        }
+
+
+        .extent {
+            fill: lightblue;
+            opacity: .4;
+        }
+
+        .x-mask {
+            /*opacity: 0;*/
+        }
+
+        .x-tree-icon { display: none !important; } /* treeGrid ???? icon ???? css - 20140123 */
+
+        /*????? ????? row ????*/
+        .click .x-grid-cell {
+            background-color: #E8F1EC !important;
+        }
+        /*????? addColumn ???? ??????? Column BG ????*/
+        .columnBGColorType1 {background:#D9CFF6 ;}
+        .columnBGColorType2 {background:#E3EAF1;}
+        .columnBGColorType3 {background:#EEF4E3;}
+        .columnBGColorType4 {background:#EFDDD7;}
+        .columnBGColorType5 {background:#FFF7EC;}
+        .columnBGColorType6 {background:#97A7B4;}
+
+        /*????? addColumn ???? ??????? Column TEXT ????*/
+        .columnTextColorType1 { color: #ff0000; }
+        .columnTextColorType1 { color: #008000; }
+        .columnTextColorType1 { color: #0000ff; }
+
+        .x-column-header-inner .x-column-header-text {
+            white-space: normal;
+        }
+
+        .x-form-focus{
+            border-color: #A1C3FA;
+        }
+
+        .viewport {
+            background-color: #3e3e3e;
+            border-color: #3e3e3e;
+        }
+
+        .login_area {
+            background-image: url(/intermax/images/background.gif);
+            background-size: cover;
+        }
+
+        .login_area_loginlabel span {
+            text-shadow: 1px 1px #797979;
+            color: #ffffff;
+        }
+
+        .login_area_loginlabel span:hover {
+            color: #000000;
+        }
+
+        .login_area_idpweditbox input {
+            border-radius: 3px;
+            /*border: 1px solid #D7D7D7;*/
+        }
+
+        .alert_timeline {
+            font-family: "imaxval";
+            font-size: 8px;
+        }
+
+        #homediv {
+            position:absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        #initlogo {
+            position:absolute;
+            font-family:Aller;
+            font-size:100px;
+            color:black;
+            top:40%;
+            left:35%;
+            pointer-events:none;
+            text-shadow:2px 2px 4px #00ffff;
+        }
+        #initImg {
+            position:absolute;
+            top:40%;
+            pointer-events:none;
+            opacity: 0;
+        }
+
+        div.header-log{
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            height: 17px;
+            width : 227px;
+            /*width: 50%;*/
+            overflow: hidden;
+        }
+
+        div.header-log > p {
+            float: left;
+            line-height: 24px;
+        }
+
+        #main-title {
+            font-family:'FritzQuadrata';
+            font-size:19px;
+            color:#B8B8B8;
+            cursor: default;
+        }
+        #main-title-sub {
+            font-family:Helvetica;
+            font-size:13px;
+            color:#9C9C9C;
+            cursor: default;
+        }
+        #main-title-service {
+            font-family:"Roboto Condensed Light";
+            font-size:13px;
+            color:#9C9C9C;
+            cursor: default;
+        }
+        #main-title-icon {
+            position: absolute;
+            top: 15px;
+            left: 260px;
+            width: 24px;
+            height: 21px;
+            cursor: default;
+        }
+
+        #mainmenu-icon {
+            position: absolute;
+            top: 15px;
+            right: 30px;
+            cursor: pointer;
+        }
+
+        #mainmenu-box {
+            position:absolute;
+            top:35px;
+            right:30px;
+            z-index:30000;
+        }
+
+        p.header-line{
+            border-right: 1px solid #6F6A6A;
+            margin: 7px 10px;
+            height: 11px;
+        }
+
+        .mainmenu-tree .x-grid-cell {
+            cursor: pointer;
+        }
+
+        .x-tree-node-text {
+            font-size: 11px;
+            font-family:Tahoma;
+        }
+
+
+        .retrieve-btn {
+            /*border-radius: 5px ;*/
+            border: none ;
+            /*background: #4285f4 ;*/
+            -webkit-box-shadow: 2px 2px 5px 1px #ccc ;
+            box-shadow: 2px 2px 5px 1px #ccc ;
+            -webkit-transition:color .2s ease-out, background 2s ease-in;
+            -ms-transition:color .2s ease-out, background 2s ease-in;
+        }
+        .retrieve-btn .x-btn-inner {
+            /*color: #ffffff ;*/
+            font-size: 9pt;
+            font-family: 'Droid Sans';
+            /*color: lightgrey;*/
+        }
+
+        .retrieve-btn:active{
+            /*-webkit-animation: fadeIn 500ms ;*/
+        }
+
+
+        .retrieve-btn:hover{
+            /*background:#2EB87A;*/
+        }
+
+
+        @-webkit-keyframes fadeIn {
+            0% {opacity: 1;}
+            100% {opacity: 0;}
+        }
+        @keyframes fadeIn {
+            0% {opacity: 1;}
+            100% {opacity: 0;}
+        }
+
+
+        .res-inspector-title {
+            font-family:Helvetica;
+            cursor: default;
+            font-size:16px;
+        }
+
+        .res-inspector-infinity-btn {
+            width:18px;
+            height:13px;
+            cursor:pointer;
+        }
+
+        /* ????? user select ?????????*/
+        .x-grid-cell-inner, .x-selectable {
+            -moz-user-select: text !important;
+            -khtml-user-select: text !important;
+            -webkit-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+
+        /*      data picker new      */
+        .datePicker_close {
+            background-image:url("../images/Menu_Image/etc/mouse_normal.bmp");
+            background-repeat: no-repeat;
+            background-position: center;
+            border-left: 1px solid #AAAAAA;
+            cursor: pointer;
+        }
+        .datePicker_close:hover {
+            background-image:url("../images/Menu_Image/etc/mouse_over.bmp");
+            background-repeat: no-repeat;
+            background-position: center;
+            border-left: 1px solid #AAAAAA;
+            cursor: pointer;
+        }
+
+
+        .timeNum {
+            background: #FFFFFF;
+            color: #666;
+            cursor: pointer;
+        }
+        .timeNum:hover {
+            background: #ff8000;
+            color: #FFF;
+            cursor: pointer;
+        }
+
+        .timeNumActive {
+            color      : #fff;
+            font-weight: bold;
+            background: #33aaff;
+        }
+
+        .setDateTodayBtn {
+            background  :  url("../images/today_Normal.png")  no-repeat;
+            background-size: 130px 23px;
+            line-height  : 23px;
+            text-align   : center;
+            cursor       : pointer;
+        }
+
+        .setDateTodayBtn:hover {
+            background  :  url("../images/today_Over.png")  no-repeat;
+            line-height  : 23px;
+            background-size: 130px 23px;
+            text-align   : center;
+            cursor       : pointer;
+            font-weight    : bold;
+        }
+
+        .setDateYesterBtn {
+            background  :  url("../images/Yesterday_Normal.png")  no-repeat;
+            background-size: 129px 23px;
+            line-height  : 23px;
+            text-align   : center;
+            cursor       : pointer;
+        }
+
+        .setDateYesterBtn:hover {
+            background  :  url("../images/Yesterday_Over.png")  no-repeat;
+            line-height  : 23px;
+            background-size: 129px 23px;
+            text-align   : center;
+            cursor       : pointer;
+            font-weight    : bold;
+        }
+
+        /* ##################### ???? ?????? ?????????? ##################### */
+
+        .sort-desc {
+            background-image: url("../extjs/packages/ext-theme-gray/build/resources/images/grid/sort_desc.gif") !important;
+            background-position: 4px 7px !important;
+        }
+
+        .sort-asc {
+            background-image: url("../extjs/packages/ext-theme-gray/build/resources/images/grid/sort_asc.gif") !important;
+            background-position: 4px 7px !important;
+        }
+
+        /*????? filter ?κ? icon ????????? */
+        .ux-rangemenu-icon {
+            display: block !important;
+            height: 16px !important;
+            background: no-repeat 5px center !important;
+        }
+        .ux-gridfilter-text-icon {
+            background-image: url(/PA/images/find.png) !important;
+        }
+        .ux-rangemenu-gt {
+            background-image: url(/PA/images/greater_than.png) !important;
+        }
+
+        .ux-rangemenu-lt {
+            background-image: url(/PA/images/less_than.png) !important;
+        }
+
+        .ux-rangemenu-eq {
+            background-image: url(/PA/images/equals.png) !important;
+        }
+
+        label.chart-legend-value{
+            right: 4px !important;
+            left: initial !important;
+        }
+
+        .x-form-field::-ms-clear {
+            display: none !important;
+        }
+
+    </style>
+</head>
+<body class="main-tab">
+<div id='homediv'></div>
+<img id='initImg' src='/intermax/images/background.gif'/>
+
+<script type="text/javascript" src="../lib/d3.v3.min.js"></script>
+<script type="text/javascript" src="../lib/three.js"></script>
+<script type="text/javascript" src="../lib/zlib.min.js"></script>
+<script type="text/javascript" src="../lib/IMXWS.js"></script>
+<script type="text/javascript" src="../lib/jquery-1.7.min.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.pie.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.selection.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.categories.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.stack.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.symbol.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.time.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.tooltip.min.js"></script>
+<script type="text/javascript" src="../lib/jquery.flot.axislabels.js"></script>
+<script type="text/javascript" src="../lib/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="text/javascript" src="../lib/jquery.event.drag-2.2.js"></script>
+<script type="text/javascript" src="../lib/jquery.event.drop-2.2.js"></script>
+<script type="text/javascript" src="../lib/jquery.bullet.js"></script>
+<script type="text/javascript" src="../lib/jquery.clippy.js"></script>
+<script type="text/javascript" src="../lib/jquery.zclip.js"></script>
+<script type="text/javascript" src="../lib/jquery.jsPlumb.min.js"></script>
+<script type="text/javascript" src="../lib/underscore-min.js"></script>
+<script type="text/javascript" src="../lib/src/ace.js"></script>
+<script type="text/javascript" src="../lib/diff/codemirror.js"></script>
+<script type="text/javascript" src="../lib/diff/clike.js"></script>
+<script type="text/javascript" src="../lib/diff/diff_match_patch.js"></script>
+<script type="text/javascript" src="../lib/diff/merge.js"></script>
+<script type="text/javascript" src="../lib/WasSelectForm.js"></script>
+<script type="text/javascript" src="../lib/less-1.6.2.min.js"></script>
+<script type="text/javascript" src="../lib/indexeddb.js"></script>
+
+<script type="text/javascript" src="../lib/spin.min.js"></script>
+<script type='text/javascript' src='../lib/pubsub.js'></script>
+<script type='text/javascript' src='../lib/pikaday.js'></script>
+<script type='text/javascript' src='../lib/processing.min.js'></script>
+<script src="../lib/handsontable/dist/jquery.handsontable.full.js"></script>
+
+
+
+<!--<script type="text/javascript" src="../extjs/build/ext-all-debug.js"></script>-->
+<script type="text/javascript" src="../extjs/build/ext-all.js"></script>
+<script type="text/javascript" src="../Exem/Store.js"></script>
+<script type="text/javascript" src="../common/Comm.js"></script>
+<script type="text/javascript" src="../common/Envir.js"></script>
+<script type="text/javascript" src="../common/DataModule.js"></script>
+<script type="text/javascript" src="../common/Util.js"></script>
+<script type="text/javascript" src="../common/Menu.js"></script>
+<script type="text/javascript" src="../common/OpenView.js"></script>
+<script type="text/javascript" src="../common/WebSocket.js"></script>
+
+
+<script type="text/javascript" src="../lib/crop/html2canvas.js"></script>
+<script type="text/javascript" src="../lib/crop/pa.layout.cropimage.js"></script>
+
+<script type="text/javascript" src="app_iglog.js"></script>
+
+<script type="text/javascript" src="../extjs/src/ux/form/DateTimeField.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/FiltersFeature.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/grid/filter/BooleanFilter.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/grid/filter/DateFilter.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/grid/filter/DateTimeFilter.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/grid/filter/Filter.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/grid/filter/ListFilter.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/grid/filter/NumericFilter.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/grid/filter/StringFilter.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/grid/menu/ListMenu.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/grid/menu/RangeMenu.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/BoxReorderer.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/DateTimeMenu.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/DateTimePicker.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/ToolbarDroppable.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/InputTextMask.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/toggleslide/Thumb.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/toggleslide/ToggleSlide.js"></script>
+<script type="text/javascript" src="../extjs/src/ux/extjs-format-date-override.js"></script>
+
+
+<script type="text/javascript" src="../Exem/DatePicker.js"></script>
+<script type="text/javascript" src="../Exem/calendar.js"></script>
+<script type="text/javascript" src="../Exem/DateTimeField.js"></script>
+<script type="text/javascript" src="../Exem/ComboBox.js"></script>
+<script type="text/javascript" src="../Exem/CheckBox.js"></script>
+<script type="text/javascript" src="../Exem/AjaxComboBox.js"></script>
+<script type="text/javascript" src="../Exem/wasDBComboBox.js"></script>
+<script type="text/javascript" src="../Exem/Container.js"></script>
+<script type="text/javascript" src="../Exem/Panel.js"></script>
+<script type="text/javascript" src="../Exem/TabPanel.js"></script>
+<script type="text/javascript" src="../Exem/Form.js"></script>
+<script type="text/javascript" src="../Exem/FormOnCondition.js"></script>
+<script type="text/javascript" src="../Exem/ContextMenu.js"></script>
+<script type="text/javascript" src="../Exem/chart/CanvasChart.js"></script>
+<script type="text/javascript" src="../Exem/chart/CanvasChartLayer.js"></script>
+<script type="text/javascript" src="../Exem/exporter.js"></script>
+<script type="text/javascript" src="../Exem/Window.js"></script>
+<script type="text/javascript" src="../Exem/SelectItemWindow.js"></script>
+<script type="text/javascript" src="../Exem/SyntaxEditor.js"></script>
+<script type="text/javascript" src="../Exem/SQLEditorBaseFrame.js"></script>
+<script type="text/javascript" src="../Exem/BaseGrid.js"></script>
+<script type="text/javascript" src="../Exem/adminGrid.js"></script>
+<script type="text/javascript" src="../Exem/TextField.js"></script>
+<script type="text/javascript" src="../Exem/NumberField.js"></script>
+<script type="text/javascript" src="../Exem/LoadingMask.js"></script>
+
+<script type="text/javascript" src="../PA/view/TxnDetail/XMCommon.js"></script>
+<script type="text/javascript" src="../PA/view/TxnDetail/IMXFN.js"></script>
+<script type="text/javascript" src="../PA/view/TxnDetail/XMCallTree.js"></script>
+<script type="text/javascript" src="../PA/view/TxnDetail/XMTransactionPath.js"></script>
+<script type="text/javascript" src="../PA/view/TxnDetail/TransactionDetailView.js"></script>
+</body>
+</html>
