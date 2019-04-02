@@ -267,7 +267,7 @@ Ext.define('common.DataModule', {
 
             dataSet.database = dbName;
 
-            dataSet.sql = 'select was_id, was_name, app_type, type, host_name from xapm_was_info where was_id = 3';
+            dataSet.sql = 'select was_id, was_name, app_type, type, host_name from xapm_was_info';
 
             WS.SQLExec(dataSet, function(header, data) {
                 for (jx = 0, jxLen = data.rows.length; jx < jxLen; jx++) {

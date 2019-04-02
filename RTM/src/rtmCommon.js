@@ -778,7 +778,9 @@ Ext.define('rtm.src.rtmCommon', {
             WebMonitor       : common.Util.TR('Web Monitor'),
             E2EMonitor       : common.Util.TR('EtoE Monitor'),
             TaskMonitor      : common.Util.TR('Business Dashboard(Tier)'),
-            TaskMonitor2     : common.Util.TR('Business Dashboard(Group)')
+            TaskMonitor2     : common.Util.TR('Business Dashboard(Group)'),
+            AIMonitor        : common.Util.TR('AI Dashboard'),
+            AIMonitor2       : common.Util.TR('Abnormal Indicators by Instance')
         },
 
         // 실시간 모니터링 화면의 팝업 리스트

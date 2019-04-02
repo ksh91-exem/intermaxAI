@@ -1156,8 +1156,8 @@ Ext.define ('common.RTMDataManager', {
     },
 
     /**
-     * 서비스 지표 차트를 그리는 함수 실행.
-     * 실행 주기: 60초 -> 30초
+     * AI 부하예측 차트를 그리는 함수 실행.
+     * 실행 주기: 10초
      */
     onRefreshLoadPredictChart: function() {
         if (this.loadPredictChartTimerId) {

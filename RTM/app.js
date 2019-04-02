@@ -31,6 +31,7 @@ Ext.application({
     launch_afterInit: function() {
 
         var self = this;
+        this.initScriptLoad = false;
 
         Comm.Lang = localStorage.getItem('Intermax_MyLanguage');
         common.DataModule.init();
@@ -68,7 +69,7 @@ Ext.application({
 
         window.tabPanel.getTabBar().add(addTabBG);
 
-        window.tabPanel.getTabBar().setStyle('display','none');
+        // window.tabPanel.getTabBar().setStyle('display','none');
 
         var serviceListWindow = Ext.create('rtm.src.rtmServiceList', {
             style : {'z-index': '10'},
@@ -176,6 +177,9 @@ Ext.application({
         $body.append('<div class="header-log global"></div>'); // Main title
         $body.append('<div class="rtm-header-log global"><p class="header-line"></p><p id="main-title-service">' + 'DASHBOARD' + '</p>'); // Main title
         $body.append('<div id="MenuBtn"></div>');
+        // $body.append('<div id="ManualBtn" title="Manual"></div>');
+        // $body.append('<div id="connectionConfig" title="Service Change"></div>');
+        // $body.append('<div id="userLogout" title="Logout : ' + Comm.web_env_info.user_name + '"></div>');
         $body.append('<div id="descBorad"></div>');
 
         var typeInfo = '<div id="MenuServerType" class="server-type-info">'     +
