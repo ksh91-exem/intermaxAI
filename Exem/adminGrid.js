@@ -161,7 +161,8 @@ Ext.define("Exem.adminGrid", {
             viewConfig: {
                 markDirty          : true,  // 좌상단 빨간 세모가 없어집니다.
                 stripeRows         : self.stripeRows,
-                enableTextSelection: true
+                enableTextSelection: true,
+                getRowClass        : self.configRowClass
             },
             columns:  self._columns,
             listeners: {

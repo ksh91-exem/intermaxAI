@@ -402,6 +402,27 @@ div.maintab > div.x-tab-bar > div.x-tab-bar-body > .x-box-scroller.x-box-scrolle
     border: 1px solid #e1e1e1;
 }
 
+.businessCalendar .pika-lendar {
+    width: 100%;
+    height: 100%;
+    margin: 1px;
+    padding: 6px;
+    border: 1px solid #e1e1e1;
+}
+
+.businessCalendar .pika-button {
+    cursor: pointer;
+    display: block;
+    outline: none;
+    border: 0;
+    margin: 0;
+    width: 100%;
+    padding: 5px;
+    color: #666;
+    height : 90px;
+    text-align: right;
+}
+
 
 
 /***************** tree *****************/

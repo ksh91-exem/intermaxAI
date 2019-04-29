@@ -5077,3 +5077,11 @@ div.observer-alert-message {
 .abnormal-stat-info .x-box-inner {
     overflow : visible;
 }
+
+.businessCalendar-legend-color {
+    width: 25px;
+    height: 25px;
+    float: left;
+    margin-top: 4px;
+    margin-right: 6px;
+}

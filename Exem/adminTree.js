@@ -395,7 +395,11 @@ Ext.define("Exem.adminTree", {
 
         this.baseTree.getView().emptyText = '<div class="x-grid-empty">'+this.emptyTextMsg+'</div>';
         this.baseTree.getView().refresh();
-    }
+    },
+
+    getSelectedRow: function() {
+        return this.baseTree.getSelectionModel().getSelection();
+    },
 
 });
 

@@ -223,7 +223,12 @@ Ext.define('config.config_ui', {
                         { text: common.Util.TR('Service Settings')          , id: 'config_service'          , leaf: true },
                         { text: displayText                                 , id: 'config_businessgroup'    , leaf: true },
                         { text: common.Util.TR('WebServer Settings')        , id: 'config_webserver_setting', leaf: true },
-                        { text: common.Util.TR('Common(Other) Settings')    , id: 'config_other_setting'    , leaf: true }
+                        { text: common.Util.TR('Common(Other) Settings')    , id: 'config_other_setting'    , leaf: true },
+                        { text: common.Util.TR('System Settings')           , id: 'config_system_setting'   , leaf: true },
+                        { text: common.Util.TR('Trainning Settings')        , id: 'config_trainning_setting', leaf: true },
+                        { text: common.Util.TR('Business Calendar Settings'), id: 'config_bizcal_setting'   , leaf: true },
+                        { text: common.Util.TR('장애 History Settings')      , id: 'config_history_setting'  , leaf: true },
+                        { text: common.Util.TR('Metric Settings')           , id: 'config_metric_setting'   , leaf: true }
                     ]
                 }
             }),

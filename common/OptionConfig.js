@@ -74,6 +74,7 @@
                 common.Menu.useSearchAgent = obj.useSearchAgent;
                 common.Menu.useEtoEChartMonitoring = obj.useEtoEChartMonitoring;
                 common.Menu.useAutoLogin           = obj.useAutoLogin;
+                common.Menu.useGoogleCloudURL      = obj.useGoogleCloudURL;
 
             } catch (e) {
                 console.debug('%c [Option Configuration] [ERROR] ', 'color:white;background-color:red;font-weight:bold;', e.message);

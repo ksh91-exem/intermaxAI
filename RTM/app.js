@@ -179,7 +179,7 @@ Ext.application({
         $body.append('<div id="MenuBtn"></div>');
         // $body.append('<div id="ManualBtn" title="Manual"></div>');
         // $body.append('<div id="connectionConfig" title="Service Change"></div>');
-        // $body.append('<div id="userLogout" title="Logout : ' + Comm.web_env_info.user_name + '"></div>');
+        $body.append('<div id="userLogout" title="Logout : ' + Comm.web_env_info.user_name + '"></div>');
         $body.append('<div id="descBorad"></div>');
 
         var typeInfo = '<div id="MenuServerType" class="server-type-info">'     +
