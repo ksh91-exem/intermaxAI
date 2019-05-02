@@ -173,6 +173,8 @@ Ext.define('config.config_bizcal_setting', {
         });
 
         this.wasGrid.beginAddColumns();
+        this.wasGrid.addColumn({text: 'sys_id'                      ,  dataIndex: 'sys_id',    width: 100, type: Grid.Number, alowEdit: false, editMode: false, hide: true});
+        this.wasGrid.addColumn({text: 'type_id'                     ,  dataIndex: 'type_id',   width: 100, type: Grid.Number, alowEdit: false, editMode: false});
         this.wasGrid.addColumn({text: common.Util.CTR('Name')       ,  dataIndex: 'name',      width: 100, type: Grid.String, alowEdit: false, editMode: false});
         this.wasGrid.addColumn({text: common.Util.CTR('Description'),  dataIndex: 'desc',      width: 150, type: Grid.String, alowEdit: false, editMode: false});
         this.wasGrid.endAddColumns();
@@ -181,46 +183,60 @@ Ext.define('config.config_bizcal_setting', {
     onButtonClick: function(cmd) {
         var self = this,
             dataSet = {},
-            wasForm, rowData;
+            wasForm, rowData, systemID, typeID;
 
         switch (cmd) {
             case 'Add' :
                 wasForm = Ext.create('config.config_bizcal_form');
                 wasForm.parent = this;
+                wasForm.systemID = 1 // sys_id로 대체해야함
                 wasForm.init('Add');
                 break;
             case 'Edit' :
                 rowData = this.wasGrid.getSelectedRow()[0].data;
                 wasForm = Ext.create('config.config_bizcal_form');
                 wasForm.parent = this;
-                wasForm.wasid = rowData.was_id;
-                wasForm.wasname = rowData.was_name;
-                wasForm.hostname = rowData.host_name;
-                wasForm.tier_id = rowData.tier_id;
+                wasForm.systemID = rowData.sys_id;
+                wasForm.typeID = rowData.type_id;
+                wasForm.name = rowData.name;
+                wasForm.desc = rowData.desc;
                 wasForm.init('Edit');
                 break;
             case 'Delete' :
                 Ext.MessageBox.confirm(common.Util.TR('Delete'), common.Util.TR('Are you sure you want to delete?'), function(btn) {
                     if (btn === 'yes') {
                         rowData = self.wasGrid.getSelectedRow()[0].data;
+                        systemID = rowData['sys_id'];
+                        typeID = rowData['type_id'];
 
-                        dataSet.sql_file = 'IMXConfig_Delete_WasInfo.sql';
-                        dataSet.bind = [{
-                            name: 'wasId',
-                            value: rowData.was_id,
-                            type : SQLBindType.INTEGER
-                        }];
+                        // dataSet.sql_file = 'IMXConfig_Delete_WasInfo.sql';
+                        // dataSet.bind = [{
+                        //     name: 'wasId',
+                        //     value: rowData.was_id,
+                        //     type : SQLBindType.INTEGER
+                        // }];
 
-                        if(common.Util.isMultiRepository()) {
-                            dataSet.database = cfg.repositoryInfo.currentRepoName;
-                        }
+                        // if(common.Util.isMultiRepository()) {
+                        //     dataSet.database = cfg.repositoryInfo.currentRepoName;
+                        // }
 
-                        WS.SQLExec(dataSet, function() {
-                            Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
-                            self.onButtonClick('Refresh');
-                        }, this);
+                        // WS.SQLExec(dataSet, function() {
+                        //     Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
+                        //     self.onButtonClick('Refresh');
+                        // }, this);
 
-                        self.insertDeleteAutoId(rowData.was_id);
+                        // self.insertDeleteAutoId(rowData.was_id);
+
+                        Ext.Ajax.request({
+                            url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID + '/biztype/' + typeID,
+                            method : 'DELETE',
+                            success : function(response) {
+                                console.log(response);
+                                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
+                                self.onButtonClick('Refresh');
+                            },
+                            failure : function(){}
+                        });
                     }
                 });
                 break;
@@ -242,70 +258,93 @@ Ext.define('config.config_bizcal_setting', {
     },
 
     executeSQL: function() {
+        // var self = this,
+        //     dataSet = {},
+        //     whereList = '1=1',
+        //     orderBy = 'order by was_name';
+
+        // dataSet.sql_file = 'IMXConfig_WasInfo.sql';
+        // dataSet.replace_string = [{
+        //     name: 'whereList',
+        //     value: whereList
+        // }, {
+        //     name: 'orderBy',
+        //     value: orderBy
+        // }];
+
+        // if(common.Util.isMultiRepository()) {
+        //     dataSet.database = cfg.repositoryInfo.currentRepoName;
+        // }
+
+        // WS.SQLExec(dataSet, function(header, data) {
+        //     var rowData, ix, ixLen;
+
+        //     if(!common.Util.checkSQLExecValid(header, data)){
+        //         console.debug('config_wasname.js - executeSQL()');
+        //         console.debug(header);
+        //         console.debug(data);
+        //         return;
+        //     }
+
+        //     self.wasGrid.addRow(['WAS1', 'DESC']);
+        //     self.wasGrid.addRow(['WAS2', 'DESC']);
+        //     self.wasGrid.addRow(['WAS3', 'DESC']);
+        //     self.wasGrid.drawGrid();
+
+        //     this.refreshLoading = false ;
+        // }, this);
         var self = this,
-            dataSet = {},
-            whereList = '1=1',
-            orderBy = 'order by was_name';
+            ix, ixLen, data;
+        var id = 1; // sys_id로 대체해야함
+        
+        Ext.Ajax.request({
+            url : common.Menu.useGoogleCloudURL + '/admin/system/' + id + '/biztype',
+            method : 'GET',
+            success : function(response) {
+                var result = Ext.JSON.decode(response.responseText);
+                if (result.success === 'true') {
+                    data = result.data;
+                    self.wasGrid.clearRows();
 
-        dataSet.sql_file = 'IMXConfig_WasInfo.sql';
-        dataSet.replace_string = [{
-            name: 'whereList',
-            value: whereList
-        }, {
-            name: 'orderBy',
-            value: orderBy
-        }];
+                    for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+                        self.wasGrid.addRow([data[ix].sys_id, data[ix].type_id, data[ix].name, data[ix].desc]);
+                    }
+                    
+                    self.wasGrid.drawGrid();
+                }
+            },
+            failure : function(){}
+        });
 
-        if(common.Util.isMultiRepository()) {
-            dataSet.database = cfg.repositoryInfo.currentRepoName;
-        }
-
-        WS.SQLExec(dataSet, function(header, data) {
-            var rowData, ix, ixLen;
-
-            if(!common.Util.checkSQLExecValid(header, data)){
-                console.debug('config_wasname.js - executeSQL()');
-                console.debug(header);
-                console.debug(data);
-                return;
-            }
-
-            self.wasGrid.addRow(['WAS1', 'DESC']);
-            self.wasGrid.addRow(['WAS2', 'DESC']);
-            self.wasGrid.addRow(['WAS3', 'DESC']);
-            self.wasGrid.drawGrid();
-
-            this.refreshLoading = false ;
-        }, this);
+        this.refreshLoading = false;
     },
 
-    changeWasInfo: function(wasid, wasname, hostname, tierId) {
+    changeWasInfo: function(systemID, typeID, name, desc) {
         var ix, ixLen, record;
 
         for (ix = 0, ixLen = this.wasGrid.getRowCount(); ix < ixLen; ix++) {
-            if (this.wasGrid.getRow(ix).data.was_id == wasid) {
-                record = this.wasGrid.findRow('was_id', wasid);
-                record.set('was_name', wasname);
-                record.set('host_name', hostname);
-                record.set('tier_id', tierId);
+            if (this.wasGrid.getRow(ix).data.type_id == typeID) {
+                record = this.wasGrid.findRow('type_id', typeID);
+                record.set('name', name);
+                record.set('desc', desc);
                 break;
             }
         }
     },
 
-    insertDeleteAutoId: function(serverId){
-        var dataSet = {};
-        dataSet.sql_file = 'IMXConfig_Insert_Delete_Auto_Id.sql';
-        dataSet.bind = [{
-            name    : 'serverId',
-            value   : serverId,
-            type    : SQLBindType.INTEGER
-        }];
+    // insertDeleteAutoId: function(serverId){
+    //     var dataSet = {};
+    //     dataSet.sql_file = 'IMXConfig_Insert_Delete_Auto_Id.sql';
+    //     dataSet.bind = [{
+    //         name    : 'serverId',
+    //         value   : serverId,
+    //         type    : SQLBindType.INTEGER
+    //     }];
 
-        if(common.Util.isMultiRepository()) {
-            dataSet.database = cfg.repositoryInfo.currentRepoName;
-        }
+    //     if(common.Util.isMultiRepository()) {
+    //         dataSet.database = cfg.repositoryInfo.currentRepoName;
+    //     }
 
-        WS.SQLExec(dataSet, function() {}, this);
-    }
+    //     WS.SQLExec(dataSet, function() {}, this);
+    // }
 });
