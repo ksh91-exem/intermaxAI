@@ -97,7 +97,7 @@ Ext.define('config.config_sysname_form', {
         this.grid.beginAddColumns();
         this.grid.addColumn({text: 'sys_id'                      , dataIndex: 'sys_id'     , width: 120, type: Grid.Number, alowEdit: false, editMode: false, hide: true});
         this.grid.addColumn({text: common.Util.CTR('Name')       , dataIndex: 'name'       , width: 100, type: Grid.String, alowEdit: false, editMode: false});
-        this.grid.addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc', width: 100, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'       , width: 100, type: Grid.String, alowEdit: false, editMode: false});
         this.grid.endAddColumns();
 
         panelA.add(panelA1);
@@ -235,7 +235,7 @@ Ext.define('config.config_sysname_form', {
 
         switch (this.mode) {
             case 'Add' :
-                self.wasIdEdit.setDisabled(true);
+                self.systemIdEdit.setDisabled(true);
                 self.nameEdit.focus();
                 break;
             case 'Edit' :
@@ -250,7 +250,6 @@ Ext.define('config.config_sysname_form', {
             default :
                 break;
         }
-
     },
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -327,7 +326,6 @@ Ext.define('config.config_sysname_form', {
                 }
 
                 if (record) {
-                    self.parent.changeWasInfo(currentSystemID, currentName, currentDesc, 'sys');
                     self.setGridRow(currentSystemID, currentName, currentDesc);
 
                     if(ix == ixLen - 1){

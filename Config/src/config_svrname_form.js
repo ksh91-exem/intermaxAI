@@ -1,19 +1,28 @@
 Ext.define('config.config_svrname_form', {
     parent: null,
     mode: '',
+
     // 변경사항 여부 체크
+    isModified   : false,
     isModifiedAll: false,
 
-    clickObject : {
-        systemID : null
+    referenceObjArray: [],
+    // Target 이전 객체
+    beforeObj:{
+        // 이전에 선택된 인덱스
+        preIndex : 0,
+        instID   : '',
+        hostname : '',
+        addr     : '',
+        desc     : ''
     },
+
+    systemID : '',
 
     init: function (state) {
         var self = this;
 
         this.mode = state;
-
-        self.referenceObjArray = [];
 
         var form = Ext.create('Exem.Window', {
             layout: 'vbox',
@@ -27,7 +36,7 @@ Ext.define('config.config_svrname_form', {
             listeners   : {
                 close: function(){
                     if (self.isModifiedAll) {
-                        self.parent.onButtonClick('Refresh', 'svr');
+                        self.parent.onButtonClick('Refresh', 'svr', self.systemID);
                     }
                 }
             }
@@ -57,7 +66,7 @@ Ext.define('config.config_svrname_form', {
             bodyStyle: { background: '#eeeeee' }
         });
 
-        this.was_grid = Ext.create('Exem.adminGrid', {
+        this.grid = Ext.create('Exem.adminGrid', {
             width : '100%',
             height: '100%',
             editMode: false,
@@ -66,7 +75,6 @@ Ext.define('config.config_svrname_form', {
             showHeaderCheckbox: false,
             localeType: 'H:i:s',
             stripeRows: true,
-            // itemclick: null,
             defaultHeaderHeight: 26,
             usePager: false,
             defaultbufferSize: 300,
@@ -75,11 +83,11 @@ Ext.define('config.config_svrname_form', {
                 if(state == 'Edit'){
                     var itemChange = true;
                     if(!self.dataCheck(itemChange)){
-                        self.was_grid.selectRow(self.beforeObj.preIndex);
+                        self.grid.selectRow(self.beforeObj.preIndex);
                     } else {
                         if(!self.wasClick(index, record.data )){
-                            self.was_grid.selectRow(self.beforeObj.preIndex);
-                            self.wasNameEdit.focus();
+                            self.grid.selectRow(self.beforeObj.preIndex);
+                            self.instIdEdit.focus();
                         } else{
                             self.beforeObj.preIndex = index;
                         }
@@ -87,14 +95,14 @@ Ext.define('config.config_svrname_form', {
                 }
             }
         });
-        panelA1.add(this.was_grid);
+        panelA1.add(this.grid);
 
-        this.was_grid.beginAddColumns();
-        this.was_grid.addColumn({text: common.Util.CTR('ID') ,         dataIndex: 'server_id', width: 80, type: Grid.String      , alowEdit: false, editMode: false});
-        this.was_grid.addColumn({text: common.Util.CTR('HOST'),        dataIndex: 'host'  ,    width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
-        this.was_grid.addColumn({text: common.Util.CTR('ADDR'),        dataIndex: 'addr'  ,    width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
-        this.was_grid.addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'  ,    width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
-        this.was_grid.endAddColumns();
+        this.grid.beginAddColumns();
+        this.grid.addColumn({text: common.Util.CTR('Instance ID'), dataIndex: 'inst_id' , width: 80, type: Grid.String      , alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Host Name')  , dataIndex: 'hostname', width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Address')    , dataIndex: 'addr'    , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'    , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+        this.grid.endAddColumns();
 
         panelA.add(panelA1);
 
@@ -106,54 +114,55 @@ Ext.define('config.config_svrname_form', {
             bodyStyle: { background: '#eeeeee' }
         });
 
-        this.wasNameEdit = Ext.create('Ext.form.field.Number', {
+        this.instIdEdit = Ext.create('Ext.form.field.Text', {
             x: 0,
             y: 10,
             width: 270,
             labelWidth: 80,
             labelAlign: 'right',
-            hideTrigger : true,
-            fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('ID')),
+            maxLength : 64,
+            enforceMaxLength : true,
+            fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('Instance ID')),
             allowBlank: true
         });
 
         this.hostNameEdit = Ext.create('Ext.form.field.Text', {
             x: 0,
-            y: 10+27,
+            y: 37,
             width: 270,
             labelWidth: 80,
             labelAlign: 'right',
             maxLength : 64,
             enforceMaxLength : true,
-            fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('HOST')),
+            fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('Host Name')),
             allowBlank: true
         });
 
-        this.addrNameEdit = Ext.create('Ext.form.field.Text', {
+        this.addrEdit = Ext.create('Ext.form.field.Text', {
             x: 0,
-            y: 10+27+27,
+            y: 64,
             width: 270,
             labelWidth: 80,
             labelAlign: 'right',
             maxLength : 64,
             enforceMaxLength : true,
-            fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('ADDR')),
+            fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('Address')),
             allowBlank: true
         });
 
         this.descEdit = Ext.create('Ext.form.field.Text', {
             x: 0,
-            y: 10+27+27+27,
+            y: 91,
             width: 270,
             labelWidth: 80,
             labelAlign: 'right',
             maxLength : 64,
             enforceMaxLength : true,
-            fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('DESC')),
+            fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('Description')),
             allowBlank: true
         });
 
-        panelA2.add(this.wasNameEdit, this.hostNameEdit, this.addrNameEdit, this.descEdit);
+        panelA2.add(this.instIdEdit, this.hostNameEdit, this.addrEdit, this.descEdit);
         panelA.add(panelA2);
 
         var panelC = Ext.create('Ext.panel.Panel', {
@@ -180,7 +189,7 @@ Ext.define('config.config_svrname_form', {
             }
         });
 
-        this.CancelButton = Ext.create('Ext.button.Button', {
+        this.cancelButton = Ext.create('Ext.button.Button', {
             text: common.Util.TR('Close'),
             cls: 'x-btn-config-default',
             width: 70,
@@ -193,7 +202,7 @@ Ext.define('config.config_svrname_form', {
         });
 
         panelC.add(OKButton);
-        panelC.add(this.CancelButton);
+        panelC.add(this.cancelButton);
 
         form.add(panelA);
         form.add(panelC);
@@ -215,426 +224,167 @@ Ext.define('config.config_svrname_form', {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     was_load: function() {
-        var self = this;
-        var dataSet = {};
-        var whereList = '1=1';
-        var orderBy = 'order by was_id';
+        var self = this,
+            ix, ixLen, data;
 
-        dataSet.sql_file = 'IMXConfig_WasInfo.sql';
-        dataSet.replace_string = [{
-            name: 'whereList',
-            value: whereList
-        }, {
-            name: 'orderBy',
-            value: orderBy
-        }];
-        if(common.Util.isMultiRepository()) {
-            dataSet.database = cfg.repositoryInfo.currentRepoName;
-        }
+        Ext.Ajax.request({ //호출 URL
+            url : common.Menu.useGoogleCloudURL + '/admin/system/' + self.systemID + '/os',
+            method : 'GET',
+            success : function(response) {
+                var result = Ext.JSON.decode(response.responseText);
+                if (result.success === 'true') {
+                    data = result.data;
+                    self.grid.clearRows();
 
-        WS.SQLExec(dataSet, function(aheader, adata) {
-            if (adata.rows != undefined) {
-                self.was_grid.clearRows();
+                    for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+                        self.grid.addRow([data[ix].inst_id, data[ix].host_name, data[ix].addr, data[ix].desc]);
+                    }
 
-                var ix, ixLen;
+                    self.grid.drawGrid();
 
-                self.was_grid.addRow(['WAS1', 'DESC']);
-                self.was_grid.addRow(['WAS1', 'DESC']);
-                self.was_grid.addRow(['WAS1', 'DESC']);
-
-                self.was_grid.drawGrid();
-
-                switch (this.mode) {
-                    case 'Add' :
-                        self.wasNameEdit.setDisabled(false);
-                        self.wasNameEdit.focus();
-                        break;
-                    case 'Edit' :
-                        self.wasNameEdit.setDisabled(false);
-
-                        self.wasNameEdit.setValue(self.wasname);
-
-                        var bfObj = this.beforeObj;
-                        var wasGrid = self.was_grid;
-                        for ( ix = 0; ix < self.was_grid.getRowCount(); ix++) {
-                            var tempRowData = wasGrid.getRow(ix).data;
-                            if (tempRowData.was_id == self.wasid) {
-                                wasGrid.selectRow(ix);
+                    if (self.mode == 'Edit') {
+                        var bfObj = self.beforeObj;
+                        var grid = self.grid;
+                        for (ix = 0; ix < self.grid.getRowCount(); ix++) {
+                            var tempRowData = grid.getRow(ix).data;
+                            if (tempRowData.inst_id == self.instID) {
+                                grid.selectRow(ix);
 
                                 bfObj.preIndex  = ix;
-                                bfObj.wasId     = tempRowData.was_id;
-                                bfObj.wasName   = tempRowData.was_name;
+                                bfObj.instID    = tempRowData.inst_id;
+                                bfObj.hostname  = tempRowData.hostname;
+                                bfObj.addr      = tempRowData.addr;
+                                bfObj.desc      = tempRowData.desc;
                             }
                         }
-
-                        self.wasNameEdit.focus();
-                        break;
-                    default :
-                        break;
-                }
-            }
-        }, this);
-    },
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    wasClick: function(index, recordData) {
-        this.tierComboBox.store.loadData(this.tierComboBox.data);
-        var self = this;
-        var wasGrid = self.was_grid;
-        var parentGrid = self.parent.wasGrid;
-        var beforeObjOne = self.beforeObj;
-        var isModified = self.isWasNameModified;
-
-        // *tip)  beforeObjOne 와 pre*** 와 비교
-
-        // 선택 포인트가 넘어가기 전에 값들을 미리 담아둔다.
-        var preWasIdEdit        = self.wasIdEdit;
-        var preWasNameEdit      = self.wasNameEdit;
-        var preHostNameEdit     = self.hostNameEdit;
-        var preTierId           = self.tierComboBox;
-        var preWasIdEditValue   = self.wasIdEdit.getValue();
-        var preWasNameEditValue = self.wasNameEdit.getValue();
-        var preHostNameEditValue = self.hostNameEdit.getValue();
-        var preTierIdValue       = this.tierComboBox.getValue();
-        if(typeof preTierIdValue === 'number' ){
-            if(!this.tierComboBox.ajaxGetNameDataByValue(preTierIdValue)){
-                preTierIdValue = null;
-            }
-        }
-
-        // 선택된 포인트의 값들을 저장한다.
-        var rdWasId = recordData.was_id;
-        var rdWasName = recordData.was_name;
-        var rdHostName = recordData.host_name;
-        var rdTierId = recordData.tier_id;
-
-        if ( beforeObjOne.wasId == '' ) {
-            beforeObjOne.wasId      = preWasIdEditValue;
-            beforeObjOne.wasName    = preWasNameEditValue;
-            beforeObjOne.hostName   = preHostNameEditValue;
-            beforeObjOne.tierId     = preTierIdValue;
-        }
-
-        if ( beforeObjOne.wasId == preWasIdEditValue ) {
-            if ( beforeObjOne.wasName != preWasNameEditValue ) {
-                for (var ix = 0; ix < parentGrid.getRowCount(); ix++) {
-                    if (parentGrid.getRow(ix).data.was_name == preWasNameEditValue) {
-                        //월래 가지고 있던 값, 에이전트명이 없을 경우 제외
-                        if(preWasNameEditValue === '' || parentGrid.getRow(ix).data.was_id === preWasIdEditValue){
-                            continue;
-                        }
-                        Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Agent name is already registered.'));
-                        var record = wasGrid.findRow('was_id', preWasIdEditValue);
-                        if (record) {
-                            record.set('was_name', beforeObjOne.wasName);
-                        }
-                        return false;
                     }
                 }
+            },
+            failure : function(){}
+        });
 
-                wasGrid.updateCell('was_name', beforeObjOne.preIndex, preWasNameEditValue);
-                isModified = true;
-            }
+        switch (this.mode) {
+            case 'Add' :
+                self.instIdEdit.focus();
+                break;
+            case 'Edit' :
+                self.instIdEdit.setDisabled(true);
 
-            if ( beforeObjOne.hostName != preHostNameEditValue ) {
-                wasGrid.updateCell('host_name', beforeObjOne.preIndex, preHostNameEditValue);
-                isModified = true;
-            }
+                self.instIdEdit.setValue(self.instID);
+                self.hostNameEdit.setValue(self.hostname);
+                self.addrEdit.setValue(self.addr);
+                self.descEdit.setValue(self.desc);
 
-            if ( beforeObjOne.tierId != preTierIdValue ) {
-                wasGrid.updateCell('tier_id', beforeObjOne.preIndex, preTierIdValue);
-                isModified = true;
-            }
-
-            //referenceObjArray 값을 계속 쌓는것이 아닌 에이전트 ID당 1번만 쌓도록 수정.
-            for( ix = 0; ix < self.referenceObjArray.length; ix++){
-                if(isModified && self.referenceObjArray[ix].wasId === preWasIdEditValue){
-                    self.removeRefArray(ix);
-                }
-            }
-
-            if ( isModified ) {
-                self.addRefArray(preWasIdEditValue, preWasNameEditValue, preHostNameEditValue, preTierIdValue);
-            }
+                self.instIdEdit.focus();
+                break;
+            default :
+                break;
         }
-
-        // 선택 포인트가 이전포인트와 같을 경우, 변경된 값을 동기화 시켜 보여주기 위해
-        if ( preWasIdEditValue == rdWasId ) {
-            rdWasId     = preWasIdEditValue;
-            rdWasName   = preWasNameEditValue;
-            rdHostName  = preHostNameEditValue;
-            rdTierId    = preTierIdValue;
-        }
-
-        // 선택된 값들이 다시 이전 선택들의 값이 되기 위해
-        beforeObjOne.wasId      = rdWasId;
-        beforeObjOne.wasName    = rdWasName;
-        beforeObjOne.hostName   = rdHostName;
-        beforeObjOne.tierId     = rdTierId;
-
-        preWasIdEdit.setDisabled(true);
-        preWasIdEdit.setValue(rdWasId);
-        preWasNameEdit.setValue(rdWasName);
-        preHostNameEdit.setValue(rdHostName);
-        if(typeof rdTierId === 'number' ){
-            preTierId.ajaxSelectByValue(rdTierId);
-        } else {
-            preTierId.ajaxSelectByName(rdTierId);
-        }
-
-        return true;
     },
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     save: function() {
-        this.tierComboBox.store.loadData(this.tierComboBox.data);
         var self = this;
         // 넣을 데이터 가져오기.
-        var wasid = self.wasIdEdit.getValue();
-        var wasname = self.wasNameEdit.getValue();
+        var instID   = self.instIdEdit.getValue();
         var hostname = self.hostNameEdit.getValue();
-        var tierId  = this.tierComboBox.getValue();
+        var addr     = self.addrEdit.getValue();
+        var desc     = self.descEdit.getValue();
         var cusorPointCheck = false;
         var ix, ixLen;
-        var ds = {};
         var itemChange = false;
-
-        if(typeof tierId === 'string' ){
-            tierId = this.tierComboBox.ajaxGetValueDataByName(tierId);
-        }
 
         if(!self.dataCheck(itemChange)){
             return;
         }
 
         // 마지막 변경사항 추가하기 위해
-        if ( self.beforeObj.wasId == wasid ) {
+        if (self.beforeObj.instID == instID) {
             cusorPointCheck = true;
         }
 
-        if ( self.mode == 'Add' ){
-            ds.sql_file = 'IMXConfig_Insert_WasInfo.sql';
-            ds.bind = [{
-                name: 'wasId',
-                value: wasid,
-                type : SQLBindType.INTEGER
-            }, {
-                name: 'wasName',
-                value: wasname,
-                type : SQLBindType.STRING
-            }, {
-                name: 'hostName',
-                value: hostname,
-                type : SQLBindType.STRING
-            }, {
-                name: 'alertGroupName',
-                value: null,
-                type : SQLBindType.STRING
-            }, {
-                name: 'tierId',
-                value: tierId,
-                type : SQLBindType.INTEGER
-            }];
-            if(common.Util.isMultiRepository()) {
-                ds.database = cfg.repositoryInfo.currentRepoName;
-            }
-            try {
-                WS.SQLExec(ds, function() {
-                    var record = self.was_grid.findRow('was_id', wasid);
-                    if (record) {
-                        self.parent.changeWasInfo(wasid, wasname, hostname, tierId);
-                        Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
-                    }
+        if (self.mode == 'Add') {
+            Ext.Ajax.request({
+                url : common.Menu.useGoogleCloudURL + '/admin/system/' + self.systemID + '/os',
+                method : 'POST',
+                params : JSON.stringify({
+                    inst_id   : instID,
+                    host_name : hostname,
+                    addr      : addr,
+                    desc      : desc
+                }),
+                success : function(response) {
                     Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
-                    // 변경사항 여부 체크
-                    self.isWasNameModifiedAll = true;
-                    self.removeAllRefArray();
-                    self.CancelButton.fireEvent('click');
-                }, this);
-            } finally {
-                wasid = null;
-                wasname = null;
-                hostname = null;
-            }
+
+                    self.cancelButton.fireEvent('click');
+                    self.parent.onButtonClick('Refresh', 'svr', self.systemID);
+                },
+                failure : function(){}
+            });
+
         } else {
             // Edit mode
             var refObjArray = self.referenceObjArray;
 
-            //마지막 변경사항 추가 이전 같은 was_id값을 가진 referenceObjArray 제거.
-            for( ix = 0; ix < refObjArray.length; ix++){
-                if( cusorPointCheck && refObjArray[ix].wasId === wasid ){
+            //마지막 변경사항 추가 이전 같은 inst_id값을 가진 referenceObjArray 제거.
+            for (ix = 0; ix < refObjArray.length; ix++) {
+                if (cusorPointCheck && refObjArray[ix].instID === instID) {
                     self.removeRefArray(ix);
                 }
             }
 
             // 마지막 변경사항 추가하기 위해
-            if ( cusorPointCheck ) {
-                self.addRefArray(wasid, wasname, hostname, tierId);
+            if (cusorPointCheck) {
+                self.addRefArray(instID, hostname, addr, desc);
             }
 
             for (ix = 0, ixLen = refObjArray.length; ix < ixLen; ix++) {
                 var currentData = {};
-                var currentWasId = refObjArray[ix].wasId;
-                var currentWasName = refObjArray[ix].wasName;
-                var currentHostName = refObjArray[ix].hostName;
-                var currentTierId = refObjArray[ix].tierId;
-                var record = self.was_grid.findRow('was_id', currentWasId);
-                var currentTierIdText = this.tierComboBox.ajaxGetNameDataByValue(currentTierId);
-                if(!currentTierIdText){
-                    currentTierId = null;
-                }
+                var currentInstID   = refObjArray[ix].instID;
+                var currentHostName = refObjArray[ix].hostname;
+                var currentAddr     = refObjArray[ix].addr;
+                var currentDesc     = refObjArray[ix].desc;
+                var record = self.grid.findRow('inst_id', currentInstID);
 
                 //save 시 입력이 안된 에이전트명 및 호스트명을 전체 체크.
-                if ( currentWasName == '') {
-                    Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter the remaining Agent Names.'));
-                    return;
-                }
-
-
                 if (currentHostName == '') {
                     Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter the remaining Host Names.'));
                     return;
                 }
 
+
+                if (currentAddr == '') {
+                    Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter the remaining Address.'));
+                    return;
+                }
+
+
+                if (currentDesc == '') {
+                    Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter the remaining Description.'));
+                    return;
+                }
+
                 if (record) {
-                    self.parent.changeWasInfo(currentWasId, currentWasName, currentHostName, currentTierIdText);
-                    self.setGridRow(currentWasId, currentWasName, currentHostName, currentTierIdText);
+                    self.setGridRow(currentInstID, currentHostName, currentAddr, currentDesc);
 
                     if(ix == ixLen - 1){
-                        self.beforeObj.wasId = currentWasId;
-                        self.beforeObj.wasName = currentWasName;
-                        self.beforeObj.hostName = currentHostName;
-                        self.beforeObj.tierId = currentTierId;
+                        self.beforeObj.instID   = currentInstID;
+                        self.beforeObj.hostname = currentHostName;
+                        self.beforeObj.addr     = currentAddr;
+                        self.beforeObj.desc     = currentDesc;
                     }
                 }
 
-                currentData.tierId = currentTierId;
-                currentData.HostName = currentHostName;
-                currentData.WasName = currentWasName;
-                currentData.WasId = currentWasId;
-                currentData.start = ix+1;
-                currentData.end = ixLen;
-                this.hostNameUpdate(currentData);
-                this.getHostIP(currentData);
+                currentData.instID   = currentInstID;
+                currentData.hostname = currentHostName;
+                currentData.addr     = currentAddr;
+                currentData.desc     = currentDesc;
+                currentData.start    = ix + 1;
+                currentData.end      = ixLen;
                 this.editUpdate(currentData);
             }
-            /**
-             * 수정일때 저장을 눌러도 창이 닫히지 않도록 하기위해 주석처리.
-             * self.CancelButton.fireEvent('click');
-             */
         }
-    },
-
-    editUpdate : function(currentData) {
-        var dataSet = {};
-        var self = this;
-
-        dataSet.sql_file = 'IMXConfig_Edit_WasInfo.sql';
-        dataSet.bind = [{
-            name: 'host_name',
-            value: currentData.HostName,
-            type : SQLBindType.STRING
-        }, {
-            name: 'was_name',
-            value: currentData.WasName,
-            type : SQLBindType.STRING
-        }, {
-            name: 'tier_id',
-            value: currentData.tierId,
-            type : SQLBindType.INTEGER
-        }];
-
-        dataSet.replace_string = [{
-            name: 'was_id',
-            value: parseInt(currentData.WasId)
-        }];
-
-        // 변경사항 여부 체크
-        self.isWasNameModifiedAll = true;
-
-        if(common.Util.isMultiRepository()) {
-            dataSet.database = cfg.repositoryInfo.currentRepoName;
-        }
-
-        WS.SQLExec(dataSet, function() {
-            if(currentData.start === currentData.end){
-                self.removeAllRefArray();
-                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
-            }
-        }, this);
-
-
-    },
-
-    hostNameUpdate: function(currentData){
-        var dataSet = {};
-        dataSet.sql_file = 'IMXConfig_Update_Host_Name.sql';
-        dataSet.bind = [{
-            name: 'host_name',
-            value: currentData.HostName,
-            type : SQLBindType.STRING
-        }, {
-            name: 'was_id',
-            value: currentData.WasId,
-            type : SQLBindType.INTEGER
-        }];
-
-        if(common.Util.isMultiRepository()) {
-            dataSet.database = cfg.repositoryInfo.currentRepoName;
-        }
-
-        WS.SQLExec(dataSet, function(){}, this);
-    },
-
-    getHostIP: function(currentData){
-        if(this.batchCheckBox.getValue()){
-            this.currentData = currentData;
-            var dataSet = {};
-            var self = this;
-            dataSet.sql_file = 'IMXConfig_Get_Host_Ip.sql';
-            dataSet.bind = [{
-                name: 'server_id',
-                value: currentData.WasId,
-                type : SQLBindType.INTEGER
-            }];
-
-            if(common.Util.isMultiRepository()) {
-                dataSet.database = cfg.repositoryInfo.currentRepoName;
-            }
-
-            WS.SQLExec(dataSet, function(aheader, adata){
-                if(adata.rows){
-                    var host_ip = adata.rows[0][0];
-                    self.batchWasHostName(host_ip,self.currentData);
-                } else{
-                    console.debug('fail get host_ip');
-                    console.debug('xapm_server_time check the table.');
-                }
-            }, this);
-        }
-    },
-
-    batchWasHostName : function(host_ip,currentData){
-        var dataSet = {};
-        dataSet.sql_file = 'IMXConfig_Batch_Was_Host_Name.sql';
-        dataSet.bind = [{
-            name: 'host_name',
-            value: currentData.HostName,
-            type : SQLBindType.STRING
-        }, {
-            name: 'host_ip',
-            value: host_ip,
-            type : SQLBindType.STRING
-        }];
-
-        if(common.Util.isMultiRepository()) {
-            dataSet.database = cfg.repositoryInfo.currentRepoName;
-        }
-
-        WS.SQLExec(dataSet, function(){}, this);
     },
 
     getTextLength : function(str){
@@ -657,103 +407,125 @@ Ext.define('config.config_svrname_form', {
     dataCheck: function(itemChange){
         var self = this;
         // 넣을 데이터 가져오기.
-        var wasid = self.wasIdEdit.getValue();
-        var wasname = self.wasNameEdit.getValue();
+        var instID   = self.instIdEdit.getValue();
         var hostname = self.hostNameEdit.getValue();
+        var addr     = self.addrEdit.getValue();
+        var desc     = self.descEdit.getValue();
         var ix;
 
-        // CHECK: WAS ID Check
-        if ( wasid  === 0 || wasid === null || wasid < 0) {
-            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Agent ID Enter a value greater than zero.'));
-            self.wasIdEdit.focus();
-            return false;
-        }
-
-        if ( wasid >= 65536 ) {
-            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter a value less than 65536 for the agent ID.'));
-            self.wasIdEdit.focus();
-            return false;
-        }
-
         // CHECK: WAS NAME + Byte Check
-        if ( wasname == '' && !itemChange) {
-            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter Agent name.'));
-            self.wasNameEdit.focus();
+        if (instID == '' && !itemChange) {
+            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter Instance ID.'));
+            self.instIdEdit.focus();
             return false;
         }
 
-        if ( wasname.indexOf(' ') > -1 ){
+        if (instID.indexOf(' ') > -1 ) {
             Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Blank Character is not allowed'));
-            self.wasNameEdit.focus();
+            self.instIdEdit.focus();
             return false;
         }
 
-        var wasNameByteLen = this.getTextLength(wasname);
+        var instIdByteLen = this.getTextLength(instID);
 
-        if(wasNameByteLen > 128){
+        if(instIdByteLen > 128){
             Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('You have exceeded the number of byte of the column you want to save.'));
-            self.wasNameEdit.focus();
+            self.instIdEdit.focus();
             return false;
         }
 
         // CHECK: HOST NAME + Byte Check
         if (hostname == '' && !itemChange) {
-            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter host name.'));
+            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter Host Name.'));
             self.hostNameEdit.focus();
             return false;
         }
 
-        if ( hostname.indexOf(' ') > -1 ){
+        if (hostname.indexOf(' ') > -1 ) {
             Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Blank Character is not allowed'));
             self.hostNameEdit.focus();
             return false;
         }
 
-        var hostNameByteLen = this.getTextLength(hostname);
+        var hostnameByteLen = this.getTextLength(hostname);
 
-        if(hostNameByteLen > 64){
+        if(hostnameByteLen > 128){
             Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('You have exceeded the number of byte of the column you want to save.'));
             self.hostNameEdit.focus();
             return false;
         }
 
-        // CHECK: WAS ID 중복 체크
-        if (self.mode == 'Add') {
-            for (ix = 0; ix < self.parent.wasGrid.getRowCount(); ix++) {
-                if (self.parent.wasGrid.getRow(ix).data.was_id == wasid) {
-                    Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Agent ID is already registered.'));
-                    return false;
-                }
-            }
+        // CHECK: Address + Byte Check
+        if (addr == '' && !itemChange) {
+            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter Address.'));
+            self.addrEdit.focus();
+            return false;
         }
+
+        if (addr.indexOf(' ') > -1 ) {
+            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Blank Character is not allowed'));
+            self.addrEdit.focus();
+            return false;
+        }
+
+        var addrByteLen = this.getTextLength(addr);
+
+        if(addrByteLen > 128){
+            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('You have exceeded the number of byte of the column you want to save.'));
+            self.addrEdit.focus();
+            return false;
+        }
+
+        // CHECK: Description + Byte Check
+        if (desc == '' && !itemChange) {
+            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter Description.'));
+            self.descEdit.focus();
+            return false;
+        }
+
+        if (desc.indexOf(' ') > -1) {
+            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Blank Character is not allowed'));
+            self.descEdit.focus();
+            return false;
+        }
+
+        var descByteLen = this.getTextLength(desc);
+
+        if(descByteLen > 64){
+            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('You have exceeded the number of byte of the column you want to save.'));
+            self.descEdit.focus();
+            return false;
+        }
+
+        var parentGrid = self.parent.grid['sys'];
 
         // CHECK: WAS NAME 중복 체크
         if (self.mode == 'Add') {
-            for (ix = 0; ix < self.parent.wasGrid.getRowCount(); ix++) {
-                if (self.parent.wasGrid.getRow(ix).data.was_name == wasname) {
-                    Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Agent name is already registered.'));
-                    self.wasNameEdit.focus();
+            for (ix = 0; ix < parentGrid.getRowCount(); ix++) {
+                if (parentGrid.getRow(ix).data.inst_id == instID) {
+                    Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Instance ID is already registered.'));
+                    self.instIdEdit.focus();
                     return false;
                 }
             }
-        }else{
+        } else {
             //edit mode
-            for (ix = 0; ix < self.parent.wasGrid.getRowCount(); ix++) {
-                if (self.parent.wasGrid.getRow(ix).data.was_name == wasname) {
+            for (ix = 0; ix < parentGrid.getRowCount(); ix++) {
+                if (parentGrid.getRow(ix).data.inst_id == instID) {
                     if(itemChange){
                         //월래 가지고 있던 값, 에이전트명이 없을 경우 제외
-                        if(wasname === '' || self.beforeObj.wasId === wasid){
+                        if(instID === '' || self.beforeObj.instID == instID){
                             continue;
                         }
-                        Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Agent name is already registered.'));
-                        self.wasNameEdit.focus();
+                        Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Instance ID is already registered.'));
+                        self.instIdEdit.focus();
                         return false;
                     } else{
-                        if(self.parent.wasGrid.getRow(ix).data.was_id === wasid){
+                        if(parentGrid.getRow(ix).data.inst_id === instID){
                             continue;
                         }
-                        Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Agent name is already registered.'));
-                        self.wasNameEdit.focus();
+                        Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Instance ID is already registered.'));
+                        self.instIdEdit.focus();
                         return false;
                     }
                 }
@@ -762,32 +534,131 @@ Ext.define('config.config_svrname_form', {
         return true;
     },
 
-    setGridRow: function(wasid, wasname, hostname, tierId) {
+    setGridRow: function(instID, hostname, addr, desc) {
         var ix, ixLen;
-        for (ix = 0, ixLen = this.was_grid.getRowCount(); ix < ixLen; ix++) {
-            if (this.was_grid.getRow(ix).data.was_id == wasid) {
-                var record = this.was_grid.findRow('was_id', wasid);
+        for (ix = 0, ixLen = this.grid.getRowCount(); ix < ixLen; ix++) {
+            if (this.grid.getRow(ix).data.inst_id == instID) {
+                var record = this.grid.findRow('inst_id', instID);
 
-                record.set('was_name', wasname);
-                record.set('host_name', hostname);
-                record.set('tier_id', tierId);
+                record.set('hostname', hostname);
+                record.set('addr', addr);
+                record.set('desc', desc);
+
+                this.grid.drawGrid();
                 break;
             }
         }
     },
 
-    addRefArray: function (wasId, wasName, hostName, tierIdTextValue) {
+    wasClick: function(index, recordData) {
+        var self = this;
+        var grid = self.grid;
+        var parentGrid = self.parent.grid['svr'];
+        var beforeObjOne = self.beforeObj;
+        var isModified = self.isModified;
+
+        // *tip)  beforeObjOne 와 pre*** 와 비교
+
+        // 선택 포인트가 넘어가기 전에 값들을 미리 담아둔다.
+        var preInstIdEdit        = self.instIdEdit;
+        var preHostNameEdit      = self.hostNameEdit;
+        var preAddrEdit          = self.addrEdit;
+        var preDescEdit          = self.descEdit;
+        var preInstIdEditValue   = self.instIdEdit.getValue();
+        var preHostNameEditValue = self.hostNameEdit.getValue();
+        var preAddrEditValue     = self.addrEdit.getValue();
+        var preDescEditValue     = self.descEdit.getValue();
+
+        // 선택된 포인트의 값들을 저장한다.
+        var rdInstID   = recordData.inst_id;
+        var rdHostName = recordData.hostname;
+        var rdAddr     = recordData.addr;
+        var rdDesc     = recordData.desc;
+
+        if (beforeObjOne.instID == '') {
+            beforeObjOne.instID   = preInstIdEditValue;
+            beforeObjOne.hostname = preHostNameEditValue;
+            beforeObjOne.addr     = preAddrEditValue;
+            beforeObjOne.desc     = preDescEditValue;
+        }
+
+        if (beforeObjOne.instID == preInstIdEditValue) {
+            if (beforeObjOne.hostname != preHostNameEditValue) {
+                for (var ix = 0; ix < parentGrid.getRowCount(); ix++) {
+                    if (parentGrid.getRow(ix).data.hostname == preHostNameEditValue) {
+                        //월래 가지고 있던 값, 에이전트명이 없을 경우 제외
+                        if (preHostNameEditValue === '' || parentGrid.getRow(ix).data.inst_id === preInstIdEditValue) {
+                            continue;
+                        }
+                        Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Name is already registered.'));
+                        var record = grid.findRow('inst_id', preInstIdEditValue);
+                        if (record) {
+                            record.set('hostname', beforeObjOne.hostname);
+                        }
+                        return false;
+                    }
+                }
+
+                grid.updateCell('hostname', beforeObjOne.preIndex, preHostNameEditValue);
+                isModified = true;
+            }
+
+            if (beforeObjOne.addr != preAddrEditValue) {
+                grid.updateCell('addr', beforeObjOne.preIndex, preAddrEditValue);
+                isModified = true;
+            }
+
+            if (beforeObjOne.desc != preDescEditValue) {
+                grid.updateCell('desc', beforeObjOne.preIndex, preDescEditValue);
+                isModified = true;
+            }
+        }
+
+        //referenceObjArray 값을 계속 쌓는것이 아닌 에이전트 ID당 1번만 쌓도록 수정.
+        for (var ix = 0; ix < self.referenceObjArray.length; ix++) {
+            if(isModified && self.referenceObjArray[ix].instID === preInstIdEditValue){
+                self.removeRefArray(ix);
+            }
+        }
+
+        if (isModified) {
+            self.addRefArray(preInstIdEditValue, preHostNameEditValue, preAddrEditValue, preDescEditValue);
+        }
+
+        // 선택 포인트가 이전포인트와 같을 경우, 변경된 값을 동기화 시켜 보여주기 위해
+        if (preInstIdEditValue == rdInstID) {
+            rdInstID   = preInstIdEditValue;
+            rdHostName = preHostNameEditValue;
+            rdAddr     = preAddrEditValue;
+            rdDesc     = preDescEditValue;
+        }
+
+        // 선택된 값들이 다시 이전 선택들의 값이 되기 위해
+        beforeObjOne.instID   = rdInstID;
+        beforeObjOne.hostname = rdHostName;
+        beforeObjOne.addr     = rdAddr;
+        beforeObjOne.desc     = rdDesc;
+
+        preInstIdEdit.setValue(rdInstID);
+        preHostNameEdit.setValue(rdHostName);
+        preAddrEdit.setValue(rdAddr);
+        preDescEdit.setValue(rdDesc);
+
+        return true;
+    },
+
+    addRefArray: function (instID, hostname, addr, desc) {
         var self = this;
 
         var tempObj = {
-            wasId: wasId,
-            wasName: wasName,
-            hostName: hostName,
-            tierId  : tierIdTextValue
+            instID   : instID,
+            hostname : hostname,
+            addr     : addr,
+            desc     : desc
         };
 
         self.referenceObjArray.push(tempObj);
-        self.isWasNameModified = false;
+        self.isModified = false;
     },
 
     removeAllRefArray: function () {
@@ -795,6 +666,29 @@ Ext.define('config.config_svrname_form', {
     },
 
     removeRefArray: function (index) {
-        this.referenceObjArray.splice(index,1);
+        this.referenceObjArray.splice(index, 1);
+    },
+
+    editUpdate : function(currentData) {
+        var self = this;
+
+        self.isModifiedAll = true;
+
+        Ext.Ajax.request({
+            url : common.Menu.useGoogleCloudURL + '/admin/system/' + self.systemID + '/os/' + currentData.instID,
+            method : 'PUT',
+            params : JSON.stringify({
+                host_name : currentData.hostname,
+                addr     : currentData.addr,
+                desc     : currentData.desc
+            }),
+            success : function(response) {
+                if(currentData.start === currentData.end){
+                    self.removeAllRefArray();
+                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                }
+            },
+            failure : function(){}
+        });
     }
 });

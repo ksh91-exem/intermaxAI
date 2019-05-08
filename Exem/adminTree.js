@@ -306,6 +306,11 @@ Ext.define("Exem.adminTree", {
         this.baseTree.resumeEvents();
     },
 
+    getNodeCount: function() {
+        var self = this;
+        return self.baseStore.getTotalCount();
+    },
+
     findNode: function(fieldName, compareStr, node) {
         if ( !this.baseTree.store || !this.baseTree.store.getRootNode()) {
             return null;
@@ -401,5 +406,38 @@ Ext.define("Exem.adminTree", {
         return this.baseTree.getSelectionModel().getSelection();
     },
 
+    selectRow: function(index, mode) {
+        var self = this;
+        // mode 가 true인 경우 select를 유지한다.
+        var isKeep = (mode)? mode : false;
+
+        var node =  self.baseStore.getAt(index);
+        self.baseTree.getSelectionModel().select(node, isKeep);
+
+        return node;
+    },
+
+    getNode: function(index) {
+        var self = this;
+        return self.baseStore.getAt(index);
+    },
+
+    updateCell: function(field, index, data) {
+        var self = this;
+        var row =  self.baseStore.getAt(index);
+        row.set(field, data);
+    },
+
+    findRow: function(fieldName, value) {
+        var self = this;
+        //findRecord( fieldName, value, [startIndex], [anyMatch], [caseSensitive], [exactMatch] )
+        // startIndex    : 검색 위치
+        // anyMatch      : 부분일치 여부
+        // caseSensitive : 대소문자 구분 여부
+        // exactMatch    : 정확히 일치 여부      수정 2015-01-21 JH
+
+        var row = self.baseStore.findRecord(fieldName, value, 0, false, false , true);
+        return row;
+    }
 });
 

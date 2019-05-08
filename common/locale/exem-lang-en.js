@@ -1773,4 +1773,7 @@ window.msgMap = {
     ,"Please drag more than 20 minutes."                         : "Please drag more than 20 minutes."
     ,"Load Pattern Analysis"                                     : "Load Pattern Analysis"
     ,"Please select the period %1 ~ %2."                         : "Please select the period %1 ~ %2."
+    ,"Dashboard"                                                 : "Dashboard"
+    ,"Abnormal Indicators by Instance"                           : "Abnormal Indicators by Instance"
+    ,"Tier Type"                                                 : "Tier Type"
 };

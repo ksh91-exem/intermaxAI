@@ -376,7 +376,7 @@ window.msgMap = {
     ,"Business Configuration"                                    : "업무 설정"
     ,"Repository Configuration"                                  : "저장 DB 설정"
     ,"Agent Settings"                                            : "에이전트 설정"
-    ,"System Settings"                                           : "시스템 설정"
+    ,"System Settings"                                           : "시스템 구성 설정"
     ,"Business Group Settings"                                   : "업무 그룹 설정"
     ,"User ID"                                                   : "사용자 ID"
     ,"User Name"                                                 : "사용자명"
@@ -1964,4 +1964,7 @@ window.msgMap = {
     ,"Please select the period %1 ~ %2."                         : "기간을 %1 ~ %2 으로 선택해주세요."
     ,"Dashboard"                                                 : "대시보드"
     ,"Abnormal Indicators by Instance"                           : "인스턴스 별 이상 지표"
+    ,"Tier Type"                                                 : "구간 타입"
+    ,"isEnabled"                                                 : "허용 여부"
+    ,"Parent Tier Name"                                          : "상위 구간 이름"
 };
