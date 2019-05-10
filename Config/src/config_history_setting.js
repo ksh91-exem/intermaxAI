@@ -160,6 +160,7 @@ Ext.define('config.config_history_setting', {
         });
 
         this.createGrid();
+        this.wasGrid.baseGrid.setDisabled(true);
 
         wasListBodyCon.add(this.wasGrid);
         wasListPanel.add(wasListTitleCon, wasListBodyCon);
@@ -184,14 +185,15 @@ Ext.define('config.config_history_setting', {
             height: 30,
             border: false,
             items: [{
-                html: '<img src="../images/cfg_delete.png" width="15" height="15">',
-                id: 'cfg_history_name_delete',
+                html: '<img src="../images/cfg_edit.png" width="15" height="15">',
+                id: 'cfg_history_name_edit',
                 scope: this,
-                handler: function() { this.onButtonClick('Delete', 'history'); }
+                handler: function() { this.onButtonClick('Edit', 'history'); }
             }, '-', {
                 html: '<img src="../images/cfg_refresh.png" width="15" height="15">',
+                id: 'cfg_history_name_refresh',
                 scope: this,
-                handler: function() { this.onButtonClick('Refresh', 'history'); }
+                handler: function() { this.onButtonClick('Refresh', 'history', this.wasGrid.getSelectedRow()[0].data.failure_time); }
             }]
         });
 
@@ -208,7 +210,7 @@ Ext.define('config.config_history_setting', {
                     border: false,
                     margin: '7 0 0 7',
                     bodyStyle: { background: '#eeeeee' },
-                    html: Comm.RTComm.setFont(9, common.Util.TR('Business Type List'))
+                    html: Comm.RTComm.setFont(9, common.Util.TR('장애 History'))
                 },
                 this.historyToolbar
             ]
@@ -224,6 +226,7 @@ Ext.define('config.config_history_setting', {
         });
 
         this.createHistoryGrid();
+        this.historyGrid.baseGrid.setDisabled(true);
 
         wasListBodyCon.add(this.historyGrid);
         wasListPanel.add(wasListTitleCon, wasListBodyCon);
@@ -247,12 +250,18 @@ Ext.define('config.config_history_setting', {
             defaultHeaderHeight: 26,
             usePager: false,
             defaultbufferSize: 300,
-            defaultPageSize: 300
+            defaultPageSize: 300,
+            itemclick:function(dv, record, item, index) {
+                self.onButtonClick('Refresh', 'history', record.raw.failure_time);
+                self.historyToolbar.getComponent('cfg_history_name_refresh').setDisabled(false);
+            }
         });
 
         this.wasGrid.beginAddColumns();
-        this.wasGrid.addColumn({text: common.Util.CTR('Date')       ,  dataIndex: 'date',      width: 100, type: Grid.String, alowEdit: false, editMode: false});
-        this.wasGrid.addColumn({text: common.Util.CTR('Description'),  dataIndex: 'desc',      width: 150, type: Grid.String, alowEdit: false, editMode: false});
+        this.wasGrid.addColumn({text: 'sys_id'                      ,  dataIndex: 'sys_id',            width: 100, type: Grid.Number,   alowEdit: false, editMode: false, hide: true});
+        this.wasGrid.addColumn({text: common.Util.CTR('Date')       ,  dataIndex: 'failure_time',      width: 110, type: Grid.DateTime, alowEdit: false, editMode: false, renderer: this.renderDate});
+        this.wasGrid.addColumn({text: 'failure_type'                ,  dataIndex: 'failure_type',      width: 100, type: Grid.String,   alowEdit: false, editMode: false, renderer: this.renderFailureType});
+        this.wasGrid.addColumn({text: common.Util.CTR('Description'),  dataIndex: 'detail',            width: 100, type: Grid.String,   alowEdit: false, editMode: false});
         this.wasGrid.endAddColumns();
     },
 
@@ -263,9 +272,9 @@ Ext.define('config.config_history_setting', {
             width : '100%',
             height: '100%',
             editMode: true,
-            useCheckBox: true,
+            useCheckBox: false,
             checkMode: Grid.checkMode.MULTI,
-            showHeaderCheckbox: true,
+            showHeaderCheckbox: false,
             rowNumber: true,
             localeType: 'H:i:s',
             stripeRows: true,
@@ -274,19 +283,43 @@ Ext.define('config.config_history_setting', {
             defaultbufferSize: 300,
             defaultPageSize: 300,
             itemclick:function() {
-                self.historyToolbar.getComponent('cfg_history_name_delete').setDisabled(false);
+                self.historyToolbar.getComponent('cfg_history_name_edit').setDisabled(false);
             }
         });
 
         this.historyGrid.beginAddColumns();
-        this.historyGrid.addColumn({text: common.Util.CTR('E2E')    ,  dataIndex: 'e2e',      width: 100, type: Grid.String, alowEdit: false, editMode: false});
-        this.historyGrid.addColumn({text: common.Util.CTR('TRCD')   ,  dataIndex: 'trcd',      width: 100, type: Grid.String, alowEdit: false, editMode: false});
-        this.historyGrid.addColumn({text: common.Util.CTR('30초')   ,  dataIndex: 'time',      width: 100, type: Grid.String, alowEdit: false, editMode: false});
-        this.historyGrid.addColumn({text: common.Util.CTR('정상')   ,  dataIndex: 'flag',      width: 100, type: Grid.String, alowEdit: false, editMode: false});
+        this.historyGrid.addColumn({text: 'sys_id'                      ,  dataIndex: 'sys_id',            width: 100, type: Grid.Number,   alowEdit: false, editMode: false, hide: true});
+        this.historyGrid.addColumn({text: common.Util.CTR('Time')       ,  dataIndex: 'failure_time',      width: 110, type: Grid.DateTime, alowEdit: false, editMode: false, renderer: this.renderDate});
+        this.historyGrid.addColumn({text: 'failure_type'                ,  dataIndex: 'failure_type',      width: 100, type: Grid.String,   alowEdit: false, editMode: false, renderer: this.renderFailureType});
+        this.historyGrid.addColumn({text: common.Util.CTR('Description'),  dataIndex: 'detail',            width: 200, type: Grid.String,   alowEdit: false, editMode: false});
+        // this.historyGrid.addColumn({text: common.Util.CTR('E2E')        ,  dataIndex: 'E2E',               width: 100, type: Grid.String,   alowEdit: false, editMode: false});
+        // this.historyGrid.addColumn({text: common.Util.CTR('TRCD')       ,  dataIndex: 'TRCD',              width: 100, type: Grid.String,   alowEdit: false, editMode: false});
+        // this.historyGrid.addColumn({text: common.Util.CTR('30초')      ,  dataIndex: '30초',             width: 100, type: Grid.String,   alowEdit: false, editMode: false});
+        // this.historyGrid.addColumn({text: common.Util.CTR('정상')        ,  dataIndex: 'failure_type',      width: 100, type: Grid.String,   alowEdit: false, editMode: false});
         this.historyGrid.endAddColumns();
     },
 
-    onButtonClick: function(cmd, type) {
+    renderDate: function(val) {
+        var year = val.substring(0, 4);
+        var month = val.substring(4, 6);
+        var day = val.substring(6, 8);
+        var hour = val.substring(8, 10);
+        var minute = val.substring(10, 12);
+        var date = new Date(year, month-1, day, hour, minute);
+        val = Ext.util.Format.date(date, 'Y-m-d H:i');
+        return val;
+    },
+
+    renderFailureType: function(val) {
+        var failureTypeSet = ["0 : 정상", "1 : 이상", "2 : 장애"],
+            ix, ixLen;
+        for (ix = 0, ixLen = failureTypeSet.length; ix < ixLen; ix++) {
+            if (val == ix) val = failureTypeSet[ix];
+        }
+        return val;
+    },
+
+    onButtonClick: function(cmd, key, time) {
         var self = this,
             dataSet = {},
             wasForm, rowData;
@@ -317,114 +350,111 @@ Ext.define('config.config_history_setting', {
                     }
                 });
                 break;
+            case 'Edit' :
+                
+                rowData = this.historyGrid.getSelectedRow()[0].data;
+
+                wasForm = Ext.create('config.config_history_form');
+                wasForm.systemID     = rowData.sys_id;
+                wasForm.failureTime  = rowData.failure_time;
+                wasForm.failureType  = rowData.failure_type;
+                wasForm.detail       = rowData.detail;
+
+                wasForm.parent = this;
+                wasForm.init('Edit');
+
+                break;
             case 'Refresh' :
                 if ( this.refreshLoading ){
                     return;
                 }
 
-                if (type == 'failure') {
+                if (key == 'failure') {
                     this.wasGrid.clearRows();
-                    this.executeSQL();
+                    this.executeSQL(key, '20190430'); // 캘린더 선택시의 yyyymmdd 날짜로 대체해야함
                 } else {
                     this.historyGrid.clearRows();
-                    this.executeSQL2();
+                    this.executeSQL(key, time);
                 }
 
-                this.refreshLoading = true;
+                // this.refreshLoading = true;
 
 
-                this.historyToolbar.getComponent('cfg_history_name_delete').setDisabled(true);
+                this.historyToolbar.getComponent('cfg_history_name_edit').setDisabled(true);
+                this.historyToolbar.getComponent('cfg_history_name_refresh').setDisabled(true);
                 break;
             default :
                 break;
         }
     },
 
-    executeSQL: function() {
+    executeSQL: function(key, time) {
         var self = this,
-            dataSet = {},
-            whereList = '1=1',
-            orderBy = 'order by was_name';
+            ix, ixLen, data;
+        var id = 1; // sys_id로 대체해야함
 
-        dataSet.sql_file = 'IMXConfig_WasInfo.sql';
-        dataSet.replace_string = [{
-            name: 'whereList',
-            value: whereList
-        }, {
-            name: 'orderBy',
-            value: orderBy
-        }];
+        switch (key) {
+            case 'failure' :
+        
+                Ext.Ajax.request({
+                    url : common.Menu.useGoogleCloudURL + '/admin/system/' + id + '/failurehistory/' + time,
+                    method : 'GET',
+                    success : function(response) {
+                        var result = Ext.JSON.decode(response.responseText);
+                        if (result.success === 'true') {
+                            data = result.data;
+                            self.wasGrid.clearRows();
 
-        if(common.Util.isMultiRepository()) {
-            dataSet.database = cfg.repositoryInfo.currentRepoName;
+                            for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+                                self.wasGrid.addRow([data[ix].sys_id, data[ix].failure_time, data[ix].failure_type, data[ix].detail]);
+                            }
+                            
+                            self.wasGrid.drawGrid();
+                            self.wasGrid.baseGrid.setDisabled(false);
+                            self.historyGrid.clearRows();
+                            self.historyGrid.baseGrid.setDisabled(true);
+                        }
+                    },
+                    failure : function(){}
+                });
+
+                break;
+            case 'history' :
+                Ext.Ajax.request({
+                    url : common.Menu.useGoogleCloudURL + '/admin/system/' + id + '/failurehistory/' + time,
+                    method : 'GET',
+                    success : function(response) {
+                        var result = Ext.JSON.decode(response.responseText);
+                        if (result.success === 'true') {
+                            data = result.data;
+                            self.historyGrid.clearRows();
+        
+                            for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+                                self.historyGrid.addRow([data[ix].sys_id, data[ix].failure_time, data[ix].failure_type, data[ix].detail]);
+                            }
+                            
+                            self.historyGrid.drawGrid();
+                            self.historyGrid.baseGrid.setDisabled(false);
+                        }
+                    },
+                    failure : function(){}
+                });
+                break;
         }
-
-        WS.SQLExec(dataSet, function(header, data) {
-            var rowData, ix, ixLen;
-
-            if(!common.Util.checkSQLExecValid(header, data)){
-                console.debug('config_wasname.js - executeSQL()');
-                console.debug(header);
-                console.debug(data);
-                return;
-            }
-
-            self.wasGrid.addRow(['1999-01-01', '급여일']);
-            self.wasGrid.addRow(['1999-01-01', '급여일']);
-            self.wasGrid.addRow(['1999-01-01', '급여일']);
-            self.wasGrid.drawGrid();
-
-            this.refreshLoading = false ;
-        }, this);
+        
+        this.refreshLoading = false;
     },
 
-    executeSQL2: function() {
-        var self = this,
-            dataSet = {},
-            whereList = '1=1',
-            orderBy = 'order by was_name';
-
-        dataSet.sql_file = 'IMXConfig_WasInfo.sql';
-        dataSet.replace_string = [{
-            name: 'whereList',
-            value: whereList
-        }, {
-            name: 'orderBy',
-            value: orderBy
-        }];
-
-        if(common.Util.isMultiRepository()) {
-            dataSet.database = cfg.repositoryInfo.currentRepoName;
-        }
-
-        WS.SQLExec(dataSet, function(header, data) {
-            var rowData, ix, ixLen;
-
-            if(!common.Util.checkSQLExecValid(header, data)){
-                console.debug('config_wasname.js - executeSQL()');
-                console.debug(header);
-                console.debug(data);
-                return;
-            }
-
-            self.historyGrid.addRow(['Ins1', 'FEP12']);
-            self.historyGrid.addRow(['Ins2', 'FEP21']);
-            self.historyGrid.addRow(['Ins3', 'FEP33']);
-            self.historyGrid.drawGrid();
-
-            this.refreshLoading = false ;
-        }, this);
-    },
-
-    changeWasInfo: function(wasid, wasname, hostname, tierId) {
+    changeWasInfo: function(systemid, failuretime, failuretype, detail) {
         var ix, ixLen, record;
 
         for (ix = 0, ixLen = this.wasGrid.getRowCount(); ix < ixLen; ix++) {
-            if (this.wasGrid.getRow(ix).data.was_id == wasid) {
-                record = this.wasGrid.findRow('was_id', wasid);
-                record.set('was_name', wasname);
-                record.set('host_name', hostname);
-                record.set('tier_id', tierId);
+            if (this.wasGrid.getRow(ix).data.failure_time == failuretime) {
+                record = this.wasGrid.findRow('failure_time', failuretime);
+                record.set('system_id', systemid);
+                record.set('failure_time', failuretime);
+                record.set('failure_type', failuretype);
+                record.set('detail', detail);
                 break;
             }
         }
