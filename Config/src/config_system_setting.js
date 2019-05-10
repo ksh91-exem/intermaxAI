@@ -21,6 +21,8 @@ Ext.define('config.config_system_setting', {
 
     initProperty: function(){
         this.grid = {};
+
+        this.isInit = true;
     },
 
     initLayout: function(){
@@ -103,17 +105,12 @@ Ext.define('config.config_system_setting', {
 
         var e2eListPanel = this.createE2EListPanel();
 
-        baseCon.add(vboxCon2, { xtype : 'splitter', style : 'background:#cccccc80;margin:3px'}, e2eListPanel);
+        baseCon.add(vboxCon2, { xtype : 'splitter', style : 'background:#cccccc80;margin:3px' }, e2eListPanel);
         this.target.add(baseCon);
     },
 
     initDataSetting: function(){
         this.onButtonClick('Refresh', 'sys');
-        // this.onButtonClick('Refresh', 'svr');
-        // this.onButtonClick('Refresh', 'ins');
-        // this.onButtonClick('Refresh', 'tier');
-        // this.onButtonClick('Refresh', 'tierMapping');
-        // this.onButtonClick('Refresh', 'e2e');
     },
 
     createSysListPanel: function(){
@@ -139,11 +136,13 @@ Ext.define('config.config_system_setting', {
             }, {
                 html: '<img src="../images/cfg_edit.png" width="15" height="15">',
                 id: 'cfg_sys_name_edit',
+                disabled: true,
                 scope: this,
                 handler: function() { this.onButtonClick('Edit', 'sys'); }
             }, {
                 html: '<img src="../images/cfg_delete.png" width="15" height="15">',
                 id: 'cfg_sys_name_delete',
+                disabled: true,
                 scope: this,
                 handler: function() { this.onButtonClick('Delete', 'sys'); }
             }, '-', {
@@ -207,22 +206,22 @@ Ext.define('config.config_system_setting', {
             border: false,
             items: [{
                 html: '<img src="../images/cfg_add.png" width="15" height="15">',
+                id: 'cfg_svr_name_add',
+                disabled: true,
                 scope: this,
-                handler: function() { this.onButtonClick('Add', 'svr'); }
+                handler: function() { this.onButtonClick('Add', 'svr', this.grid['sys'].getSelectedRow()[0].data.sys_id); }
             }, {
                 html: '<img src="../images/cfg_edit.png" width="15" height="15">',
                 id: 'cfg_svr_name_edit',
+                disabled: true,
                 scope: this,
-                handler: function() { this.onButtonClick('Edit', 'svr'); }
+                handler: function() { this.onButtonClick('Edit', 'svr', this.grid['sys'].getSelectedRow()[0].data.sys_id); }
             }, {
                 html: '<img src="../images/cfg_delete.png" width="15" height="15">',
                 id: 'cfg_svr_name_delete',
+                disabled: true,
                 scope: this,
                 handler: function() { this.onButtonClick('Delete', 'svr'); }
-            }, '-', {
-                html: '<img src="../images/cfg_refresh.png" width="15" height="15">',
-                scope: this,
-                handler: function() { this.onButtonClick('Refresh', 'svr'); }
             }]
         });
 
@@ -279,22 +278,22 @@ Ext.define('config.config_system_setting', {
             border: false,
             items: [{
                 html: '<img src="../images/cfg_add.png" width="15" height="15">',
+                id: 'cfg_ins_name_add',
+                disabled: true,
                 scope: this,
-                handler: function() { this.onButtonClick('Add', 'ins'); }
+                handler: function() { this.onButtonClick('Add', 'ins', this.grid['sys'].getSelectedRow()[0].data.sys_id); }
             }, {
                 html: '<img src="../images/cfg_edit.png" width="15" height="15">',
                 id: 'cfg_ins_name_edit',
+                disabled: true,
                 scope: this,
-                handler: function() { this.onButtonClick('Edit', 'ins'); }
+                handler: function() { this.onButtonClick('Edit', 'ins', this.grid['sys'].getSelectedRow()[0].data.sys_id); }
             }, {
                 html: '<img src="../images/cfg_delete.png" width="15" height="15">',
                 id: 'cfg_ins_name_delete',
+                disabled: true,
                 scope: this,
                 handler: function() { this.onButtonClick('Delete', 'ins'); }
-            }, '-', {
-                html: '<img src="../images/cfg_refresh.png" width="15" height="15">',
-                scope: this,
-                handler: function() { this.onButtonClick('Refresh', 'ins'); }
             }]
         });
 
@@ -352,22 +351,22 @@ Ext.define('config.config_system_setting', {
             border: false,
             items: [{
                 html: '<img src="../images/cfg_add.png" width="15" height="15">',
+                id: 'cfg_tier_name_add',
+                disabled: true,
                 scope: this,
-                handler: function() { this.onButtonClick('Add', 'tier'); }
+                handler: function() { this.onButtonClick('Add', 'tier', this.grid['sys'].getSelectedRow()[0].data.sys_id); }
             }, {
                 html: '<img src="../images/cfg_edit.png" width="15" height="15">',
                 id: 'cfg_tier_name_edit',
+                disabled: true,
                 scope: this,
-                handler: function() { this.onButtonClick('Edit', 'tier'); }
+                handler: function() { this.onButtonClick('Edit', 'tier', this.grid['sys'].getSelectedRow()[0].data.sys_id); }
             }, {
                 html: '<img src="../images/cfg_delete.png" width="15" height="15">',
                 id: 'cfg_tier_name_delete',
+                disabled: true,
                 scope: this,
                 handler: function() { this.onButtonClick('Delete', 'tier'); }
-            }, '-', {
-                html: '<img src="../images/cfg_refresh.png" width="15" height="15">',
-                scope: this,
-                handler: function() { this.onButtonClick('Refresh', 'tier'); }
             }]
         });
 
@@ -426,12 +425,9 @@ Ext.define('config.config_system_setting', {
             items: [{
                 html: '<img src="../images/cfg_edit.png" width="15" height="15">',
                 id: 'cfg_tier_mapping_edit',
+                disabled: true,
                 scope: this,
-                handler: function() { this.onButtonClick('Edit', 'tierMapping'); }
-            }, '-', {
-                html: '<img src="../images/cfg_refresh.png" width="15" height="15">',
-                scope: this,
-                handler: function() { this.onButtonClick('Refresh', 'tierMapping'); }
+                handler: function() { this.onButtonClick('Edit', 'tierMapping', this.grid['sys'].getSelectedRow()[0].data.sys_id, this.grid['tier'].getSelectedRow()[0].data.tier_id); }
             }]
         });
 
@@ -564,9 +560,13 @@ Ext.define('config.config_system_setting', {
                     usePager: false,
                     defaultbufferSize: 300,
                     defaultPageSize: 300,
-                    itemclick:function() {
+                    itemclick: function(dv, record, item, index) {
                         self.sysNameToolbar.getComponent('cfg_sys_name_edit').setDisabled(false);
                         self.sysNameToolbar.getComponent('cfg_sys_name_delete').setDisabled(false);
+
+                        self.onButtonClick('Refresh', 'svr', record.raw.sys_id);
+                        self.onButtonClick('Refresh', 'ins', record.raw.sys_id);
+                        self.onButtonClick('Refresh', 'tier', record.raw.sys_id);
                     }
 
                 });
@@ -594,17 +594,18 @@ Ext.define('config.config_system_setting', {
                     usePager: false,
                     defaultbufferSize: 300,
                     defaultPageSize: 300,
-                    itemclick:function() {
+                    itemclick: function(dv, record, item, index) {
                         self.svrNameToolbar.getComponent('cfg_svr_name_edit').setDisabled(false);
                         self.svrNameToolbar.getComponent('cfg_svr_name_delete').setDisabled(false);
                     }
                 });
 
                 this.grid[key].beginAddColumns();
-                this.grid[key].addColumn({text: common.Util.CTR('ID') ,         dataIndex: 'server_id', width: 80, type: Grid.String      , alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('HOST'),        dataIndex: 'host'  ,    width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('ADDR'),        dataIndex: 'addr'  ,    width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'  ,    width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: 'sys_id'                      , dataIndex: 'sys_id'  , width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
+                this.grid[key].addColumn({text: common.Util.CTR('Instance ID'), dataIndex: 'inst_id' , width: 80, type: Grid.String      , alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Host Name')  , dataIndex: 'hostname', width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('address')    , dataIndex: 'addr'    , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'    , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
                 this.grid[key].endAddColumns();
 
                 break;
@@ -625,37 +626,25 @@ Ext.define('config.config_system_setting', {
                     usePager: false,
                     defaultbufferSize: 300,
                     defaultPageSize: 300,
-                    itemclick:function() {
+                    itemclick: function(dv, record, item, index) {
                         self.insNameToolbar.getComponent('cfg_ins_name_edit').setDisabled(false);
                         self.insNameToolbar.getComponent('cfg_ins_name_delete').setDisabled(false);
                     },
                     cellclick:function(thisGrid, td, cellIndex, record) {
-                        if (cellIndex == 4) {
-                            if (record.get('reject_setting') == 0) {
-                                record.set('reject_setting', 1);
-                                record.set('modify', (record.get('reject_status') != record.get('reject_setting')));
+                        if (cellIndex == 5) {
+                            if (record.get('enable') == 0) {
+                                record.set('enable', 1);
 
                             } else {
-                                record.set('reject_setting', 0);
-                                record.set('modify', (record.get('reject_status') != record.get('reject_setting')));
+                                record.set('enable', 0);
                             }
 
-                            if (record.data.depth > 0) {
-                                if (record.hasChildNodes()) {
-                                    record.cascadeBy(function(n) {
-                                        if (n.get('reject_setting') != record.get('reject_setting')) {
-                                            n.set('reject_setting', record.get('reject_setting'));
-                                        }
-                                        n.set('modify', (n.get('reject_status') != n.get('reject_setting')));
-                                    });
-                                }
-                                this.setParentState(record, record.get('reject_setting'));
-                            }
+                            self.enableInstance(record.data);
                         }
                     },
                     configRowClass: function(record){
-                        if (record.get('reject_status') != record.get('reject_setting')) {
-                            if (record.get('reject_setting') == 0) {
+                        if (record.get('enable') != record.get('enable')) {
+                            if (record.get('enable') == 0) {
                                 return 'modify-row allow';
                             } else {
                                 return 'modify-row reject';
@@ -665,13 +654,13 @@ Ext.define('config.config_system_setting', {
                 });
 
                 this.grid[key].beginAddColumns();
-                this.grid[key].addColumn({text: common.Util.CTR('Instance ID'),   dataIndex: 'inst_id' ,    width: 80, type: Grid.String      , alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Type')       ,   dataIndex: 'type'    ,    width: 80, type: Grid.String      , alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Name')       ,   dataIndex: 'name'    ,    width: 80, type: Grid.String      , alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('사용여부')     ,  dataIndex: 'reject_setting', width: 110, type: Grid.String,   alowEdit: false, editMode: false,
+                this.grid[key].addColumn({text: 'sys_id'                      ,   dataIndex: 'sys_id' , width: 80 , type: Grid.String, alowEdit: false, editMode: false, hide: true});
+                this.grid[key].addColumn({text: common.Util.CTR('Instance ID'),   dataIndex: 'inst_id', width: 80 , type: Grid.String, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Type')       ,   dataIndex: 'type'   , width: 80 , type: Grid.String, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Name')       ,   dataIndex: 'name'   , width: 80 , type: Grid.String, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('isEnabled')  ,   dataIndex: 'enable' , width: 110, type: Grid.String, alowEdit: false, editMode: false,
                     renderer: function(v, m, r) {
-
-                        if (r.get('reject_setting') == 0) {
+                        if (r.get('enable') == 0) {
                             return '<div class="x-toggle-slide-container" style="width: 92px;">' +
                                 '<div style="left: 0px; z-index: 10000; width: 39px;" class="x-toggle-slide-thumb" ></div><div class="holder">' +
                                 '<label class="x-toggle-slide-label-on" style="width: 68.5px; margin-left: -45px;"><span style="font-size:8pt;">'+common.Util.TR('Reject')+'</span></label>' +
@@ -703,16 +692,20 @@ Ext.define('config.config_system_setting', {
                     bufferedRenderer: true,
                     sortableColumns: false,
                     emptyTextMsg: common.Util.TR('No data to display'),
-                    itemclick:function() {
+                    itemclick: function(dv, record, eOpts) {
                         self.tierNameToolbar.getComponent('cfg_tier_name_edit').setDisabled(false);
                         self.tierNameToolbar.getComponent('cfg_tier_name_delete').setDisabled(false);
+
+                        self.onButtonClick('Refresh', 'tierMapping', record.raw.sys_id, record.raw.tier_id);
                     }
                 });
 
                 this.grid[key].beginAddColumns();
-                this.grid[key].addColumn({text: common.Util.CTR('Name') ,         dataIndex: 'tier_name',    width: 120, type: Grid.tree      , alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Tier Type'),     dataIndex: 'tier_type',    width: 120, type: Grid.StringNumber, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Description'),   dataIndex: 'desc'     ,    width: 120, type: Grid.StringNumber, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: 'sys_id'                      , dataIndex: 'sys_id' , width: 120, type: Grid.String, alowEdit: false, editMode: false, hide: true});
+                this.grid[key].addColumn({text: 'tier_id'                     , dataIndex: 'tier_id', width: 120, type: Grid.String, alowEdit: false, editMode: false, hide: true});
+                this.grid[key].addColumn({text: common.Util.CTR('Name')       , dataIndex: 'name'   , width: 120, type: Grid.tree  , alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Tier Type')  , dataIndex: 'type'   , width: 120, type: Grid.String, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'   , width: 120, type: Grid.String, alowEdit: false, editMode: false});
                 this.grid[key].endAddColumns();
 
                 break;
@@ -735,8 +728,9 @@ Ext.define('config.config_system_setting', {
                 });
 
                 this.grid[key].beginAddColumns();
-                this.grid[key].addColumn({text: common.Util.CTR('Agent Name') ,   dataIndex: 'tier_id',    width: 120, type: Grid.String      , alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Description'),   dataIndex: 'desc'  ,    width: 120, type: Grid.StringNumber, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: 'sys_id'                      ,   dataIndex: 'sys_id', width: 120, type: Grid.String, alowEdit: false, editMode: false, hide: true});
+                this.grid[key].addColumn({text: common.Util.CTR('Instance ID'),   dataIndex: 'inst_id' , width: 120, type: Grid.String, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Description'),   dataIndex: 'desc'  , width: 120, type: Grid.String, alowEdit: false, editMode: false});
                 this.grid[key].endAddColumns();
 
                 break;
@@ -773,94 +767,158 @@ Ext.define('config.config_system_setting', {
 
     },
 
-    onButtonClick: function(cmd, key) {
+    onButtonClick: function(cmd, key, id, id2) {
         var self = this,
-            wasForm, rowData, systemID;
-
-        if (key == 'sys') {
-            wasForm = Ext.create('config.config_sysname_form');
-        } else if (key == 'svr') {
-            wasForm = Ext.create('config.config_svrname_form');
-        } else if (key == 'ins') {
-            wasForm = Ext.create('config.config_insname_form');
-        } else if (key == 'tier') {
-            wasForm = Ext.create('config.config_tiername_form');
-        } else if (key == 'e2e') {
-            wasForm = Ext.create('config.config_e2ename_form');
-        }
+            wasForm, rowData, systemID, instID, tierID;
 
         switch (cmd) {
             case 'Add' :
+                if (key == 'sys') {
+                    wasForm = Ext.create('config.config_sysname_form');
+                } else if (key == 'svr') {
+                    wasForm = Ext.create('config.config_svrname_form');
+                    wasForm.systemID = id;
+                } else if (key == 'ins') {
+                    wasForm = Ext.create('config.config_insname_form');
+                    wasForm.systemID = id;
+                } else if (key == 'tier') {
+                    wasForm = Ext.create('config.config_tiername_form');
+                    wasForm.systemID = id;
+                } else if (key == 'e2e') {
+                    wasForm = Ext.create('config.config_e2ename_form');
+                }
+
                 wasForm.parent = this;
                 wasForm.init('Add');
+
                 break;
+
             case 'Edit' :
                 if (key == 'tierMapping') {
                     this.showOrderingWindow();
-
                 } else {
                     rowData = this.grid[key].getSelectedRow()[0].data;
+
+                    if (key == 'sys') {
+                        wasForm = Ext.create('config.config_sysname_form');
+                        wasForm.systemID = rowData.sys_id;
+                        wasForm.name  = rowData.name;
+                        wasForm.desc  = rowData.desc;
+
+                    } else if (key == 'svr') {
+                        wasForm = Ext.create('config.config_svrname_form');
+                        wasForm.systemID = rowData.sys_id;
+                        wasForm.instID   = rowData.inst_id;
+                        wasForm.hostname = rowData.hostname;
+                        wasForm.addr     = rowData.addr;
+                        wasForm.desc     = rowData.desc;
+
+                    } else if (key == 'ins') {
+                        wasForm = Ext.create('config.config_insname_form');
+                        wasForm.systemID = rowData.sys_id;
+                        wasForm.instID   = rowData.inst_id;
+                        wasForm.type     = rowData.type;
+                        wasForm.name     = rowData.name;
+
+                    } else if (key == 'tier') {
+                        wasForm = Ext.create('config.config_tiername_form');
+                        wasForm.systemID = rowData.sys_id;
+                        wasForm.tierID   = rowData.tier_id;
+                        wasForm.name     = rowData.name;
+                        wasForm.type     = rowData.type;
+                        wasForm.desc     = rowData.desc;
+
+                    } else if (key == 'e2e') {
+                        wasForm = Ext.create('config.config_e2ename_form');
+                    }
+
                     wasForm.parent = this;
-                    wasForm.systemID = rowData.sys_id;
-                    wasForm.name  = rowData.name;
-                    wasForm.desc  = rowData.desc;
                     wasForm.init('Edit');
                 }
 
                 break;
+
             case 'Delete' :
                 Ext.MessageBox.confirm(common.Util.TR('Delete'), common.Util.TR('Are you sure you want to delete?'), function(btn) {
                     if (btn === 'yes') {
-                        rowData = self.grid[key].getSelectedRow()[0].data;
-                        systemID = rowData['sys_id'];
+                        if (key == 'sys') {
+                            rowData = self.grid[key].getSelectedRow()[0].data;
+                            systemID = rowData['sys_id'];
 
-                        Ext.Ajax.request({
-                            url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID,
-                            method : 'DELETE',
-                            success : function(response) {
-                                console.log(response);
-                                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
-                                self.onButtonClick('Refresh', 'sys');
-                            },
-                            failure : function(){}
-                        });
+                            Ext.Ajax.request({
+                                url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID,
+                                method : 'DELETE',
+                                success : function(response) {
+                                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
+                                    self.onButtonClick('Refresh', 'sys');
+                                },
+                                failure : function(){}
+                            });
+
+                        } else if (key == 'svr') {
+                            rowData = self.grid[key].getSelectedRow()[0].data;
+                            systemID = rowData['sys_id'];
+                            instID = rowData['inst_id'];
+
+                            Ext.Ajax.request({
+                                url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID + '/os/' + instID,
+                                method : 'DELETE',
+                                success : function(response) {
+                                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
+                                    self.onButtonClick('Refresh', 'svr', systemID);
+                                },
+                                failure : function(){}
+                            });
+                        } else if (key == 'ins') {
+                            rowData = self.grid[key].getSelectedRow()[0].data;
+                            systemID = rowData['sys_id'];
+                            instID = rowData['inst_id'];
+
+                            Ext.Ajax.request({
+                                url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID + '/instance/' + instID,
+                                method : 'DELETE',
+                                success : function(response) {
+                                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
+                                    self.onButtonClick('Refresh', 'ins', systemID);
+                                },
+                                failure : function(){}
+                            });
+                        } else if (key == 'tier') {
+                            rowData = self.grid[key].getSelectedRow()[0].data;
+                            systemID = rowData['sys_id'];
+                            tierID = rowData['tier_id'];
+
+                            Ext.Ajax.request({
+                                url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID + '/tier/' + tierID,
+                                method : 'DELETE',
+                                success : function(response) {
+                                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
+                                    self.onButtonClick('Refresh', 'tier', systemID);
+                                },
+                                failure : function(){}
+                            });
+                        }
+
                     }
                 });
                 break;
             case 'Refresh' :
-                if (this.refreshLoading) {
-                    return;
-                }
-
                 if (key == 'tier') {
                     this.grid[key].clearNodes();
                 } else {
                     this.grid[key].clearRows();
                 }
 
-                this.executeSQL(key);
+                this.executeSQL(key, id, id2);
 
-                this.sysNameToolbar.getComponent('cfg_sys_name_edit').setDisabled(true);
-                this.sysNameToolbar.getComponent('cfg_sys_name_delete').setDisabled(true);
-
-                this.svrNameToolbar.getComponent('cfg_svr_name_edit').setDisabled(true);
-                this.svrNameToolbar.getComponent('cfg_svr_name_delete').setDisabled(true);
-
-                this.insNameToolbar.getComponent('cfg_ins_name_edit').setDisabled(true);
-                this.insNameToolbar.getComponent('cfg_ins_name_delete').setDisabled(true);
-
-                this.tierNameToolbar.getComponent('cfg_tier_name_edit').setDisabled(true);
-                this.tierNameToolbar.getComponent('cfg_tier_name_delete').setDisabled(true);
-
-                this.e2eToolbar.getComponent('cfg_e2e_name_edit').setDisabled(true);
-                this.e2eToolbar.getComponent('cfg_e2e_name_delete').setDisabled(true);
                 break;
-            default :
+
+            default:
                 break;
         }
     },
 
-    executeSQL: function(key) {
+    executeSQL: function(key, id, id2) {
         var self = this,
             ix, ixLen, data;
 
@@ -888,7 +946,7 @@ Ext.define('config.config_system_setting', {
                 break;
             case 'svr' :
                 Ext.Ajax.request({
-                    url : common.Menu.useGoogleCloudURL + '/admin/system/',
+                    url : common.Menu.useGoogleCloudURL + '/admin/system/' + id + '/os',
                     method : 'GET',
                     success : function(response) {
                         var result = Ext.JSON.decode(response.responseText);
@@ -897,98 +955,223 @@ Ext.define('config.config_system_setting', {
                             self.grid[key].clearRows();
 
                             for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
-                                self.grid[key].addRow([data[ix].sys_id, data[ix].name, data[ix].desc]);
+                                self.grid[key].addRow([data[ix].sys_id, data[ix].inst_id, data[ix].host_name, data[ix].addr, data[ix].desc]);
                             }
 
                             self.grid[key].drawGrid();
+                            self.svrNameToolbar.getComponent('cfg_svr_name_add').setDisabled(false);
+                            self.grid[key].baseGrid.setDisabled(false);
                         }
                     },
                     failure : function(){}
                 });
 
-                self.grid[key].addRow(['WAS1', 'DESC']);
-                self.grid[key].addRow(['WAS1', 'DESC']);
-                self.grid[key].addRow(['WAS1', 'DESC']);
-
                 break;
             case 'ins' :
-                self.grid[key].addRow(['DB1', "DB", "Oracle", 0]);
-                self.grid[key].addRow(['DB1', "DB", "Oracle", 0]);
-                self.grid[key].addRow(['DB1', "DB", "Oracle", 0]);
+                Ext.Ajax.request({
+                    url : common.Menu.useGoogleCloudURL + '/admin/system/' + id + '/instance',
+                    method : 'GET',
+                    success : function(response) {
+                        var result = Ext.JSON.decode(response.responseText);
+                        if (result.success === 'true') {
+                            data = result.data;
+                            self.grid[key].clearRows();
+
+                            for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+                                self.grid[key].addRow([data[ix].sys_id, data[ix].inst_id, data[ix].type, data[ix].name, data[ix].enable]);
+                            }
+
+                            self.grid[key].drawGrid();
+                            self.insNameToolbar.getComponent('cfg_ins_name_add').setDisabled(false);
+                            self.grid[key].baseGrid.setDisabled(false);
+                        }
+                    },
+                    failure : function(){}
+                });
 
                 break;
             case 'tier' :
-                var tier = self.grid[key].addNode(null, ['Tier Name1', 'TYPE', 'DESC']);
-                self.grid[key].addNode(tier, ['Tier Name2', 'TYPE', 'DESC']);
-                self.grid[key].addNode(tier, ['Tier Name3', 'TYPE', 'DESC']);
+                Ext.Ajax.request({
+                    url : common.Menu.useGoogleCloudURL + '/admin/system/' + id + '/tier',
+                    method : 'GET',
+                    success : function(response) {
+                        var result = Ext.JSON.decode(response.responseText);
+                        var treeObj = {};
+
+                        if (result.success === 'true') {
+                            data = result.data;
+                            self.grid[key].clearNodes();
+
+                            for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+                                if (data[ix].parent_id == 0) {
+                                    treeObj[data[ix].tier_id] = self.grid[key].addNode(null, [data[ix].sys_id, data[ix].tier_id, data[ix].name, data[ix].type, data[ix].desc]);
+                                } else {
+                                    treeObj[data[ix].tier_id] = self.grid[key].addNode(treeObj[data[ix].parent_id], [data[ix].sys_id, data[ix].tier_id, data[ix].name, data[ix].type, data[ix].desc]);
+                                }
+                            }
+
+                            self.grid[key].drawTree();
+                            self.tierNameToolbar.getComponent('cfg_tier_name_add').setDisabled(false);
+                            self.grid[key].baseTree.setDisabled(false);
+
+                            self.grid[key].baseTree.getView().getSelectionModel().select(0);
+                            self.grid[key].baseTree.fireEvent('itemclick', self.grid[key].baseTree, self.grid[key].baseTree.getSelectionModel().getLastSelected());
+                        }
+                    },
+                    failure : function(){}
+                });
 
                 break;
             case 'tierMapping' :
-                self.grid[key].addRow(['WAS1', 'DESC']);
-                self.grid[key].addRow(['WAS1', 'DESC']);
-                self.grid[key].addRow(['WAS1', 'DESC']);
+                Ext.Ajax.request({
+                    url : common.Menu.useGoogleCloudURL + '/admin/system/' + id + '/tiermap/' + id2,
+                    method : 'GET',
+                    success : function(response) {
+                        var result = Ext.JSON.decode(response.responseText);
+
+                        if (result.success === 'true') {
+                            data = result.data;
+                            self.grid[key].clearRows();
+
+                            for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+                                self.grid[key].addRow([data[ix].sys_id, data[ix].inst_id, data[ix].desc]);
+                            }
+
+                            self.grid[key].drawGrid();
+                            self.tierMappingToolbar.getComponent('cfg_tier_mapping_edit').setDisabled(false);
+                            self.grid[key].baseGrid.setDisabled(false);
+                        }
+                    },
+                    failure : function(){}
+                });
 
                 break;
             case 'e2e' :
-                self.grid[key].addRow(['WAS1', 'DESC']);
-                self.grid[key].addRow(['WAS1', 'DESC']);
-                self.grid[key].addRow(['WAS1', 'DESC']);
+                Ext.Ajax.request({
+                    url : common.Menu.useGoogleCloudURL + '/admin/system/' + id + '/e2e',
+                    method : 'GET',
+                    success : function(response) {
+                        var result = Ext.JSON.decode(response.responseText);
+
+                        if (result.success === 'true') {
+                            data = result.data;
+                            self.grid[key].clearRows();
+
+                            for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+                                self.grid[key].addRow([data[ix].sys_id, data[ix].inst_id, data[ix].desc]);
+                            }
+
+                            self.grid[key].drawGrid();
+                            self.e2eToolbar.getComponent('cfg_e2e_name_edit').setDisabled(false);
+                            self.grid[key].baseGrid.setDisabled(false);
+                        }
+                    },
+                    failure : function(){}
+                });
 
                 break;
         }
 
-        if (key == 'tier') {
-            self.grid[key].drawTree();
-            self.grid[key].baseTree.setDisabled(true);
-        } else {
-            self.grid[key].drawGrid();
-            if (key != 'sys') {
-                self.grid[key].baseGrid.setDisabled(true);
+        if (this.isInit) {
+            if (key == 'tier') {
+                self.grid[key].baseTree.setDisabled(true);
+            } else {
+                this.grid['svr'].baseGrid.setDisabled(true);
+                this.grid['ins'].baseGrid.setDisabled(true);
+                this.grid['tier'].baseTree.setDisabled(true);
+                this.grid['tierMapping'].baseGrid.setDisabled(true);
+                this.grid['e2e'].baseGrid.setDisabled(true);
             }
+
+            this.isInit = false;
         }
 
-        this.refreshLoading = false;
-    },
-
-    changeWasInfo: function(systemID, name, desc, key) {
-        var ix, ixLen, record;
-
-        for (ix = 0, ixLen = this.grid[key].getRowCount(); ix < ixLen; ix++) {
-            if (this.grid[key].getRow(ix).data.sys_id == systemID) {
-                record = this.grid[key].findRow('sys_id', systemID);
-                record.set('name', name);
-                record.set('desc', desc);
-                break;
-            }
-        }
     },
 
     showOrderingWindow: function(){
-        var orderList, selectedGrid;
+        var mappingList = [], instList = [],
+            instGrid, mappingGrid;
         var ix, ixLen;
 
-        selectedGrid = this.grid['tierMapping'];
+        instGrid    = this.grid['ins'];
+        mappingGrid = this.grid['tierMapping'];
 
-        orderList = [];
-        for(ix = 0, ixLen = selectedGrid.getRowCount(); ix < ixLen; ix++){
-            orderList.push(selectedGrid.getRow(ix).data);
+        for (ix = 0, ixLen = mappingGrid.getRowCount(); ix < ixLen; ix++) {
+            mappingGrid.getRow(ix).data.title = mappingGrid.getRow(ix).data.inst_id;
+            mappingList.push(mappingGrid.getRow(ix).data);
         }
 
-        console.log(orderList);
+        for (ix = 0, ixLen = instGrid.getRowCount(); ix < ixLen; ix++) {
+            instGrid.getRow(ix).data.title = instGrid.getRow(ix).data.inst_id;
+            instList.push(instGrid.getRow(ix).data);
+        }
 
-        var orderingWindow = Ext.create('Exem.MoveColumnWindow', {
-            type : 'Tier',
+        for (ix = 0, ixLen = mappingGrid.getRowCount(); ix < ixLen; ix++) {
+            var idx = instList.findIndex(function(item) {
+                return item.title == mappingGrid.getRow(ix).data.inst_id;
+            });
+
+            if (idx > -1) {
+                instList.splice(idx, 1);
+            }
+        }
+
+        var mappingWindow = Ext.create('Exem.MoveColumnWindow', {
             width : 800,
             height : 500,
             parent : this,
-            title : common.Util.TR('Tier Order Settings'),
-            columnInfo : orderList,
+            title : common.Util.TR('Tier Mapping Settings'),
+            columnInfo    : instList,
+            useColumnInfo : mappingList,
             useDefaultBtn : false,
-            leftGridTitle : common.Util.TR('Current Order'),
-            rightGridTitle : common.Util.TR('Modified Order'),
+            orderMode : true,
+            leftGridTitle : common.Util.TR('Current Mapping'),
+            rightGridTitle : common.Util.TR('Modified Mapping'),
             okFn : this.apply
         });
 
-        orderingWindow.initBase();
+        mappingWindow.initBase();
     },
+
+    apply: function(mappingStroe, instanceStore) {
+        var ix, ixLen,
+            mappingData = [],
+            tierGrid = this.parent.grid['tier'];
+
+        var tier_id = tierGrid.getSelectedRow()[0].data.tier_id;
+        var sys_id = tierGrid.getSelectedRow()[0].data.sys_id;
+        for (ix = 0, ixLen = mappingStroe.data.items.length; ix < ixLen; ix++) {
+            mappingData.push(mappingStroe.data.items[ix].data.title);
+        }
+
+        Ext.Ajax.request({
+            url : common.Menu.useGoogleCloudURL + '/admin/system/' + sys_id + '/tiermap/' + tier_id,
+            method : 'POST',
+            jsonData : {
+                inst_ids : mappingData
+            },
+            success : function(response) {
+                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save succeeded'));
+                tierGrid.baseTree.fireEvent('itemclick', tierGrid.baseTree, tierGrid.baseTree.getSelectionModel().getLastSelected());
+                this.close();
+            }.bind(this),
+            failure : function(){}
+        });
+    },
+
+    enableInstance: function(data) {
+        Ext.Ajax.request({
+            url : common.Menu.useGoogleCloudURL + '/admin/system/' + data.sys_id + '/instance/' + data.inst_id + '/enable',
+            method : 'PUT',
+            params : JSON.stringify({
+                enable   : data.enable
+            }),
+            success : function(response) {
+                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save succeeded'));
+                this.onButtonClick('Refresh', 'ins', data.sys_id);
+            }.bind(this),
+            failure : function(){}
+        });
+    }
+
 });
