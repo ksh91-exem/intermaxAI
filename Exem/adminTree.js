@@ -380,12 +380,12 @@ Ext.define("Exem.adminTree", {
             if (n.internalId !== 'root' && n.data.checked === true) {
                 if (n.data.depth == 1) {
                     var data = getObj();
-                    data['group'] = n.data['col1'];
+                    data['group'] = n.data;
                     tempList.push(data);
                     tempData = data;
                 }
                 if (n.data.depth == 2 && tempData) {
-                    tempData['instanceList'].push(n.data['col1']);
+                    tempData['instanceList'].push(n.data);
                 }
             }
         });

@@ -44,7 +44,7 @@ Ext.define('config.config_bizcal_form', {
             cls: 'config_tab',
             listeners   : {
                 close: function(){
-                    if ( self.isModifiedAll ) {
+                    if (self.isModifiedAll) {
                         self.parent.onButtonClick('Refresh');
                     }
                 }
@@ -84,7 +84,6 @@ Ext.define('config.config_bizcal_form', {
             showHeaderCheckbox: false,
             localeType: 'H:i:s',
             stripeRows: true,
-            // itemclick: null,
             defaultHeaderHeight: 26,
             usePager: false,
             defaultbufferSize: 300,
@@ -108,10 +107,10 @@ Ext.define('config.config_bizcal_form', {
         panelA1.add(this.was_grid);
 
         this.was_grid.beginAddColumns();
-        this.was_grid.addColumn({text: 'sys_id',  dataIndex: 'sys_id',    width: 100, type: Grid.Number, alowEdit: false, editMode: false, hide: true});
-        this.was_grid.addColumn({text: 'type_id',  dataIndex: 'type_id',    width: 100, type: Grid.Number, alowEdit: false, editMode: false});
-        this.was_grid.addColumn({text: common.Util.CTR('Name'),  dataIndex: 'name',    width: 100, type: Grid.String, alowEdit: false, editMode: false});
-        this.was_grid.addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc', width: 100, type: Grid.String, alowEdit: false, editMode: false});
+        this.was_grid.addColumn({text: 'sys_id'                      , dataIndex: 'sys_id' , width: 100, type: Grid.Number, alowEdit: false, editMode: false, hide: true});
+        this.was_grid.addColumn({text: 'type_id'                     , dataIndex: 'type_id', width: 100, type: Grid.Number, alowEdit: false, editMode: false, hide: true});
+        this.was_grid.addColumn({text: common.Util.CTR('Name')       , dataIndex: 'name'   , width: 100, type: Grid.String, alowEdit: false, editMode: false});
+        this.was_grid.addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'   , width: 100, type: Grid.String, alowEdit: false, editMode: false});
         this.was_grid.endAddColumns();
 
         panelA.add(panelA1);
@@ -131,7 +130,7 @@ Ext.define('config.config_bizcal_form', {
             labelWidth: 80,
             labelAlign: 'right',
             hideTrigger : true,
-            fieldLabel: Comm.RTComm.setFont(9, 'type_id'),
+            fieldLabel: Comm.RTComm.setFont(9, 'Type ID'),
             allowBlank: true
         });
 
@@ -506,7 +505,6 @@ Ext.define('config.config_bizcal_form', {
         // *tip)  beforeObjOne 와 pre*** 와 비교
 
         // 선택 포인트가 넘어가기 전에 값들을 미리 담아둔다.
-        // var preSystemIdEdit      = self.systemIdEdit;
         var preTypeIdEdit        = self.typeIdEdit;
         var preNameEdit          = self.nameEdit;
         var preDescEdit          = self.descEdit;
@@ -580,8 +578,6 @@ Ext.define('config.config_bizcal_form', {
         beforeObjOne.name     = rdName;
         beforeObjOne.desc     = rdDesc;
 
-        // preSystemIdEdit.setDisabled(true);
-        // preSystemIdEdit.setValue(rdSystemID);
         preTypeIdEdit.setDisabled(true);
         preTypeIdEdit.setValue(rdTypeID);
         preNameEdit.setValue(rdName);

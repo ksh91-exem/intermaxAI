@@ -1,4 +1,4 @@
-Ext.define('config.config_history_setting', {
+Ext.define('config.config_failure_history_setting', {
     extend: 'Exem.Form',
     layout: { type: 'vbox', align: 'stretch' },
     width: '100%',
@@ -144,7 +144,7 @@ Ext.define('config.config_history_setting', {
                     border: false,
                     margin: '7 0 0 7',
                     bodyStyle: { background: '#eeeeee' },
-                    html: Comm.RTComm.setFont(9, common.Util.TR('장애 List'))
+                    html: Comm.RTComm.setFont(9, common.Util.TR('Failure List'))
                 },
                 this.failureToolbar
             ]
@@ -210,7 +210,7 @@ Ext.define('config.config_history_setting', {
                     border: false,
                     margin: '7 0 0 7',
                     bodyStyle: { background: '#eeeeee' },
-                    html: Comm.RTComm.setFont(9, common.Util.TR('장애 History'))
+                    html: Comm.RTComm.setFont(9, common.Util.TR('Failure History'))
                 },
                 this.historyToolbar
             ]
@@ -354,7 +354,7 @@ Ext.define('config.config_history_setting', {
                 
                 rowData = this.historyGrid.getSelectedRow()[0].data;
 
-                wasForm = Ext.create('config.config_history_form');
+                wasForm = Ext.create('config.config_failure_history_form');
                 wasForm.systemID     = rowData.sys_id;
                 wasForm.failureTime  = rowData.failure_time;
                 wasForm.failureType  = rowData.failure_type;

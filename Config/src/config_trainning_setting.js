@@ -20,9 +20,7 @@ Ext.define('config.config_trainning_setting', {
     },
 
     initProperty: function(){
-        // this.refreshLoading = false;
 
-        this.grid = {};
     },
 
     initLayout: function(){
@@ -42,14 +40,10 @@ Ext.define('config.config_trainning_setting', {
             margin: '3 5 3 6',
             listeners   : {
                 change: function(me) {
-
+                    this.executeSQL();
                 }.bind(this)
             }
         });
-
-        this.systemTypeCombo.addItem('sys3' , common.Util.TR('SYSTEM3'));
-        this.systemTypeCombo.addItem('sys2', common.Util.TR('SYSTEM2'));
-        this.systemTypeCombo.addItem('sys1', common.Util.TR('SYSTEM1'));
 
         var sysListPanel = this.createSysListPanel();
 
@@ -58,7 +52,7 @@ Ext.define('config.config_trainning_setting', {
     },
 
     initDataSetting: function(){
-        this.onButtonClick('Refresh', 'sys');
+        this.setSystemCombo();
     },
 
     createSysListPanel: function(){
@@ -88,7 +82,7 @@ Ext.define('config.config_trainning_setting', {
             }, '-', {
                 html: '<img src="../images/cfg_refresh.png" width="15" height="15">',
                 scope: this,
-                handler: function() { this.onButtonClick('Refresh', 'sys'); }
+                handler: function() { this.onButtonClick('Refresh'); }
             }]
         });
 
@@ -120,120 +114,121 @@ Ext.define('config.config_trainning_setting', {
             bodyStyle: { background: '#dddddd' }
         });
 
-        this.createGrid('sys');
+        this.createGrid();
 
-        bodyCon.add(this.grid['sys']);
+        bodyCon.add(this.grid);
         panel.add(titleCon, bodyCon);
 
         return panel;
     },
 
-    createGrid: function(key){
-        switch (key) {
+    createGrid: function(){
+        var self = this;
 
-            case 'sys' :
-                this.grid[key] = Ext.create('Exem.adminTree', {
-                    cls: 'xm-config-toggle',
-                    width : '100%',
-                    height: '100%',
-                    editMode: false,
-                    checkMode: Grid.checkMode.MULTI,
-                    showHeaderCheckbox: true,
-                    localeType: 'H:i:s',
-                    defaultHeaderHeight: 26,
-                    usePager: false,
-                    useEmptyText: true,
-                    bufferedRenderer: true,
-                    sortableColumns: false,
-                    emptyTextMsg: common.Util.TR('No data to display'),
-                    cellclick:function(thisGrid, td, cellIndex, record) {
-                        if (cellIndex == 4) {
-                            if (record.get('reject_setting') == 0) {
-                                record.set('reject_setting', 1);
-                                record.set('modify', (record.get('reject_status') != record.get('reject_setting')));
+        this.grid = Ext.create('Exem.adminTree', {
+            cls: 'xm-config-toggle',
+            width : '100%',
+            height: '100%',
+            editMode: false,
+            checkMode: Grid.checkMode.MULTI,
+            showHeaderCheckbox: true,
+            localeType: 'H:i:s',
+            defaultHeaderHeight: 26,
+            usePager: false,
+            useEmptyText: true,
+            bufferedRenderer: true,
+            sortableColumns: false,
+            emptyTextMsg: common.Util.TR('No data to display'),
+            cellclick:function(thisGrid, td, cellIndex, record) {
+                if (cellIndex == 7) {
+                    if (record.get('auto_training') == 0) {
+                        record.set('auto_training', 1);
 
-                            } else {
-                                record.set('reject_setting', 0);
-                                record.set('modify', (record.get('reject_status') != record.get('reject_setting')));
-                            }
+                    } else {
+                        record.set('auto_training', 0);
+                    }
 
-                            if (record.data.depth > 0) {
-                                if (record.hasChildNodes()) {
-                                    record.cascadeBy(function(n) {
-                                        if (n.get('reject_setting') != record.get('reject_setting')) {
-                                            n.set('reject_setting', record.get('reject_setting'));
-                                        }
-                                        n.set('modify', (n.get('reject_status') != n.get('reject_setting')));
-                                    });
+                    if (record.data.depth > 0) {
+                        if (record.hasChildNodes()) {
+                            record.cascadeBy(function(n) {
+                                if (n.get('auto_training') != record.get('auto_training')) {
+                                    n.set('auto_training', record.get('auto_training'));
                                 }
-                                this.setParentState(record, record.get('reject_setting'));
-                            }
-                        } else if (cellIndex == 3) {
-                            var wasForm = Ext.create('config.config_trainning_progress_form');
-                            wasForm.parent = this;
-                            wasForm.init('Add');
-                        } else {
-                            var wasForm = Ext.create('config.config_trainning_history_form');
-                            wasForm.parent = this;
-                            wasForm.init('Add');
-                        }
-                    },
-                    configRowClass: function(record){
-                        if (record.get('reject_status') != record.get('reject_setting')) {
-                            if (record.get('reject_setting') == 0) {
-                                return 'modify-row allow';
-                            } else {
-                                return 'modify-row reject';
-                            }
+                            });
                         }
                     }
-                });
 
-                this.grid[key].beginAddColumns();
-                this.grid[key].addColumn({text: common.Util.CTR('Agent Name') ,   dataIndex: 'was_name',    width: 120, type: Grid.tree   ,  alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('학습시작'),   dataIndex: 'start_time'  ,    width: 120, type: Grid.String, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('학습종료'),   dataIndex: 'end_time'  ,    width: 120, type: Grid.String, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('상태')   ,   dataIndex: 'status'  ,    width: 120, type: Grid.String, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('자동학습'),  dataIndex: 'reject_setting', width: 110, type: Grid.String,   alowEdit: false, editMode: false,
-                    renderer: function(v, m, r) {
+                    self.autoTrainInstance(record.data);
+                } else if (cellIndex == 6) {
+                    var wasForm = Ext.create('config.config_trainning_progress_form');
+                    wasForm.parent = this;
+                    wasForm.systemID = record.data.sys_id;
+                    wasForm.instID = record.data.inst_id;
+                    wasForm.init();
+                } else if (cellIndex == 3) {
 
-                        if (r.get('reject_setting') == 0) {
-                            return '<div class="x-toggle-slide-container" style="width: 92px;">' +
-                                '<div style="left: 0px; z-index: 10000; width: 39px;" class="x-toggle-slide-thumb" ></div><div class="holder">' +
-                                '<label class="x-toggle-slide-label-on" style="width: 68.5px; margin-left: -45px;"><span style="font-size:8pt;">'+common.Util.TR('Reject')+'</span></label>' +
-                                '<label class="x-toggle-slide-label-off" style="width: 68.5px;"><span><span style="font-size:8pt;">'+common.Util.TR('Allow')+'</span></span></label></div></div>';
-                        } else {
-                            return '<div class="x-toggle-slide-container" style="width: 92px;">' +
-                                '<div style="left: 45px; z-index: 10000; width: 39px;" class="x-toggle-slide-thumb" ></div><div class="holder">' +
-                                '<label class="x-toggle-slide-label-on" style="width: 68.5px; margin-left: 0px;"><span><span style="font-size:8pt;">'+common.Util.TR('Reject')+'</span></span></label>' +
-                                '<label class="x-toggle-slide-label-off" style="width: 68.5px;"><span><span style="font-size:8pt;">'+common.Util.TR('Allow')+'</span></span></label></div></div>';
-                        }
+                } else {
+                    var wasForm = Ext.create('config.config_trainning_history_form');
+                    wasForm.parent = this;
+                    wasForm.systemID = record.data.sys_id;
+                    wasForm.instID = record.data.inst_id;
+                    wasForm.init();
+                }
+            },
+            configRowClass: function(record){
+                if (record.get('auto_training') != record.get('auto_training')) {
+                    if (record.get('auto_training') == 0) {
+                        return 'modify-row allow';
+                    } else {
+                        return 'modify-row reject';
                     }
-                });
-                this.grid[key].addColumn({text: common.Util.CTR(''),  dataIndex: 'parent_id', width: 10, type: Grid.StringNumber,   alowEdit: false, editMode: false, hide: true, hideable: false});
-                this.grid[key].endAddColumns();
+                }
+            }
+        });
 
-        }
-
-
+        this.grid.beginAddColumns();
+        this.grid.addColumn({text: 'sys_id'                              , dataIndex: 'sys_id'       , width: 120, type: Grid.tree  , alowEdit: false, editMode: false, hide: true});
+        this.grid.addColumn({text: 'inst_id'                             , dataIndex: 'inst_id'      , width: 120, type: Grid.tree  , alowEdit: false, editMode: false, hide: true});
+        this.grid.addColumn({text: 'desc'                                , dataIndex: 'desc'         , width: 120, type: Grid.tree  , alowEdit: false, editMode: false, hide: true});
+        this.grid.addColumn({text: common.Util.CTR('Name')               , dataIndex: 'name'         , width: 120, type: Grid.tree  , alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Start Training Date'), dataIndex: 'start_time'   , width: 120, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('End Training Date')  , dataIndex: 'end_time'     , width: 120, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Status')             , dataIndex: 'status'       , width: 120, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Automatic Learning') , dataIndex: 'auto_training', width: 110, type: Grid.String, alowEdit: false, editMode: false,
+            renderer: function(v, m, r) {
+                if (r.get('auto_training') == 0) {
+                    return '<div class="x-toggle-slide-container" style="width: 92px;">' +
+                        '<div style="left: 0px; z-index: 10000; width: 39px;" class="x-toggle-slide-thumb" ></div><div class="holder">' +
+                        '<label class="x-toggle-slide-label-on" style="width: 68.5px; margin-left: -45px;"><span style="font-size:8pt;">'+common.Util.TR('Reject')+'</span></label>' +
+                        '<label class="x-toggle-slide-label-off" style="width: 68.5px;"><span><span style="font-size:8pt;">'+common.Util.TR('Allow')+'</span></span></label></div></div>';
+                } else {
+                    return '<div class="x-toggle-slide-container" style="width: 92px;">' +
+                        '<div style="left: 45px; z-index: 10000; width: 39px;" class="x-toggle-slide-thumb" ></div><div class="holder">' +
+                        '<label class="x-toggle-slide-label-on" style="width: 68.5px; margin-left: 0px;"><span><span style="font-size:8pt;">'+common.Util.TR('Reject')+'</span></span></label>' +
+                        '<label class="x-toggle-slide-label-off" style="width: 68.5px;"><span><span style="font-size:8pt;">'+common.Util.TR('Allow')+'</span></span></label></div></div>';
+                }
+            }
+        });
+        this.grid.addColumn({text: common.Util.CTR(''),  dataIndex: 'parent_id', width: 10, type: Grid.StringNumber,   alowEdit: false, editMode: false, hide: true});
+        this.grid.endAddColumns();
     },
 
-    onButtonClick: function(cmd, key) {
-        var self = this,
-            dataSet = {},
-            wasForm, rowData;
+    onButtonClick: function(cmd) {
+        var wasForm;
 
         switch (cmd) {
             case 'Manual' :
                 wasForm = Ext.create('config.config_trainning_manual_form');
+                wasForm.data = this.grid.getCheckedRows();
                 wasForm.parent = this;
-                wasForm.init('Add');
+                wasForm.init();
                 break;
 
             case 'Auto' :
                 wasForm = Ext.create('config.config_trainning_auto_form');
-                wasForm.parent = this;
-                wasForm.init('Add');
+                wasForm.parent   = this;
+                wasForm.systemID = this.systemTypeCombo.getValue();
+                wasForm.init();
                 break;
 
             case 'Refresh' :
@@ -241,8 +236,7 @@ Ext.define('config.config_trainning_setting', {
                     return;
                 }
 
-                this.grid[key].clearNodes();
-                this.executeSQL(key);
+                this.executeSQL();
 
                 break;
             default :
@@ -250,84 +244,83 @@ Ext.define('config.config_trainning_setting', {
         }
     },
 
-    executeSQL: function(key) {
+    executeSQL: function() {
         var self = this,
-            dataSet = {},
-            whereList = '1=1',
-            orderBy = 'order by was_name';
+            data, systemID,
+            ix, ixLen;
 
-        dataSet.sql_file = 'IMXConfig_WasInfo.sql';
-        dataSet.replace_string = [{
-            name: 'whereList',
-            value: whereList
-        }, {
-            name: 'orderBy',
-            value: orderBy
-        }];
+        systemID = this.systemTypeCombo.getValue();
 
-        if(common.Util.isMultiRepository()) {
-            dataSet.database = cfg.repositoryInfo.currentRepoName;
+        if (!systemID) {
+            return;
         }
 
-        WS.SQLExec(dataSet, function(header, data) {
-            var rowData, ix, ixLen;
+        Ext.Ajax.request({
+            url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID + '/train',
+            method : 'GET',
+            success : function(response) {
+                var result = Ext.JSON.decode(response.responseText);
+                if (result.success === 'true') {
+                    self.grid.clearNodes();
 
-            if(!common.Util.checkSQLExecValid(header, data)){
-                console.debug('config_wasname.js - executeSQL()');
-                console.debug(header);
-                console.debug(data);
-                return;
-            }
+                    data = result.data;
 
-            for (ix = 0, ixLen = data.rows.length; ix < ixLen; ix++) {
-                rowData = data.rows[ix];
-                self.grid[key].addNode(null, [
-                    'WAS1',
-                    "2019-09-06",
-                    "2019-09-06",
-                    "학습중",
-                    0,
-                    null
-                ]);
-            }
+                    for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+                        self.grid.addNode(null, [
+                            data[ix].sys_id
+                            , data[ix].inst_id
+                            , data[ix].desc
+                            , data[ix].name
+                            , data[ix].start_time
+                            , data[ix].end_time
+                            , data[ix].status
+                            , data[ix].auto_training
+                            , null
+                        ]);
+                    }
 
-            self.grid[key].drawTree();
-
-            if (key != 'sys') {
-                self.grid[key].baseGrid.setDisabled(true);
-            }
-
-            // this.refreshLoading = false;
-        }, this);
+                    self.grid.drawTree();
+                }
+            }.bind(this),
+            failure : function(){}
+        });
     },
 
-    changeWasInfo: function(wasid, wasname, hostname, tierId, key) {
-        var ix, ixLen, record;
+    setSystemCombo: function() {
+        var data,
+            ix, ixLen;
 
-        for (ix = 0, ixLen = this.grid[key].getRowCount(); ix < ixLen; ix++) {
-            if (this.grid[key].getRow(ix).data.was_id == wasid) {
-                record = this.grid[key].findRow('was_id', wasid);
-                record.set('was_name', wasname);
-                record.set('host_name', hostname);
-                record.set('tier_id', tierId);
-                break;
-            }
-        }
+        Ext.Ajax.request({
+            url : common.Menu.useGoogleCloudURL + '/admin/system',
+            method : 'GET',
+            success : function(response) {
+                var result = Ext.JSON.decode(response.responseText);
+                if (result.success === 'true') {
+                    data = result.data;
+
+                    for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+                        this.systemTypeCombo.addItem(data[ix].sys_id, data[ix].name);
+                    }
+
+                    this.systemTypeCombo.selectRow(0);
+                }
+            }.bind(this),
+            failure : function(){}
+        });
     },
 
-    insertDeleteAutoId: function(serverId){
-        var dataSet = {};
-        dataSet.sql_file = 'IMXConfig_Insert_Delete_Auto_Id.sql';
-        dataSet.bind = [{
-            name    : 'serverId',
-            value   : serverId,
-            type    : SQLBindType.INTEGER
-        }];
-
-        if(common.Util.isMultiRepository()) {
-            dataSet.database = cfg.repositoryInfo.currentRepoName;
-        }
-
-        WS.SQLExec(dataSet, function() {}, this);
+    autoTrainInstance: function(data) {
+        Ext.Ajax.request({
+            url : common.Menu.useGoogleCloudURL + '/admin/system/' + data.sys_id + '/instance/' + data.inst_id + '/training',
+            method : 'PUT',
+            params : JSON.stringify({
+                auto_training   : data.auto_training
+            }),
+            success : function(response) {
+                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                this.executeSQL();
+            }.bind(this),
+            failure : function(){}
+        });
     }
 });

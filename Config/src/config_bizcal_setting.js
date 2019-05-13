@@ -174,7 +174,7 @@ Ext.define('config.config_bizcal_setting', {
 
         this.wasGrid.beginAddColumns();
         this.wasGrid.addColumn({text: 'sys_id'                      ,  dataIndex: 'sys_id',    width: 100, type: Grid.Number, alowEdit: false, editMode: false, hide: true});
-        this.wasGrid.addColumn({text: 'type_id'                     ,  dataIndex: 'type_id',   width: 100, type: Grid.Number, alowEdit: false, editMode: false});
+        this.wasGrid.addColumn({text: 'type_id'                     ,  dataIndex: 'type_id',   width: 100, type: Grid.Number, alowEdit: false, editMode: false, hide: true});
         this.wasGrid.addColumn({text: common.Util.CTR('Name')       ,  dataIndex: 'name',      width: 100, type: Grid.String, alowEdit: false, editMode: false});
         this.wasGrid.addColumn({text: common.Util.CTR('Description'),  dataIndex: 'desc',      width: 150, type: Grid.String, alowEdit: false, editMode: false});
         this.wasGrid.endAddColumns();
@@ -182,7 +182,6 @@ Ext.define('config.config_bizcal_setting', {
 
     onButtonClick: function(cmd) {
         var self = this,
-            dataSet = {},
             wasForm, rowData, systemID, typeID;
 
         switch (cmd) {
@@ -209,24 +208,6 @@ Ext.define('config.config_bizcal_setting', {
                         systemID = rowData['sys_id'];
                         typeID = rowData['type_id'];
 
-                        // dataSet.sql_file = 'IMXConfig_Delete_WasInfo.sql';
-                        // dataSet.bind = [{
-                        //     name: 'wasId',
-                        //     value: rowData.was_id,
-                        //     type : SQLBindType.INTEGER
-                        // }];
-
-                        // if(common.Util.isMultiRepository()) {
-                        //     dataSet.database = cfg.repositoryInfo.currentRepoName;
-                        // }
-
-                        // WS.SQLExec(dataSet, function() {
-                        //     Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
-                        //     self.onButtonClick('Refresh');
-                        // }, this);
-
-                        // self.insertDeleteAutoId(rowData.was_id);
-
                         Ext.Ajax.request({
                             url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID + '/biztype/' + typeID,
                             method : 'DELETE',
@@ -241,7 +222,7 @@ Ext.define('config.config_bizcal_setting', {
                 });
                 break;
             case 'Refresh' :
-                if ( this.refreshLoading ){
+                if (this.refreshLoading) {
                     return;
                 }
 
@@ -258,41 +239,6 @@ Ext.define('config.config_bizcal_setting', {
     },
 
     executeSQL: function() {
-        // var self = this,
-        //     dataSet = {},
-        //     whereList = '1=1',
-        //     orderBy = 'order by was_name';
-
-        // dataSet.sql_file = 'IMXConfig_WasInfo.sql';
-        // dataSet.replace_string = [{
-        //     name: 'whereList',
-        //     value: whereList
-        // }, {
-        //     name: 'orderBy',
-        //     value: orderBy
-        // }];
-
-        // if(common.Util.isMultiRepository()) {
-        //     dataSet.database = cfg.repositoryInfo.currentRepoName;
-        // }
-
-        // WS.SQLExec(dataSet, function(header, data) {
-        //     var rowData, ix, ixLen;
-
-        //     if(!common.Util.checkSQLExecValid(header, data)){
-        //         console.debug('config_wasname.js - executeSQL()');
-        //         console.debug(header);
-        //         console.debug(data);
-        //         return;
-        //     }
-
-        //     self.wasGrid.addRow(['WAS1', 'DESC']);
-        //     self.wasGrid.addRow(['WAS2', 'DESC']);
-        //     self.wasGrid.addRow(['WAS3', 'DESC']);
-        //     self.wasGrid.drawGrid();
-
-        //     this.refreshLoading = false ;
-        // }, this);
         var self = this,
             ix, ixLen, data;
         var id = 1; // sys_id로 대체해야함
@@ -330,21 +276,5 @@ Ext.define('config.config_bizcal_setting', {
                 break;
             }
         }
-    },
-
-    // insertDeleteAutoId: function(serverId){
-    //     var dataSet = {};
-    //     dataSet.sql_file = 'IMXConfig_Insert_Delete_Auto_Id.sql';
-    //     dataSet.bind = [{
-    //         name    : 'serverId',
-    //         value   : serverId,
-    //         type    : SQLBindType.INTEGER
-    //     }];
-
-    //     if(common.Util.isMultiRepository()) {
-    //         dataSet.database = cfg.repositoryInfo.currentRepoName;
-    //     }
-
-    //     WS.SQLExec(dataSet, function() {}, this);
-    // }
+    }
 });

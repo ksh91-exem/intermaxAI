@@ -1151,7 +1151,7 @@ Ext.define('config.config_system_setting', {
                 inst_ids : mappingData
             },
             success : function(response) {
-                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save succeeded'));
+                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
                 tierGrid.baseTree.fireEvent('itemclick', tierGrid.baseTree, tierGrid.baseTree.getSelectionModel().getLastSelected());
                 this.close();
             }.bind(this),
@@ -1167,7 +1167,7 @@ Ext.define('config.config_system_setting', {
                 enable   : data.enable
             }),
             success : function(response) {
-                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save succeeded'));
+                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
                 this.onButtonClick('Refresh', 'ins', data.sys_id);
             }.bind(this),
             failure : function(){}

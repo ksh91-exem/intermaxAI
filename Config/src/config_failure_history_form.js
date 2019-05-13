@@ -1,4 +1,4 @@
-Ext.define('config.config_history_form', {
+Ext.define('config.config_failure_history_form', {
     parent: null,
     systemID: '',
     failureTime: '',
