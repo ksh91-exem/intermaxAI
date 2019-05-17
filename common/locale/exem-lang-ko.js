@@ -1983,4 +1983,7 @@ window.msgMap = {
     ,"Edit Business Type"                                        : "변경 비즈니스 타입"
     ,"Failure List"                                              : "장애 목록"
     ,"Failure History"                                           : "장애 내역"
+    ,"Metric Settings"                                           : "지표 설정"
+    ,"System"                                                    : "시스템"
+    ,"Weight"                                                    : "가중치"
 };

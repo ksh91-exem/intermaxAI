@@ -6,6 +6,9 @@ Ext.define('config.config_metric_setting', {
     bodyStyle: {
         background: '#eeeeee'
     },
+    isDataLoading: false,
+    loadedLeftGridStoreData: [],
+    loadedRightGridStoreData: [],
 
     constructor: function() {
         this.callParent();
@@ -18,6 +21,7 @@ Ext.define('config.config_metric_setting', {
 
         this._initBaseProperty();
         this._initBaseLayout();
+        this._initDataSetting();
     },
 
     _baseInit: function() {
@@ -54,22 +58,45 @@ Ext.define('config.config_metric_setting', {
             margin: '3 5 3 0'
         });
 
-        this.typeCombo = Ext.create('Exem.ComboBox', {
+        var systemLabel = common.Util.TR('System') + ' :',
+            instanceLabel = common.Util.TR('Instance') + ' :',
+            tm = new Ext.util.TextMetrics(),
+            systemLabelLength = tm.getWidth(systemLabel),
+            instanceLabelLength = tm.getWidth(instanceLabel);
+
+        this.systemTypeCombo = Ext.create('Exem.ComboBox', {
             store: Ext.create('Exem.Store'),
-            width   : 118,
+            width   : 118 + systemLabelLength,
             margin: '3 5 3 6',
+            fieldLabel: systemLabel,
+            labelAlign: 'right',
+            labelWidth: systemLabelLength,
             listeners   : {
                 change: function(me) {
-
+                    this.onSystemIdChange();
                 }.bind(this)
             }
         });
 
-        this.typeCombo.addItem('os' , common.Util.TR('OS'));
-        this.typeCombo.addItem('db', common.Util.TR('DB'));
-        this.typeCombo.addItem('was', common.Util.TR('WAS'));
+        this.instanceTypeCombo = Ext.create('Exem.ComboBox', {
+            store: Ext.create('Exem.Store'),
+            width   : 118 + instanceLabelLength,
+            margin: '3 5 3 6',
+            fieldLabel: instanceLabel,
+            labelAlign: 'right',
+            labelWidth: instanceLabelLength,
+            listeners   : {
+                change: function(me) {
+                    this.executeSQL();
+                }.bind(this)
+            }
+        });
 
-        titleArea.add(this.typeCombo);
+        this.instanceTypeCombo.addItem('os' , common.Util.TR('OS'));
+        this.instanceTypeCombo.addItem('db', common.Util.TR('DB'));
+        this.instanceTypeCombo.addItem('was', common.Util.TR('WAS'));
+
+        titleArea.add(this.systemTypeCombo, this.instanceTypeCombo);
 
         var bodyArea = Ext.create('Exem.Container', {
             width : '100%',
@@ -173,11 +200,10 @@ Ext.define('config.config_metric_setting', {
             listeners: {
                 scope: this,
                 click: function() {
-                    if(this.orderMode) {
-                        //this.columnListGrid
-                        this.okFn(this.hideListGrid.getStore(), this.columnListGrid.getStore());
+                    if(this.isDataLoading) {
+                        Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('ERROR'));
                     } else {
-                        this.okFn(this.hideListGrid.getStore());
+                        this.save();
                     }
 
                 }
@@ -200,6 +226,10 @@ Ext.define('config.config_metric_setting', {
         this.target.add(titleArea, bodyArea, buttonArea);
     },
 
+    _initDataSetting: function() {
+        this.setSystemCombo();
+    },
+
     _initBaseProperty: function() {
 
 
@@ -209,15 +239,13 @@ Ext.define('config.config_metric_setting', {
         this.defaultModel = Ext.define('editModel', {
             extend: 'Ext.data.Model',
             fields: [
-                { name: 'title'    , type: 'string' },
+                { name: 'metric_id', type: 'string' },
+                { name: 'use_type' , type: 'string' },
+                { name: 'weight'   , type: 'string' },
+                { name: 'desc'     , type: 'string' },
                 { name: 'dataIndex', type: 'string' }
             ]
         });
-
-        this.leftGridStoreData = [{
-            'title' : 'cpu usage',
-            'dataIndex' : '22'
-        }];
 
         var leftStore = Ext.create('Ext.data.Store', {
             model   : this.defaultModel,
@@ -242,8 +270,12 @@ Ext.define('config.config_metric_setting', {
                 leadingBufferZone : 20      // 스크롤 위쪽
             }],
             columns: [
-                { text: common.Util.TR('Name'), flex: 1, dataIndex: 'title' },
-                { text: 'dataIndex'           , flex: 1, dataIndex: 'dataIdx', hidden: true }
+                { text: common.Util.TR('Name')       , flex: 1, dataIndex: 'metric_id' },
+                { text: common.Util.TR('Use Type')   , flex: 1, dataIndex: 'use_type' , hidden: true, renderer: this.renderUseType },
+                { text: common.Util.TR('Description'), flex: 1, dataIndex: 'desc' },
+                { text: 'sys_id'                     , flex: 1, dataIndex: 'sys_id'   , hidden: true },
+                { text: common.Util.TR('Instance')   , flex: 1, dataIndex: 'inst_type', hidden: true },
+                { text: 'dataIndex'                  , flex: 1, dataIndex: 'dataIndex', hidden: true }
             ],
             viewConfig : {
                 plugins: {
@@ -270,7 +302,7 @@ Ext.define('config.config_metric_setting', {
 
         var rightStore = Ext.create('Ext.data.Store', {
             model   : this.defaultModel,
-            data    : []
+            data    : this.rightGridStoreData
         });
 
         this.rightGrid = Ext.create('Ext.grid.Panel', {
@@ -291,9 +323,13 @@ Ext.define('config.config_metric_setting', {
                 leadingBufferZone : 20      // 스크롤 위쪽
             }],
             columns: [
-                { text: common.Util.TR('Name')  , flex: 1, dataIndex: 'title' },
-                { text: common.Util.TR('Weight'), flex: 1, dataIndex: 'weight' },
-                { text: 'dataIndex'           , flex: 1, dataIndex: 'dataIdx', hidden: true }
+                { text: common.Util.TR('Name')       , flex: 1, dataIndex: 'metric_id' },
+                { text: common.Util.TR('Use Type')   , flex: 1, dataIndex: 'use_type' , hidden: true, renderer: this.renderUseType },
+                { text: common.Util.TR('Weight')     , flex: 1, dataIndex: 'weight'   , renderer: this.renderWeight },
+                { text: common.Util.TR('Description'), flex: 1, dataIndex: 'desc' },
+                { text: 'sys_id'                     , flex: 1, dataIndex: 'sys_id'   , hidden: true },
+                { text: common.Util.TR('Instance')   , flex: 1, dataIndex: 'inst_type', hidden: true },
+                { text: 'dataIndex'                  , flex: 1, dataIndex: 'dataIndex', hidden: true }
             ],
             viewConfig : {
                 plugins: {
@@ -306,7 +342,16 @@ Ext.define('config.config_metric_setting', {
             selModel : Ext.create('Ext.selection.CheckboxModel',{
                 showHeaderCheckbox: false,
                 ignoreRightMouseSelection: true,
-                mode: 'SIMPLE'
+                mode: 'SIMPLE',
+                listeners:{
+                    beforeselect: {
+                        fn: function(me, record, index, eOpts) {
+                            if (record.data.use_type == 2){
+                                return false;
+                            }
+                        }
+                    }
+                }
             }),
             bodyStyle: { cursor: 'pointer' },
             listeners: {
@@ -317,6 +362,166 @@ Ext.define('config.config_metric_setting', {
         });
 
         this.rightGridArea.add(this.rightGrid);
+
+        this.setRowClassByUseType();
+    },
+
+    renderUseType: function(val) {
+        var useTypeSet = ["0 : 미사용", "1 : 사용", "2 : 필수"],
+            useTypeValue = [0, 1, 2],
+            ix, ixLen;
+        
+        for (ix = 0, ixLen = useTypeSet.length; ix < ixLen; ix++) {
+            if (val == useTypeValue[ix]) {
+               val = useTypeSet[ix];
+            }
+        }
+
+        return val;
+    },
+
+    renderWeight: function(val) {
+        var weightSet = ["1 : 낮음", "2 : 중간", "3 : 높음"],
+            weightValue = [1, 2, 3],
+            ix, ixLen;
+        
+        for (ix = 0, ixLen = weightSet.length; ix < ixLen; ix++) {
+            if (val == weightValue[ix]) {
+                val = weightSet[ix];
+            }
+        }
+        
+        return val;
+    },
+
+    setSystemCombo: function() {
+        var data,
+            ix, ixLen;
+
+        Ext.Ajax.request({
+            url : common.Menu.useGoogleCloudURL + '/admin/system',
+            method : 'GET',
+            success : function(response) {
+                var result = Ext.JSON.decode(response.responseText);
+                if (result.success === 'true') {
+                    data = result.data;
+
+                    for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+                        this.systemTypeCombo.addItem(data[ix].sys_id, data[ix].name);
+                    }
+
+                    this.systemTypeCombo.selectRow(0);
+                }
+            }.bind(this),
+            failure : function(){}
+        });
+    },
+
+    onSystemIdChange: function() {
+        var self = this,
+            instanceType;
+        instanceType = self.instanceTypeCombo.getValue();
+
+        if (instanceType == 'was') {
+            self.executeSQL();
+        }
+        else {
+            self.instanceTypeCombo.selectRow(0);
+        }
+    },
+
+    executeSQL: function() {
+        var self = this,
+            ix, ixLen, data, record, systemID, instanceType;
+        var leftList = [];
+        var rightList = [];
+
+        systemID = self.systemTypeCombo.getValue();
+        instanceType = self.instanceTypeCombo.getValue();
+
+        if (systemID === undefined) {
+            console.log("systemID undefined.")
+            return;
+        }
+
+        self.isDataLoading = true;
+
+        Ext.Ajax.request({
+            url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID + '/metric/' + instanceType,
+            method : 'GET',
+            success : function(response) {
+                var result = Ext.JSON.decode(response.responseText);
+                if (result.success === 'true') {
+                    data = result.data;
+                    
+                    for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+                        record = data[ix];
+                        record.dataIndex = ix;
+
+                        if (data[ix].use_type == 0) { 
+                            leftList.push(record);
+                        }
+                        else {
+                            rightList.push(record);
+                        }
+                    }
+
+                    rightList = self.sortRightGridList(rightList);
+
+                    self.loadedLeftGridStoreData = $.extend(true, [], leftList);
+                    self.loadedRightGridStoreData = $.extend(true, [], rightList);
+                    self.leftGridStoreData = leftList;
+                    self.rightGridStoreData = rightList;
+                    self.leftGrid.getStore().loadData(leftList);
+                    self.rightGrid.getStore().loadData(rightList);
+                    
+                    self.isDataLoading = false;
+                }
+            },
+            failure : function(){
+                self.isDataLoading = false;
+            }
+        });
+    },
+
+    save : function () {
+        var self = this,
+            data = [],
+            ix, ixLen, record, systemID, instanceType;    
+        var allStoreData = self.leftGridStoreData.concat(self.rightGridStoreData);
+
+        systemID = self.systemTypeCombo.getValue();
+        instanceType = self.instanceTypeCombo.getValue();
+
+        for (ix = 0, ixLen = allStoreData.length; ix < ixLen; ix++) {
+            record = {
+                metric_id: allStoreData[ix].metric_id,
+                use_type: allStoreData[ix].use_type,
+                weight: allStoreData[ix].weight,
+                desc: allStoreData[ix].desc,
+            };
+            data.push(record);
+        }
+
+        Ext.Ajax.request({
+            url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID + '/metric/' + instanceType,
+            method : 'POST',
+            params : JSON.stringify(data),
+            success : function(response) {
+                self.executeSQL();
+                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+            },
+            failure : function(){}
+        });
+    },
+
+    cancelFn : function () {
+        this.leftGrid.getSelectionModel().deselectAll();
+        this.rightGrid.getSelectionModel().deselectAll();
+        this.leftGridStoreData = $.extend(true, [], this.loadedLeftGridStoreData);
+        this.rightGridStoreData = $.extend(true, [], this.loadedRightGridStoreData);
+        this.leftGrid.getStore().loadData(this.loadedLeftGridStoreData);
+        this.rightGrid.getStore().loadData(this.loadedRightGridStoreData);
     },
 
     createImangeBtn: function(cls, text){
@@ -346,22 +551,28 @@ Ext.define('config.config_metric_setting', {
 
     // 좌측 그리드에서 우측으로 이동
     onClickMoveRight: function() {
-        var ix, ixLen, title;
+        var ix, ixLen, metricId;
         var leftList     = this.leftGridStoreData;
         var rightList    = this.rightGridStoreData;
         var selectedList = this.leftGrid.getSelectionModel().getSelection();
 
         for (ix = 0, ixLen = selectedList.length; ix < ixLen; ix++) {
-            title = selectedList[ix].data.title;
+            metricId = selectedList[ix].data.metric_id;
 
-            leftList = leftList.filter(function(item) {
-                if (item['title'] == title) {
-                    rightList.push(item);
-                    return false;
+            leftList = leftList.reduce((queue, current, index) => {
+                if (current['metric_id'] == metricId) {
+                    current.use_type = 1;
+                    rightList.push(current);
+                    return queue;
+                } 
+                else {
+                    queue.push(current);
+                    return queue;
                 }
-                return true;
-            }, this);
+            }, []);
         }
+
+        rightList = this.sortRightGridList(rightList);
 
         this.leftGrid.getSelectionModel().deselectAll();
 
@@ -374,10 +585,13 @@ Ext.define('config.config_metric_setting', {
         var leftList  = this.leftGridStoreData;
         var rightList = this.rightGridStoreData;
 
-        leftList = leftList.filter(function(item) {
-            rightList.push(item);
-            return false;
-        }, this);
+        leftList = leftList.reduce((queue, current, index) => {
+            current.use_type = 1;
+            rightList.push(current);
+            return queue;
+        }, []);
+
+        rightList = this.sortRightGridList(rightList);
 
         this.leftGridStoreData = leftList;
         this.leftGrid.getStore().loadData(leftList);
@@ -386,22 +600,32 @@ Ext.define('config.config_metric_setting', {
 
     // 우측 그리드 선택 리스트 삭제.
     onClickMoveLeft: function () {
-        var ix, ixLen, title;
+        var ix, ixLen, metricId;
         var leftList     = this.leftGridStoreData;
         var rightList    = this.rightGridStoreData;
         var selectedList = this.rightGrid.getSelectionModel().getSelection();
 
         for (ix = 0, ixLen = selectedList.length; ix < ixLen; ix++) {
-            title = selectedList[ix].data.title;
+            metricId = selectedList[ix].data.metric_id;
 
-            rightList = rightList.filter(function(item) {
-                if (item['title'] == title) {
-                    leftList.push(item);
-                    return false;
+            rightList = rightList.reduce((queue, current, index) => {
+                if(current.use_type == 2) {
+                    queue.push(current);
+                    return queue;
                 }
-                return true;
-            }, this);
+                if (current['metric_id'] == metricId) {
+                    current.use_type = 0;
+                    leftList.push(current);
+                    return queue;
+                } 
+                else {
+                    queue.push(current);
+                    return queue;
+                }
+            }, []);
         }
+
+        rightList = this.sortRightGridList(rightList);
 
         this.rightGrid.getSelectionModel().deselectAll();
 
@@ -415,15 +639,41 @@ Ext.define('config.config_metric_setting', {
         var leftList  = this.leftGridStoreData;
         var rightList = this.rightGridStoreData;
 
-        rightList = rightList.filter(function(item) {
-            leftList.push(item);
-            return false;
-        }, this);
+        rightList = rightList.reduce((queue, current, index) => {
+            if(current.use_type == 2) {
+                queue.push(current);
+                return queue;
+            }
+            current.use_type = 0;
+            leftList.push(current);
+            return queue;
+        }, []);
+        
+        rightList = this.sortRightGridList(rightList);
 
         this.rightGridStoreData = rightList;
         this.rightGrid.getSelectionModel().deselectAll();
         this.leftGrid.getStore().loadData(leftList);
         this.rightGrid.getStore().loadData(rightList);
+    },
+
+    sortRightGridList: function(dataList) {
+        dataList.sort((a, b) => {
+            return a.use_type - b.use_type;
+        })
+        return dataList;
+    },
+
+    setRowClassByUseType: function() {
+        this.rightGrid.getView().getRowClass = function(record) {
+            var cls;
+            var useType = record.data.use_type;
+
+            if (useType == 2) { // use type 2 : 필수 지표
+                cls = 'grid-panel-row-disabled';
+            }
+            return cls;
+        }.bind(this);
     }
 
 

@@ -438,3 +438,9 @@ div.config_tab .x-tab.x-tab-active .x-tab-wrap .x-tab-button .x-tab-inner{
 .disabled-opacity-change {
     opacity: 1 !important;
 }
+
+.grid-panel-row-disabled td *{
+    background-color: #efefef;
+    color: #646464;
+    opacity: 0.7;
+}
