@@ -421,7 +421,7 @@ Ext.define('Exem.BusinessCalendar',{
                 }
 
                 if (self.parent && self.parent.initPopup) {
-                    self.parent.initPopup();
+                    self.parent.initPopup(this.multiSelectArr);
                 }
 
             }.bind(this)

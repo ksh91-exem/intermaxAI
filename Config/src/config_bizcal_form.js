@@ -10,11 +10,6 @@ Ext.define('config.config_bizcal_form', {
     // 전체의 변경사항 여부 체크
     isModifiedAll: false,
 
-    clickObject:{
-        index:0,
-        recordData: null
-    },
-
     referenceObjArray: [],
     // Target 이전 객체
     beforeObj:{
@@ -442,7 +437,7 @@ Ext.define('config.config_bizcal_form', {
             return false;
         }
 
-        var parentGrid = self.parent.wasGrid;
+        var parentGrid = self.parent.grid;
 
         // CHECK: WAS NAME 중복 체크
         if (self.mode == 'Add') {
@@ -498,7 +493,7 @@ Ext.define('config.config_bizcal_form', {
     wasClick: function(index, recordData) {
         var self = this;
         var grid = self.was_grid;
-        var parentGrid = self.parent.wasGrid;
+        var parentGrid = self.parent.grid;
         var beforeObjOne = self.beforeObj;
         var isModified = self.isModified;
 

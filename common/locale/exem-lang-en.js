@@ -1789,6 +1789,7 @@ window.msgMap = {
     ,"Detailed result"                                           : "Detailed result"
     ,"Business Calendar Settings"                                : "Business Calendar Settings"
     ,"Failure History Settings"                                  : "Failure History Settings"
+    ,"Business Type"                                             : "Business Type"
     ,"Business Type List"                                        : "Business Type List"
     ,"Add Business Type"                                         : "Add Business Type"
     ,"Edit Business Type"                                        : "Edit Business Type"

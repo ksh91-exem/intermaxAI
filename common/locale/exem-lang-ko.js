@@ -1978,6 +1978,7 @@ window.msgMap = {
     ,"Detailed result"                                           : "세부 결과"
     ,"Business Calendar Settings"                                : "비즈니스 캘린더 설정"
     ,"Failure History Settings"                                  : "장애 내역 설정"
+    ,"Business Type"                                             : "비즈니스 타입"
     ,"Business Type List"                                        : "비즈니스 타입 목록"
     ,"Add Business Type"                                         : "추가 비즈니스 타입"
     ,"Edit Business Type"                                        : "변경 비즈니스 타입"
