@@ -602,14 +602,14 @@ Ext.define('config.config_system_setting', {
                 });
 
                 this.grid[key].beginAddColumns();
-                this.grid[key].addColumn({text: 'sys_id'                      , dataIndex: 'sys_id'  , width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
-                this.grid[key].addColumn({text: common.Util.CTR('Instance ID'), dataIndex: 'inst_id' , width: 80, type: Grid.String      , alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Host Name')  , dataIndex: 'hostname', width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('address')    , dataIndex: 'addr'    , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Name')       , dataIndex: 'name'    , width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
-                this.grid[key].addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'    , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('isEnabled')  , dataIndex: 'enable'  , width: 80, type: Grid.String, alowEdit: false, editMode: false, hide: true})
-                this.grid[key].addColumn({text: common.Util.CTR('Automatic Learning')  , dataIndex: 'auto_training'  , width: 80, type: Grid.String, alowEdit: false, editMode: false, hide: true})
+                this.grid[key].addColumn({text: 'sys_id'                             , dataIndex: 'sys_id'       , width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
+                this.grid[key].addColumn({text: common.Util.CTR('Instance ID')       , dataIndex: 'inst_id'      , width: 80, type: Grid.String      , alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Host Name')         , dataIndex: 'host_name'    , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('address')           , dataIndex: 'addr'         , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Name')              , dataIndex: 'name'         , width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
+                this.grid[key].addColumn({text: common.Util.CTR('Description')       , dataIndex: 'desc'         , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('isEnabled')         , dataIndex: 'enable'       , width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true})
+                this.grid[key].addColumn({text: common.Util.CTR('Automatic Learning'), dataIndex: 'auto_training', width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true})
                 this.grid[key].endAddColumns();
 
                 break;
@@ -635,7 +635,7 @@ Ext.define('config.config_system_setting', {
                         self.insNameToolbar.getComponent('cfg_ins_name_delete').setDisabled(false);
                     },
                     cellclick:function(thisGrid, td, cellIndex, record) {
-                        if (cellIndex == 5) {
+                        if (cellIndex == 6) {
                             if (record.get('enable') == 0) {
                                 record.set('enable', 1);
 
@@ -662,6 +662,7 @@ Ext.define('config.config_system_setting', {
                 this.grid[key].addColumn({text: common.Util.CTR('Instance ID'),   dataIndex: 'inst_id', width: 80 , type: Grid.String, alowEdit: false, editMode: false});
                 this.grid[key].addColumn({text: common.Util.CTR('Type')       ,   dataIndex: 'type'   , width: 80 , type: Grid.String, alowEdit: false, editMode: false});
                 this.grid[key].addColumn({text: common.Util.CTR('Name')       ,   dataIndex: 'name'   , width: 80 , type: Grid.String, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Description'),   dataIndex: 'desc'   , width: 80 , type: Grid.String, alowEdit: false, editMode: false, hide: true});
                 this.grid[key].addColumn({text: common.Util.CTR('isEnabled')  ,   dataIndex: 'enable' , width: 110, type: Grid.String, alowEdit: false, editMode: false,
                     renderer: function(v, m, r) {
                         if (r.get('enable') == 0) {
@@ -813,7 +814,7 @@ Ext.define('config.config_system_setting', {
                         wasForm = Ext.create('config.config_svrname_form');
                         wasForm.systemID = rowData.sys_id;
                         wasForm.instID   = rowData.inst_id;
-                        wasForm.hostname = rowData.hostname;
+                        wasForm.hostName = rowData.host_name;
                         wasForm.addr     = rowData.addr;
                         wasForm.name     = rowData.name;
                         wasForm.desc     = rowData.desc;
@@ -826,6 +827,7 @@ Ext.define('config.config_system_setting', {
                         wasForm.instID   = rowData.inst_id;
                         wasForm.type     = rowData.type;
                         wasForm.name     = rowData.name;
+                        wasForm.desc     = rowData.desc;
 
                     } else if (key == 'tier') {
                         wasForm = Ext.create('config.config_tiername_form');
@@ -987,7 +989,7 @@ Ext.define('config.config_system_setting', {
                             self.grid[key].clearRows();
 
                             for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
-                                self.grid[key].addRow([data[ix].sys_id, data[ix].inst_id, data[ix].type, data[ix].name, data[ix].enable]);
+                                self.grid[key].addRow([data[ix].sys_id, data[ix].inst_id, data[ix].type, data[ix].name, data[ix].desc, data[ix].enable]);
                             }
 
                             self.grid[key].drawGrid();
