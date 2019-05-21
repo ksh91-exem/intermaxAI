@@ -4,7 +4,7 @@ Ext.define('rtm.src.rtmDashboardInstanceInfo', {
     width : '100%',
     height: '100%',
 
-    title : '인스턴스 정보',
+    title : '2019-05-13 07:42:00',
 
     interval : 3000,
     wooriPocDataFolder : realtime.wooriPocDataFolder,
@@ -39,11 +39,11 @@ Ext.define('rtm.src.rtmDashboardInstanceInfo', {
 
         this.frameTitle = Ext.create('Ext.form.Label',{
             height : 50,
-            margin : '15 0 0 15',
+            margin : '30 0 0 5',
             cls    : 'header-title',
             text   : this.title,
             style  : {
-                'font-size' : '16px'
+                'font-size' : '15px'
             }
         });
 
@@ -59,13 +59,7 @@ Ext.define('rtm.src.rtmDashboardInstanceInfo', {
                 element  : 'el',
                 click    : function() {
                     if (this.status == 'critical') {
-                        var causalityAnalysis= Ext.create('Exem.AbnormalPopup2', {
-                            wasId : 1,
-                            statId : 'tps',
-                            moment: 151515151515
-                        });
 
-                        causalityAnalysis.init();
                     }
                 }.bind(this)
             }
@@ -73,11 +67,10 @@ Ext.define('rtm.src.rtmDashboardInstanceInfo', {
 
         this.instanceText = Ext.create('Ext.form.Label',{
             xtype : 'label',
-            margin: '-30 0 0 10',
+            margin: '70 0 0 10',
             width : '100%',
             height: '100%',
             style : {
-                'line-height' : '280px',
                 'font-size' : '15px',
                 'text-align' : 'center',
                 'color' : '#ffffff'
@@ -123,7 +116,8 @@ Ext.define('rtm.src.rtmDashboardInstanceInfo', {
                     this.instanceInfoArea.setStyle('background', '#1c8ffc');
                 }
                 this.status = data.status;
-                this.instanceText.setText(data.description);
+                // this.instanceText.setText(data.description);
+                this.instanceText.setText('이상이 탐지되었습니다.');
             }.bind(this),
             error: function(XHR, textStatus, errorThrown) {
                 console.log(XHR, textStatus, errorThrown);

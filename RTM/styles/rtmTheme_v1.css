@@ -3349,19 +3349,23 @@ div.stack-group-bottom{
 }
 
 .txnloadpredict-title {
-    border: solid;
-    background: #f4f4f4;
-    border-color: #f4f4f4;
-    border-radius: 20px;
-    width: 9.5% !important;
-    border-width: 2px;
-    color: #808080;
-    font-size: 14px;
-    font-weight: bold;
-    left: 5px;
+    /*border: solid;*/
+    /*background: #f4f4f4;*/
+    /*border-color: #f4f4f4;*/
+    /*border-radius: 20px;*/
+    /*width: 9.5% !important;*/
+    /*border-width: 2px;*/
+    /*color: #808080;*/
+    /*font-size: 14px;*/
+    /*font-weight: bold;*/
+    /*left: 5px;*/
+    /*padding: 2px 0px 2px 2px !important;*/
+    /*text-align : center;*/
     top : 5px !important;
-    padding: 2px 0px 2px 2px !important;
-    text-align : center;
+    text-anchor: start;
+    font-size: 14px;
+    color: #ABAEB5;
+    fill: #ABAEB5;
 }
 
 .loadpredict-title {
@@ -5065,7 +5069,7 @@ div.observer-alert-message {
     font-size: 14px;
     display: table-cell;
     padding: 12px;
-    color: black;
+    color: #ABAEB5;
 }
 
 .statInfo-title {
