@@ -564,6 +564,7 @@ Ext.define('config.config_system_setting', {
                         self.sysNameToolbar.getComponent('cfg_sys_name_edit').setDisabled(false);
                         self.sysNameToolbar.getComponent('cfg_sys_name_delete').setDisabled(false);
 
+                        self.grid['tierMapping'].clearRows();
                         self.onButtonClick('Refresh', 'svr', record.raw.sys_id);
                         self.onButtonClick('Refresh', 'ins', record.raw.sys_id);
                         self.onButtonClick('Refresh', 'tier', record.raw.sys_id);
@@ -1168,6 +1169,7 @@ Ext.define('config.config_system_setting', {
             }),
             success : function(response) {
                 Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                this.onButtonClick('Refresh', 'svr', data.sys_id);
                 this.onButtonClick('Refresh', 'ins', data.sys_id);
             }.bind(this),
             failure : function(){}

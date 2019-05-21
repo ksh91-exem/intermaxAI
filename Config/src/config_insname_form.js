@@ -36,6 +36,7 @@ Ext.define('config.config_insname_form', {
                 close: function(){
                     if (self.isModifiedAll) {
                         self.parent.onButtonClick('Refresh', 'ins', self.systemID);
+                        self.parent.onButtonClick('Refresh', 'svr', self.systemID);
                     }
                 }
             }
@@ -302,7 +303,6 @@ Ext.define('config.config_insname_form', {
                     Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
 
                     self.cancelButton.fireEvent('click');
-                    self.parent.onButtonClick('Refresh', 'svr', self.systemID);
                 },
                 failure : function(){}
             });
