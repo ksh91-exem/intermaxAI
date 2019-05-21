@@ -14,6 +14,7 @@ Ext.define('config.config_svrname_form', {
         instID   : '',
         hostname : '',
         addr     : '',
+        name     : '',
         desc     : ''
     },
 
@@ -37,6 +38,7 @@ Ext.define('config.config_svrname_form', {
                 close: function(){
                     if (self.isModifiedAll) {
                         self.parent.onButtonClick('Refresh', 'svr', self.systemID);
+                        self.parent.onButtonClick('Refresh', 'ins', self.systemID);
                     }
                 }
             }
@@ -101,7 +103,10 @@ Ext.define('config.config_svrname_form', {
         this.grid.addColumn({text: common.Util.CTR('Instance ID'), dataIndex: 'inst_id' , width: 80, type: Grid.String      , alowEdit: false, editMode: false});
         this.grid.addColumn({text: common.Util.CTR('Host Name')  , dataIndex: 'hostname', width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
         this.grid.addColumn({text: common.Util.CTR('Address')    , dataIndex: 'addr'    , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Name')       , dataIndex: 'name'    , width: 80, type: Grid.String      , alowEdit: false, editMode: false});
         this.grid.addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'    , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('isEnabled')  , dataIndex: 'enable'  , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false, hide: true});
+        this.grid.addColumn({text: common.Util.CTR('Automatic Learning'), dataIndex: 'auto_training'    , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false, hide: true});
         this.grid.endAddColumns();
 
         panelA.add(panelA1);
@@ -150,9 +155,21 @@ Ext.define('config.config_svrname_form', {
             allowBlank: true
         });
 
-        this.descEdit = Ext.create('Ext.form.field.Text', {
+        this.nameEdit = Ext.create('Ext.form.field.Text', {
             x: 0,
             y: 91,
+            width: 270,
+            labelWidth: 80,
+            labelAlign: 'right',
+            maxLength : 64,
+            enforceMaxLength : true,
+            fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('Name')),
+            allowBlank: true
+        });
+
+        this.descEdit = Ext.create('Ext.form.field.Text', {
+            x: 0,
+            y: 118,
             width: 270,
             labelWidth: 80,
             labelAlign: 'right',
@@ -162,7 +179,7 @@ Ext.define('config.config_svrname_form', {
             allowBlank: true
         });
 
-        panelA2.add(this.instIdEdit, this.hostNameEdit, this.addrEdit, this.descEdit);
+        panelA2.add(this.instIdEdit, this.hostNameEdit, this.addrEdit, this.nameEdit, this.descEdit);
         panelA.add(panelA2);
 
         var panelC = Ext.create('Ext.panel.Panel', {
@@ -237,7 +254,7 @@ Ext.define('config.config_svrname_form', {
                     self.grid.clearRows();
 
                     for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
-                        self.grid.addRow([data[ix].inst_id, data[ix].host_name, data[ix].addr, data[ix].desc]);
+                        self.grid.addRow([data[ix].inst_id, data[ix].host_name, data[ix].addr, data[ix].name, data[ix].desc, data[ix].enable, data[ix].auto_training]);
                     }
 
                     self.grid.drawGrid();
@@ -254,7 +271,10 @@ Ext.define('config.config_svrname_form', {
                                 bfObj.instID    = tempRowData.inst_id;
                                 bfObj.hostname  = tempRowData.hostname;
                                 bfObj.addr      = tempRowData.addr;
+                                bfObj.name      = tempRowData.name;
                                 bfObj.desc      = tempRowData.desc;
+                                bfObj.enable    = tempRowData.enable;
+                                bfObj.autoTraining = tempRowData.auto_training;
                             }
                         }
                     }
@@ -273,6 +293,7 @@ Ext.define('config.config_svrname_form', {
                 self.instIdEdit.setValue(self.instID);
                 self.hostNameEdit.setValue(self.hostname);
                 self.addrEdit.setValue(self.addr);
+                self.nameEdit.setValue(self.name);
                 self.descEdit.setValue(self.desc);
 
                 self.instIdEdit.focus();
@@ -290,7 +311,10 @@ Ext.define('config.config_svrname_form', {
         var instID   = self.instIdEdit.getValue();
         var hostname = self.hostNameEdit.getValue();
         var addr     = self.addrEdit.getValue();
+        var name     = self.nameEdit.getValue();
         var desc     = self.descEdit.getValue();
+        var enable   = self.enable;
+        var autoTraining = self.autoTraining;
         var cusorPointCheck = false;
         var ix, ixLen;
         var itemChange = false;
@@ -309,16 +333,18 @@ Ext.define('config.config_svrname_form', {
                 url : common.Menu.useGoogleCloudURL + '/admin/system/' + self.systemID + '/os',
                 method : 'POST',
                 params : JSON.stringify({
-                    inst_id   : instID,
-                    host_name : hostname,
-                    addr      : addr,
-                    desc      : desc
+                    inst_id       : instID,
+                    host_name     : hostname,
+                    addr          : addr,
+                    name          : name,
+                    desc          : desc,
+                    enable        : "0",    // 최초 '허용' 0으로 설정
+                    auto_training : "1"     // 최초 '자동학습' 1로 설정
                 }),
                 success : function(response) {
                     Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
-
+                    self.isModifiedAll = true;
                     self.cancelButton.fireEvent('click');
-                    self.parent.onButtonClick('Refresh', 'svr', self.systemID);
                 },
                 failure : function(){}
             });
@@ -336,7 +362,7 @@ Ext.define('config.config_svrname_form', {
 
             // 마지막 변경사항 추가하기 위해
             if (cusorPointCheck) {
-                self.addRefArray(instID, hostname, addr, desc);
+                self.addRefArray(instID, hostname, addr, name, desc, enable, autoTraining);
             }
 
             for (ix = 0, ixLen = refObjArray.length; ix < ixLen; ix++) {
@@ -344,7 +370,10 @@ Ext.define('config.config_svrname_form', {
                 var currentInstID   = refObjArray[ix].instID;
                 var currentHostName = refObjArray[ix].hostname;
                 var currentAddr     = refObjArray[ix].addr;
+                var currentName     = refObjArray[ix].name;
                 var currentDesc     = refObjArray[ix].desc;
+                var currentEnable   = refObjArray[ix].enable;
+                var currentAutoTraining = refObjArray[ix].autoTraining;
                 var record = self.grid.findRow('inst_id', currentInstID);
 
                 //save 시 입력이 안된 에이전트명 및 호스트명을 전체 체크.
@@ -366,20 +395,26 @@ Ext.define('config.config_svrname_form', {
                 }
 
                 if (record) {
-                    self.setGridRow(currentInstID, currentHostName, currentAddr, currentDesc);
+                    self.setGridRow(currentInstID, currentHostName, currentAddr, currentName, currentDesc);
 
                     if(ix == ixLen - 1){
                         self.beforeObj.instID   = currentInstID;
                         self.beforeObj.hostname = currentHostName;
                         self.beforeObj.addr     = currentAddr;
+                        self.beforeObj.name     = currentName;
                         self.beforeObj.desc     = currentDesc;
+                        self.beforeObj.enable   = currentEnable;
+                        self.beforeObj.autoTraining = currentAutoTraining;
                     }
                 }
 
                 currentData.instID   = currentInstID;
                 currentData.hostname = currentHostName;
                 currentData.addr     = currentAddr;
+                currentData.name     = currentName;
                 currentData.desc     = currentDesc;
+                currentData.enable   = currentEnable;
+                currentData.autoTraining = currentAutoTraining;
                 currentData.start    = ix + 1;
                 currentData.end      = ixLen;
                 this.editUpdate(currentData);
@@ -534,7 +569,7 @@ Ext.define('config.config_svrname_form', {
         return true;
     },
 
-    setGridRow: function(instID, hostname, addr, desc) {
+    setGridRow: function(instID, hostname, addr, name, desc) {
         var ix, ixLen;
         for (ix = 0, ixLen = this.grid.getRowCount(); ix < ixLen; ix++) {
             if (this.grid.getRow(ix).data.inst_id == instID) {
@@ -542,6 +577,7 @@ Ext.define('config.config_svrname_form', {
 
                 record.set('hostname', hostname);
                 record.set('addr', addr);
+                record.set('name', name);
                 record.set('desc', desc);
 
                 this.grid.drawGrid();
@@ -563,23 +599,33 @@ Ext.define('config.config_svrname_form', {
         var preInstIdEdit        = self.instIdEdit;
         var preHostNameEdit      = self.hostNameEdit;
         var preAddrEdit          = self.addrEdit;
+        var preNameEdit          = self.nameEdit;
         var preDescEdit          = self.descEdit;
         var preInstIdEditValue   = self.instIdEdit.getValue();
         var preHostNameEditValue = self.hostNameEdit.getValue();
         var preAddrEditValue     = self.addrEdit.getValue();
+        var preNameEditValue     = self.nameEdit.getValue();
         var preDescEditValue     = self.descEdit.getValue();
+        var enable               = self.enable;
+        var autoTraining         = self.autoTraining;
 
         // 선택된 포인트의 값들을 저장한다.
         var rdInstID   = recordData.inst_id;
         var rdHostName = recordData.hostname;
         var rdAddr     = recordData.addr;
+        var rdName     = recordData.name;
         var rdDesc     = recordData.desc;
+        var rdEnable   = recordData.enable;
+        var rdAutoTraining = recordData.auto_training;
 
         if (beforeObjOne.instID == '') {
             beforeObjOne.instID   = preInstIdEditValue;
             beforeObjOne.hostname = preHostNameEditValue;
             beforeObjOne.addr     = preAddrEditValue;
+            beforeObjOne.name     = preNameEditValue;
             beforeObjOne.desc     = preDescEditValue;
+            beforeObjOne.enable   = enable;
+            beforeObjOne.autoTraining = autoTraining;
         }
 
         if (beforeObjOne.instID == preInstIdEditValue) {
@@ -622,7 +668,7 @@ Ext.define('config.config_svrname_form', {
         }
 
         if (isModified) {
-            self.addRefArray(preInstIdEditValue, preHostNameEditValue, preAddrEditValue, preDescEditValue);
+            self.addRefArray(preInstIdEditValue, preHostNameEditValue, preAddrEditValue, preNameEditValue, preDescEditValue, enable, autoTraining);
         }
 
         // 선택 포인트가 이전포인트와 같을 경우, 변경된 값을 동기화 시켜 보여주기 위해
@@ -630,31 +676,41 @@ Ext.define('config.config_svrname_form', {
             rdInstID   = preInstIdEditValue;
             rdHostName = preHostNameEditValue;
             rdAddr     = preAddrEditValue;
+            rdName     = preNameEditValue;
             rdDesc     = preDescEditValue;
+            rdEnable   = enable;
+            rdAutoTraining = autoTraining;
         }
 
         // 선택된 값들이 다시 이전 선택들의 값이 되기 위해
         beforeObjOne.instID   = rdInstID;
         beforeObjOne.hostname = rdHostName;
         beforeObjOne.addr     = rdAddr;
+        beforeObjOne.name     = rdName;
         beforeObjOne.desc     = rdDesc;
+        beforeObjOne.enable   = rdEnable;
+        beforeObjOne.autoTraining = rdAutoTraining;
 
         preInstIdEdit.setValue(rdInstID);
         preHostNameEdit.setValue(rdHostName);
         preAddrEdit.setValue(rdAddr);
+        preNameEdit.setValue(rdName);
         preDescEdit.setValue(rdDesc);
 
         return true;
     },
 
-    addRefArray: function (instID, hostname, addr, desc) {
+    addRefArray: function (instID, hostname, addr, name, desc, enable, autoTraining) {
         var self = this;
 
         var tempObj = {
             instID   : instID,
             hostname : hostname,
             addr     : addr,
-            desc     : desc
+            name     : name,
+            desc     : desc,
+            enable   : enable,
+            autoTraining : autoTraining
         };
 
         self.referenceObjArray.push(tempObj);
@@ -680,7 +736,10 @@ Ext.define('config.config_svrname_form', {
             params : JSON.stringify({
                 host_name : currentData.hostname,
                 addr     : currentData.addr,
-                desc     : currentData.desc
+                name     : currentData.name,
+                desc     : currentData.desc,
+                enable   : currentData.enable,
+                auto_training : currentData.autoTraining
             }),
             success : function(response) {
                 if(currentData.start === currentData.end){

@@ -564,6 +564,7 @@ Ext.define('config.config_system_setting', {
                         self.sysNameToolbar.getComponent('cfg_sys_name_edit').setDisabled(false);
                         self.sysNameToolbar.getComponent('cfg_sys_name_delete').setDisabled(false);
 
+                        self.grid['tierMapping'].clearRows();
                         self.onButtonClick('Refresh', 'svr', record.raw.sys_id);
                         self.onButtonClick('Refresh', 'ins', record.raw.sys_id);
                         self.onButtonClick('Refresh', 'tier', record.raw.sys_id);
@@ -605,7 +606,10 @@ Ext.define('config.config_system_setting', {
                 this.grid[key].addColumn({text: common.Util.CTR('Instance ID'), dataIndex: 'inst_id' , width: 80, type: Grid.String      , alowEdit: false, editMode: false});
                 this.grid[key].addColumn({text: common.Util.CTR('Host Name')  , dataIndex: 'hostname', width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
                 this.grid[key].addColumn({text: common.Util.CTR('address')    , dataIndex: 'addr'    , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Name')       , dataIndex: 'name'    , width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
                 this.grid[key].addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'    , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('isEnabled')  , dataIndex: 'enable'  , width: 80, type: Grid.String, alowEdit: false, editMode: false, hide: true})
+                this.grid[key].addColumn({text: common.Util.CTR('Automatic Learning')  , dataIndex: 'auto_training'  , width: 80, type: Grid.String, alowEdit: false, editMode: false, hide: true})
                 this.grid[key].endAddColumns();
 
                 break;
@@ -811,7 +815,10 @@ Ext.define('config.config_system_setting', {
                         wasForm.instID   = rowData.inst_id;
                         wasForm.hostname = rowData.hostname;
                         wasForm.addr     = rowData.addr;
+                        wasForm.name     = rowData.name;
                         wasForm.desc     = rowData.desc;
+                        wasForm.enable   = rowData.enable;
+                        wasForm.autoTraining = rowData.auto_training;
 
                     } else if (key == 'ins') {
                         wasForm = Ext.create('config.config_insname_form');
@@ -866,6 +873,7 @@ Ext.define('config.config_system_setting', {
                                 success : function(response) {
                                     Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
                                     self.onButtonClick('Refresh', 'svr', systemID);
+                                    self.onButtonClick('Refresh', 'ins', systemID);
                                 },
                                 failure : function(){}
                             });
@@ -879,6 +887,7 @@ Ext.define('config.config_system_setting', {
                                 method : 'DELETE',
                                 success : function(response) {
                                     Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
+                                    self.onButtonClick('Refresh', 'svr', systemID);
                                     self.onButtonClick('Refresh', 'ins', systemID);
                                 },
                                 failure : function(){}
@@ -955,7 +964,7 @@ Ext.define('config.config_system_setting', {
                             self.grid[key].clearRows();
 
                             for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
-                                self.grid[key].addRow([data[ix].sys_id, data[ix].inst_id, data[ix].host_name, data[ix].addr, data[ix].desc]);
+                                self.grid[key].addRow([data[ix].sys_id, data[ix].inst_id, data[ix].host_name, data[ix].addr, data[ix].name, data[ix].desc, data[ix].enable, data[ix].auto_training]);
                             }
 
                             self.grid[key].drawGrid();
@@ -1168,6 +1177,7 @@ Ext.define('config.config_system_setting', {
             }),
             success : function(response) {
                 Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                this.onButtonClick('Refresh', 'svr', data.sys_id);
                 this.onButtonClick('Refresh', 'ins', data.sys_id);
             }.bind(this),
             failure : function(){}
