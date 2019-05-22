@@ -13,7 +13,8 @@ Ext.define('config.config_insname_form', {
         preIndex : 0,
         instID   : '',
         type     : '',
-        name     : ''
+        name     : '',
+        desc     : ''
     },
 
     systemID : '',
@@ -98,9 +99,14 @@ Ext.define('config.config_insname_form', {
         panelA1.add(this.grid);
 
         this.grid.beginAddColumns();
-        this.grid.addColumn({text: common.Util.CTR('Instance ID'),  dataIndex: 'inst_id', width: 90,  type: Grid.String, alowEdit: false, editMode: false});
-        this.grid.addColumn({text: common.Util.CTR('Type'),         dataIndex: 'type'   , width: 100, type: Grid.String, alowEdit: false, editMode: false});
-        this.grid.addColumn({text: common.Util.CTR('Name'),         dataIndex: 'name'   , width: 100, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Instance ID')       , dataIndex: 'inst_id'      , width: 90,  type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Type')              , dataIndex: 'type'         , width: 100, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Name')              , dataIndex: 'name'         , width: 100, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Description')       , dataIndex: 'desc'         , width: 100, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Host Name')         , dataIndex: 'host_name'    , width: 100, type: Grid.String, alowEdit: false, editMode: false, hide: true});
+        this.grid.addColumn({text: common.Util.CTR('Address')           , dataIndex: 'addr'         , width: 100, type: Grid.String, alowEdit: false, editMode: false, hide: true});
+        this.grid.addColumn({text: common.Util.CTR('isEnabled')         , dataIndex: 'enable'       , width: 100, type: Grid.String, alowEdit: false, editMode: false, hide: true});
+        this.grid.addColumn({text: common.Util.CTR('Automatic Learning'), dataIndex: 'auto_training', width: 100, type: Grid.String, alowEdit: false, editMode: false, hide: true});
         this.grid.endAddColumns();
 
         panelA.add(panelA1);
@@ -150,7 +156,19 @@ Ext.define('config.config_insname_form', {
             allowBlank: true
         });
 
-        panelA2.add(this.instIdEdit, this.typeEdit, this.nameEdit);
+        this.descEdit = Ext.create('Ext.form.field.Text', {
+            x: 0,
+            y: 91,
+            width: 270,
+            labelWidth: 80,
+            labelAlign: 'right',
+            maxLength : 64,
+            enforceMaxLength : true,
+            fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('Description')),
+            allowBlank: true
+        });
+
+        panelA2.add(this.instIdEdit, this.typeEdit, this.nameEdit, this.descEdit);
         panelA.add(panelA2);
 
         //
@@ -226,7 +244,7 @@ Ext.define('config.config_insname_form', {
                     self.grid.clearRows();
 
                     for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
-                        self.grid.addRow([data[ix].inst_id, data[ix].type, data[ix].name]);
+                        self.grid.addRow([data[ix].inst_id, data[ix].type, data[ix].name, data[ix].desc, data[ix].host_name, data[ix].addr, data[ix].enable, data[ix].auto_training]);
                     }
 
                     self.grid.drawGrid();
@@ -243,6 +261,7 @@ Ext.define('config.config_insname_form', {
                                 bfObj.instID    = tempRowData.inst_id;
                                 bfObj.type      = tempRowData.type;
                                 bfObj.name      = tempRowData.name;
+                                bfObj.desc      = tempRowData.desc;
                             }
                         }
                     }
@@ -261,6 +280,7 @@ Ext.define('config.config_insname_form', {
                 self.instIdEdit.setValue(self.instID);
                 self.typeEdit.setValue(self.type);
                 self.nameEdit.setValue(self.name);
+                self.descEdit.setValue(self.desc);
 
                 self.instIdEdit.focus();
                 break;
@@ -277,6 +297,7 @@ Ext.define('config.config_insname_form', {
         var instID   = self.instIdEdit.getValue();
         var type     = self.typeEdit.getValue();
         var name     = self.nameEdit.getValue();
+        var desc     = self.descEdit.getValue();
         var cusorPointCheck = false;
         var ix, ixLen;
         var itemChange = false;
@@ -295,13 +316,16 @@ Ext.define('config.config_insname_form', {
                 url : common.Menu.useGoogleCloudURL + '/admin/system/' + self.systemID + '/instance',
                 method : 'POST',
                 params : JSON.stringify({
-                    inst_id   : instID,
-                    host_name : type,
-                    addr      : name
+                    inst_id       : instID,
+                    type          : type,
+                    name          : name,
+                    desc          : desc,
+                    enable        : "0",
+                    auto_training : "1"
                 }),
                 success : function(response) {
                     Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
-
+                    self.isModifiedAll = true;
                     self.cancelButton.fireEvent('click');
                 },
                 failure : function(){}
@@ -310,6 +334,11 @@ Ext.define('config.config_insname_form', {
         } else {
             // Edit mode
             var refObjArray = self.referenceObjArray;
+            var rowData      = self.grid.getSelectedRow()[0].data;
+            var hostName     = rowData.host_name;
+            var addr         = rowData.addr;
+            var enable       = rowData.enable;
+            var autoTraining = rowData.auto_training;
 
             //마지막 변경사항 추가 이전 같은 inst_id값을 가진 referenceObjArray 제거.
             for (ix = 0; ix < refObjArray.length; ix++) {
@@ -320,14 +349,19 @@ Ext.define('config.config_insname_form', {
 
             // 마지막 변경사항 추가하기 위해
             if (cusorPointCheck) {
-                self.addRefArray(instID, type, name);
+                self.addRefArray(instID, type, name, desc, hostName, addr, enable, autoTraining);
             }
 
             for (ix = 0, ixLen = refObjArray.length; ix < ixLen; ix++) {
                 var currentData = {};
-                var currentInstID   = refObjArray[ix].instID;
-                var currentType = refObjArray[ix].type;
-                var currentName     = refObjArray[ix].name;
+                var currentInstID       = refObjArray[ix].instID;
+                var currentType         = refObjArray[ix].type;
+                var currentName         = refObjArray[ix].name;
+                var currentDesc         = refObjArray[ix].desc;
+                var currentHostName     = refObjArray[ix].hostName;
+                var currentAddr         = refObjArray[ix].addr;
+                var currentEnable       = refObjArray[ix].enable;
+                var currentAutoTraining = refObjArray[ix].autoTraining;
                 var record = self.grid.findRow('inst_id', currentInstID);
 
                 //save 시 입력이 안된 에이전트명 및 호스트명을 전체 체크.
@@ -343,18 +377,24 @@ Ext.define('config.config_insname_form', {
                 }
 
                 if (record) {
-                    self.setGridRow(currentInstID, currentType, currentName);
+                    self.setGridRow(currentInstID, currentType, currentName, currentDesc);
 
                     if(ix == ixLen - 1){
                         self.beforeObj.instID = currentInstID;
                         self.beforeObj.type   = currentType;
                         self.beforeObj.name   = currentName;
+                        self.beforeObj.desc   = currentDesc;
                     }
                 }
 
-                currentData.instID = currentInstID;
-                currentData.type   = currentType;
-                currentData.name   = currentName;
+                currentData.instID       = currentInstID;
+                currentData.type         = currentType;
+                currentData.name         = currentName;
+                currentData.desc         = currentDesc;
+                currentData.hostName     = currentHostName;
+                currentData.addr         = currentAddr;
+                currentData.enable       = currentEnable;
+                currentData.autoTraining = currentAutoTraining;
                 currentData.start  = ix + 1;
                 currentData.end    = ixLen;
                 this.editUpdate(currentData);
@@ -385,6 +425,7 @@ Ext.define('config.config_insname_form', {
         var instID = self.instIdEdit.getValue();
         var type   = self.typeEdit.getValue();
         var name   = self.nameEdit.getValue();
+        var desc   = self.descEdit.getValue();
         var ix;
 
         // CHECK: WAS NAME + Byte Check
@@ -429,7 +470,7 @@ Ext.define('config.config_insname_form', {
             return false;
         }
 
-        // CHECK: Address + Byte Check
+        // CHECK: Name + Byte Check
         if (name == '' && !itemChange) {
             Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter Name.'));
             self.nameEdit.focus();
@@ -451,6 +492,27 @@ Ext.define('config.config_insname_form', {
         }
 
         var parentGrid = self.parent.grid['ins'];
+
+        // CHECK: Description + Byte Check
+        if (desc == '' && !itemChange) {
+            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter Description.'));
+            self.descEdit.focus();
+            return false;
+        }
+
+        if (desc.indexOf(' ') > -1) {
+            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Blank Character is not allowed'));
+            self.descEdit.focus();
+            return false;
+        }
+
+        var descByteLen = this.getTextLength(desc);
+
+        if(descByteLen > 64){
+            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('You have exceeded the number of byte of the column you want to save.'));
+            self.descEdit.focus();
+            return false;
+        }
 
         // CHECK: WAS NAME 중복 체크
         if (self.mode == 'Add') {
@@ -487,7 +549,7 @@ Ext.define('config.config_insname_form', {
         return true;
     },
 
-    setGridRow: function(instID, type, name) {
+    setGridRow: function(instID, type, name, desc) {
         var ix, ixLen;
         for (ix = 0, ixLen = this.grid.getRowCount(); ix < ixLen; ix++) {
             if (this.grid.getRow(ix).data.inst_id == instID) {
@@ -495,6 +557,7 @@ Ext.define('config.config_insname_form', {
 
                 record.set('type', type);
                 record.set('name', name);
+                record.set('desc', desc);
 
                 this.grid.drawGrid();
                 break;
@@ -515,19 +578,28 @@ Ext.define('config.config_insname_form', {
         var preInstIdEdit      = self.instIdEdit;
         var preTypeEdit        = self.typeEdit;
         var preNameEdit        = self.nameEdit;
+        var preDescEdit        = self.descEdit;
         var preInstIdEditValue = self.instIdEdit.getValue();
         var preTypeEditValue   = self.typeEdit.getValue();
         var preNameEditValue   = self.nameEdit.getValue();
+        var preDescEditValue   = self.descEdit.getValue();
+        var rowData            = self.grid.getSelectedRow()[0].data;
+        var hostName           = rowData.host_name;
+        var addr               = rowData.addr;
+        var enable             = rowData.enable;
+        var autoTraining       = rowData.auto_training;
 
         // 선택된 포인트의 값들을 저장한다.
         var rdInstID = recordData.inst_id;
         var rdType   = recordData.type;
         var rdName   = recordData.name;
+        var rdDesc   = recordData.desc;
 
         if (beforeObjOne.instID == '') {
             beforeObjOne.instID = preInstIdEditValue;
             beforeObjOne.type   = preTypeEditValue;
             beforeObjOne.name   = preNameEditValue;
+            beforeObjOne.desc   = preDescEditValue;
         }
 
         if (beforeObjOne.instID == preInstIdEditValue) {
@@ -555,6 +627,11 @@ Ext.define('config.config_insname_form', {
                 grid.updateCell('name', beforeObjOne.preIndex, preNameEditValue);
                 isModified = true;
             }
+
+            if (beforeObjOne.desc != preDescEditValue) {
+                grid.updateCell('desc', beforeObjOne.preIndex, preDescEditValue);
+                isModified = true;
+            }
         }
 
         //referenceObjArray 값을 계속 쌓는것이 아닌 에이전트 ID당 1번만 쌓도록 수정.
@@ -565,7 +642,7 @@ Ext.define('config.config_insname_form', {
         }
 
         if (isModified) {
-            self.addRefArray(preInstIdEditValue, preTypeEditValue, preNameEditValue);
+            self.addRefArray(preInstIdEditValue, preTypeEditValue, preNameEditValue, preDescEditValue, hostName, addr, enable, autoTraining);
         }
 
         // 선택 포인트가 이전포인트와 같을 경우, 변경된 값을 동기화 시켜 보여주기 위해
@@ -573,27 +650,35 @@ Ext.define('config.config_insname_form', {
             rdInstID = preInstIdEditValue;
             rdType   = preTypeEditValue;
             rdName   = preNameEditValue;
+            rdDesc   = preDescEditValue;
         }
 
         // 선택된 값들이 다시 이전 선택들의 값이 되기 위해
         beforeObjOne.instID = rdInstID;
         beforeObjOne.type   = rdType;
         beforeObjOne.name   = rdName;
+        beforeObjOne.desc   = rdDesc;
 
         preInstIdEdit.setValue(rdInstID);
         preTypeEdit.setValue(rdType);
         preNameEdit.setValue(rdName);
+        preDescEdit.setValue(rdDesc);
 
         return true;
     },
 
-    addRefArray: function (instID, type, name) {
+    addRefArray: function (instID, type, name, desc, hostName, addr, enable, autoTraining) {
         var self = this;
 
         var tempObj = {
-            instID : instID,
-            type   : type,
-            name   : name
+            instID       : instID,
+            type         : type,
+            name         : name,
+            desc         : desc,
+            hostName     : hostName,
+            addr         : addr,
+            enable       : enable,
+            autoTraining : autoTraining
         };
 
         self.referenceObjArray.push(tempObj);
@@ -617,8 +702,13 @@ Ext.define('config.config_insname_form', {
             url : common.Menu.useGoogleCloudURL + '/admin/system/' + self.systemID + '/instance/' + currentData.instID,
             method : 'PUT',
             params : JSON.stringify({
-                type : currentData.type,
-                name : currentData.name
+                type          : currentData.type,
+                name          : currentData.name,
+                desc          : currentData.desc,
+                host_name     : currentData.hostName,
+                addr          : currentData.addr,
+                enable        : currentData.enable,
+                auto_training : currentData.autoTraining
             }),
             success : function(response) {
                 if(currentData.start === currentData.end){

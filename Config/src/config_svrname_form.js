@@ -12,7 +12,7 @@ Ext.define('config.config_svrname_form', {
         // 이전에 선택된 인덱스
         preIndex : 0,
         instID   : '',
-        hostname : '',
+        hostName : '',
         addr     : '',
         name     : '',
         desc     : ''
@@ -291,7 +291,7 @@ Ext.define('config.config_svrname_form', {
                 self.instIdEdit.setDisabled(true);
 
                 self.instIdEdit.setValue(self.instID);
-                self.hostNameEdit.setValue(self.hostname);
+                self.hostNameEdit.setValue(self.hostName);
                 self.addrEdit.setValue(self.addr);
                 self.nameEdit.setValue(self.name);
                 self.descEdit.setValue(self.desc);
