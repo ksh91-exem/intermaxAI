@@ -58,8 +58,8 @@ Ext.define('config.config_trainning_history_form', {
         this.grid.beginAddColumns();
         this.grid.addColumn({text: 'sys_id'                              , dataIndex: 'sys_id'    , width: 120, type: Grid.String, alowEdit: false, editMode: false, hide: true});
         this.grid.addColumn({text: 'inst_id'                             , dataIndex: 'inst_id'   , width: 120, type: Grid.String, alowEdit: false, editMode: false, hide: true});
-        this.grid.addColumn({text: common.Util.CTR('Start Training Date'), dataIndex: 'start_time', width: 120, type: Grid.String, alowEdit: false, editMode: false});
-        this.grid.addColumn({text: common.Util.CTR('End Training Date')  , dataIndex: 'end_time'  , width: 110, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Start Training Date'), dataIndex: 'start_time', width: 140, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('End Training Date')  , dataIndex: 'end_time'  , width: 140, type: Grid.String, alowEdit: false, editMode: false});
         this.grid.addColumn({text: common.Util.CTR('Training Result')    , dataIndex: 'status'    , width: 110, type: Grid.String, alowEdit: false, editMode: false});
         this.grid.addColumn({text: common.Util.CTR('Detailed result')    , dataIndex: 'results'   , width: 110, type: Grid.String, alowEdit: false, editMode: false});
         this.grid.endAddColumns();
@@ -101,7 +101,8 @@ Ext.define('config.config_trainning_history_form', {
     },
 
     initDataSetting: function() {
-        var self = this, data,
+        var self = this,
+            data, status,
             ix, ixLen;
 
         Ext.Ajax.request({
@@ -117,12 +118,25 @@ Ext.define('config.config_trainning_history_form', {
                     console.log(data);
 
                     for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+
+                        if (data[ix].status == 0) {
+                            status = common.Util.TR('Before Training');
+                        } else if (data[ix].status == 1) {
+                            status = common.Util.TR('Training Request');
+                        } else if (data[ix].status == 2) {
+                            status = common.Util.TR('Trainning in Progress');
+                        } else if (data[ix].status == 3) {
+                            status = common.Util.TR('Complete Training');
+                        } else if (data[ix].status == 4) {
+                            status = common.Util.TR('Trainning Error');
+                        }
+
                         self.grid.addRow([
                             data[ix].sys_id
                             , data[ix].inst_id
                             , data[ix].start_time
                             , data[ix].end_time
-                            , data[ix].status
+                            , status
                             , data[ix].results
                         ]);
                     }

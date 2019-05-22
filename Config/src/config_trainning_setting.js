@@ -191,8 +191,8 @@ Ext.define('config.config_trainning_setting', {
         this.grid.addColumn({text: 'inst_id'                             , dataIndex: 'inst_id'      , width: 120, type: Grid.tree  , alowEdit: false, editMode: false, hide: true});
         this.grid.addColumn({text: 'desc'                                , dataIndex: 'desc'         , width: 120, type: Grid.tree  , alowEdit: false, editMode: false, hide: true});
         this.grid.addColumn({text: common.Util.CTR('Name')               , dataIndex: 'name'         , width: 120, type: Grid.tree  , alowEdit: false, editMode: false});
-        this.grid.addColumn({text: common.Util.CTR('Start Training Date'), dataIndex: 'start_time'   , width: 120, type: Grid.String, alowEdit: false, editMode: false});
-        this.grid.addColumn({text: common.Util.CTR('End Training Date')  , dataIndex: 'end_time'     , width: 120, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Start Training Date'), dataIndex: 'start_time'   , width: 140, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('End Training Date')  , dataIndex: 'end_time'     , width: 140, type: Grid.String, alowEdit: false, editMode: false});
         this.grid.addColumn({text: common.Util.CTR('Status')             , dataIndex: 'status'       , width: 120, type: Grid.String, alowEdit: false, editMode: false});
         this.grid.addColumn({text: common.Util.CTR('Automatic Learning') , dataIndex: 'auto_training', width: 110, type: Grid.String, alowEdit: false, editMode: false,
             renderer: function(v, m, r) {
@@ -246,7 +246,7 @@ Ext.define('config.config_trainning_setting', {
 
     executeSQL: function() {
         var self = this,
-            data, systemID,
+            data, systemID, status,
             ix, ixLen;
 
         systemID = this.systemTypeCombo.getValue();
@@ -266,6 +266,19 @@ Ext.define('config.config_trainning_setting', {
                     data = result.data;
 
                     for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+
+                        if (data[ix].status == 0) {
+                            status = common.Util.TR('Before Training');
+                        } else if (data[ix].status == 1) {
+                            status = common.Util.TR('Training Request');
+                        } else if (data[ix].status == 2) {
+                            status = common.Util.TR('Trainning in Progress');
+                        } else if (data[ix].status == 3) {
+                            status = common.Util.TR('Complete Training');
+                        } else if (data[ix].status == 4) {
+                            status = common.Util.TR('Trainning Error');
+                        }
+
                         self.grid.addNode(null, [
                             data[ix].sys_id
                             , data[ix].inst_id
@@ -273,7 +286,7 @@ Ext.define('config.config_trainning_setting', {
                             , data[ix].name
                             , data[ix].start_time
                             , data[ix].end_time
-                            , data[ix].status
+                            , status
                             , data[ix].auto_training
                             , null
                         ]);

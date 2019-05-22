@@ -1786,6 +1786,8 @@ window.msgMap = {
     ,"Instance <-> Tier"                                         : "Instance <-> Tier"
     ,"Trainning List"                                            : "Trainning List"
     ,"Trainning Settings"                                        : "Trainning Settings"
+    ,"Trainning in Progress"                                     : "Trainning in Progress"
+    ,"Trainning Error"                                           : "Trainning Error"
     ,"Detailed result"                                           : "Detailed result"
     ,"Business Calendar Settings"                                : "Business Calendar Settings"
     ,"Failure History Settings"                                  : "Failure History Settings"

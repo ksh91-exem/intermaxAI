@@ -1975,6 +1975,8 @@ window.msgMap = {
     ,"Instance <-> Tier"                                         : "인스턴스 <-> 구간"
     ,"Trainning List"                                            : "학습 목록"
     ,"Trainning Settings"                                        : "학습 설정"
+    ,"Trainning in Progress"                                     : "학습 진행 중"
+    ,"Trainning Error"                                           : "학습 오류"
     ,"Detailed result"                                           : "세부 결과"
     ,"Business Calendar Settings"                                : "비즈니스 캘린더 설정"
     ,"Failure History Settings"                                  : "장애 내역 설정"

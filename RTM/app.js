@@ -81,17 +81,17 @@ Ext.application({
 
         this.nextProcess();
 
-        // if (!sessionStorage.getItem('Intermax_ServiceReconfigure')) {
-        //     serviceListWindow.show();
-        //     serviceListWindow.init();
-        //
-        // } else {
-        //     serviceListWindow.changeService();
-        // }
+        if (!sessionStorage.getItem('Intermax_ServiceReconfigure')) {
+            // serviceListWindow.show();
+            // serviceListWindow.init();
+
+        } else {
+            // serviceListWindow.changeService();
+        }
 
         // URL을 통해서 접속하여 트랜잭션 화면을 표시할 지 PA 화면을 표시하는 경우인지 체크.
         // PA 화면을 표시하는 경우 관련 정보를 설정 후 실시간 화면이 표시되고 나서 PA 화면으로 이동.
-        // common.LinkedManager.checkOpenUrl(serviceListWindow);
+        common.LinkedManager.checkOpenUrl(serviceListWindow);
     },
 
     nextProcess: function() {
@@ -162,7 +162,7 @@ Ext.application({
         this.setPlatformJSInfoLink();
 
         // 오픈 단축키 설정
-        // this.setKeymap();
+        this.setKeymap();
     },
 
 
@@ -907,15 +907,15 @@ Ext.application({
         });
 
         // alt + Enter (PA 조회)
-        infoKeyMap.addBinding({
-            key: Ext.EventObject.ENTER,
-            alt: true,
-            fn: function() {
-                if ($('.Exem-FormOnCondition:visible')) {
-                    $('.retrieve-btn span').click();
-                }
-            }
-        });
+        // infoKeyMap.addBinding({
+        //     key: Ext.EventObject.ENTER,
+        //     alt: true,
+        //     fn: function() {
+        //         if ($('.Exem-FormOnCondition:visible')) {
+        //             $('.retrieve-btn span').click();
+        //         }
+        //     }
+        // });
 
         $('.subList span').keypress(function(e) {
             if (e.which == 13) {
