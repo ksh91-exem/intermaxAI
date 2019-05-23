@@ -583,17 +583,16 @@ Ext.define('config.config_insname_form', {
         var preTypeEditValue   = self.typeEdit.getValue();
         var preNameEditValue   = self.nameEdit.getValue();
         var preDescEditValue   = self.descEdit.getValue();
-        var rowData            = self.grid.getSelectedRow()[0].data;
-        var hostName           = rowData.host_name;
-        var addr               = rowData.addr;
-        var enable             = rowData.enable;
-        var autoTraining       = rowData.auto_training;
 
         // 선택된 포인트의 값들을 저장한다.
         var rdInstID = recordData.inst_id;
         var rdType   = recordData.type;
         var rdName   = recordData.name;
         var rdDesc   = recordData.desc;
+        var rdHostName = recordData.host_name;
+        var rdAddr   = recordData.addr;
+        var rdEnable = recordData.enable;
+        var rdAutoTraining = recordData.auto_training;
 
         if (beforeObjOne.instID == '') {
             beforeObjOne.instID = preInstIdEditValue;
@@ -642,7 +641,7 @@ Ext.define('config.config_insname_form', {
         }
 
         if (isModified) {
-            self.addRefArray(preInstIdEditValue, preTypeEditValue, preNameEditValue, preDescEditValue, hostName, addr, enable, autoTraining);
+            self.addRefArray(preInstIdEditValue, preTypeEditValue, preNameEditValue, preDescEditValue, rdHostName, rdAddr, rdEnable, rdAutoTraining);
         }
 
         // 선택 포인트가 이전포인트와 같을 경우, 변경된 값을 동기화 시켜 보여주기 위해
@@ -711,9 +710,15 @@ Ext.define('config.config_insname_form', {
                 auto_training : currentData.autoTraining
             }),
             success : function(response) {
-                if(currentData.start === currentData.end){
-                    self.removeAllRefArray();
-                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                var result = Ext.JSON.decode(response.responseText);
+
+                if (result.success === 'true') {
+                    if(currentData.start === currentData.end){
+                        self.removeAllRefArray();
+                        Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                    }
+                } else {
+                    console.error(result.message);
                 }
             },
             failure : function(){}

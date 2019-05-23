@@ -693,9 +693,15 @@ Ext.define('config.config_tiername_form', {
                 desc : currentData.desc
             }),
             success : function(response) {
-                if(currentData.start === currentData.end){
-                    self.removeAllRefArray();
-                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                var result = Ext.JSON.decode(response.responseText);
+
+                if (result.success === 'true') {
+                    if(currentData.start === currentData.end){
+                        self.removeAllRefArray();
+                        Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                    }
+                } else {
+                    console.error(result.message);
                 }
             },
             failure : function(){}

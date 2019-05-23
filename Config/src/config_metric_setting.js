@@ -508,8 +508,14 @@ Ext.define('config.config_metric_setting', {
             method : 'POST',
             params : JSON.stringify(data),
             success : function(response) {
-                self.executeSQL();
-                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                var result = Ext.JSON.decode(response.responseText);
+
+                if (result.success === 'true') {
+                    self.executeSQL();
+                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                } else {
+                    console.error(result.message);
+                }
             },
             failure : function(){}
         });

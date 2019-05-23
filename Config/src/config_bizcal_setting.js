@@ -275,9 +275,15 @@ Ext.define('config.config_bizcal_setting', {
                             url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID + '/biztype/' + typeID,
                             method : 'DELETE',
                             success : function(response) {
-                                console.log(response);
-                                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
-                                self.onButtonClick('Refresh');
+                                var result = Ext.JSON.decode(response.responseText);
+
+                                if (result.success === 'true') {
+                                    console.log(response);
+                                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
+                                    self.onButtonClick('Refresh');
+                                } else {
+                                    console.error(result.message);
+                                }
                             },
                             failure : function(){}
                         });
