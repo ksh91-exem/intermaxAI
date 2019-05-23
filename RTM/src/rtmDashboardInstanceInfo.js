@@ -4,7 +4,7 @@ Ext.define('rtm.src.rtmDashboardInstanceInfo', {
     width : '100%',
     height: '100%',
 
-    title : '2019-05-13 07:42:00',
+    title : '2019-05-16 11:36:00',
 
     interval : 3000,
     wooriPocDataFolder : realtime.wooriPocDataFolder,

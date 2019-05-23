@@ -62,18 +62,21 @@ Ext.define('rtm.src.rtmDashAbnormalLogInfo', {
         });
 
         var leftCon = Ext.create('Ext.container.Container', {
-            layout: 'vbox',
+            layout: 'fit',
             width: '10%',
             height: this.tranContainerHeight,
-            margin: '4 4 4 4',
+            margin: '0 4 4 4',
             border: true,
-            style : { background : '#ff4a6a' },
+            style : {
+                background : '#282b32',
+                'text-align' : 'center'
+            },
             items : [{
                 xtype: 'label',
                 margin: '5 5 0 5',
-                html: common.Util.TR('Transaction'),
                 style : {
                     color : 'white',
+                    'line-height' : this.tranContainerHeight + 'px',
                     'font-size' : '14px'
                 }
             }]
@@ -83,7 +86,7 @@ Ext.define('rtm.src.rtmDashAbnormalLogInfo', {
             layout: 'fit',
             flex : 1,
             height: this.tranContainerHeight,
-            margin: '4 4 4 4',
+            margin: '0 4 4 4',
             border: true
         });
 
@@ -100,16 +103,16 @@ Ext.define('rtm.src.rtmDashAbnormalLogInfo', {
         tranCon.add([leftCon, rightCon]);
         targetPanel.add(tranCon);
 
-        tranEditor.setText('1개의 트랜잭션에서 이상이 탐지되었습니다.');
+        this.tranConEl = {
+            title : leftCon,
+            editor : tranEditor
+        };
 
         var ix, ixLen;
 
-        var layerTitleArr = ['WAS Layer', 'DB Layer', 'OS Layer', 'AA', 'BB'];
-        var editorTextArr = ['1개의 이상한애', '2개의 이상한애', '3개의 이상한애', '4개의 이상한애', '5개의 이상한애'];
-
         this.conEl = [];
 
-        for (ix = 0, ixLen = 5; ix < ixLen; ix ++) {
+        for (ix = 0, ixLen = 2; ix < ixLen; ix ++) {
             var layerCon = Ext.create('Ext.container.Container', {
                 layout: 'hbox',
                 width: '100%',
@@ -122,14 +125,18 @@ Ext.define('rtm.src.rtmDashAbnormalLogInfo', {
                 layout: 'fit',
                 width: '10%',
                 height: this.containerHeight,
-                margin: '4 4 4 4',
+                margin: '0 4 4 4',
                 border: true,
-                style : { background : '#ff4a6a' },
+                style : {
+                    background : '#282b32',
+                    'text-align' : 'center'
+                },
                 items : [{
                     xtype: 'label',
                     margin: '5 5 0 5',
                     style : {
                         color : 'white',
+                        'line-height' : this.containerHeight + 'px',
                         'font-size' : '14px'
                     }
                 }]
@@ -139,7 +146,7 @@ Ext.define('rtm.src.rtmDashAbnormalLogInfo', {
                 layout: 'fit',
                 flex : 1,
                 height: this.containerHeight,
-                margin: '4 4 4 4',
+                margin: '0 4 4 4',
                 border: true
             });
 
@@ -147,7 +154,7 @@ Ext.define('rtm.src.rtmDashAbnormalLogInfo', {
                 layout: 'fit',
                 flex : 1,
                 height: this.containerHeight,
-                margin: '4 4 4 4',
+                margin: '0 4 4 4',
                 border: true
             });
 
@@ -204,26 +211,46 @@ Ext.define('rtm.src.rtmDashAbnormalLogInfo', {
         //     failure : function(){}
         // });
 
+        var tranData = {
+            status : 'error',
+            title : '트랜잭션',
+            text  : ' 1개의 트랜잭션에서 이상이 탐지되었습니다.\n\n' +
+                    '     C53550275CBA732C2786E739252E5635559F1677의 평균 수행 시간(13.37)이 정상 범위(0~12.19)를 3.54 편차만큼 벗어났습니다.\n' +
+                    '         추가로 다음의 수치에서 이상이 탐지되었습니다.\n' +
+                    '             sql_time: 8.29(0.35~5.43, 6.37)'
+        };
+
+        if (tranData.status == 'error') {
+            this.tranConEl.title.setStyle('background', '#ff4a6a');
+        }
+        this.tranConEl.title.items.items[0].setText(tranData.title);
+        this.tranConEl.editor.setText(tranData.text);
+        
+        // '#ff4a6a' 이상
+
         var eData = [{
-            title   : 'WAS Layer'  ,
-            text    : '1개의 이상한애',
-            text_os : 'os의 이상한애'
-        }, {
-            title   : 'DB Layer'  ,
-            text    : '1개의 이상한애',
+            status  : '',
+            title   : 'Web Application',
+            text    : ' 이상없음',
             text_os : ''
         }, {
-            title   : 'AA Layer'  ,
-            text    : '1개의 이상한애',
-            text_os : 'os의 이상한애'
-        }, {
-            title   : 'BB Layer'  ,
-            text    : '1개의 이상한애',
-            text_os : 'os의 이상한애'
-        }, {
-            title   : 'CC Layer'  ,
-            text    : '1개의 이상한애',
-            text_os : 'os의 이상한애'
+            status  : 'error',
+            title   : 'Oracle Database',
+            text    : ' 1개의 Oracle Instance에서 이상이 탐지되었습니다.\n\n' +
+                      '     Oracle 6 이상지표\n' +
+                      '         free buffer waits: 583.0, 정상 범위: 0.0~195.17, 편차:9.42\n' +
+                      '         buffer busy waits: 88.0, 정상 범위: 0.0~38.13, 편차: 7.28\n' +
+                      '         concurrency wait time: 899287.0, 정상 범위: 0.0~570686.85, 편차: 5.09\n\n' +
+                      '         다음 SQL에서 성능 저하가 발생했습니다.\n' +
+                      '             SQL_ID: 5u474tg21rdd6 (JDBC Thin Client / nan), wait event: enq: TX - row lock contention, wait time: 167240\n' +
+                      '             SQL_ID: 6pdzf5wqd2s73 (JDBC Thin Client / nan), wait event: enq: TX - row lock contention, wait time: 162110\n' +
+                      '             SQL_ID: gh94qb4pc9xmd (JDBC Thin Client / nan), wait event: enq: TX - row lock contention, wait time: 93185\n\n' +
+                      '         다음 SQL에서 stat 변동이 발생했습니다.\n' +
+                      '             SQL_ID: 4gc6b8cht589s, physical_reads: 131781, redo_size: 112224\n' +
+                      '             SQL_ID: 8bsbmkzx7kr09, physical_reads: 8707, redo_size: 17821864\n' +
+                      '             SQL_ID: 7axv1a6gnc08g, physical_reads: 8203, redo_size: 51593080\n' +
+                      '             SQL_ID: 5u474tg21rdd6, physical_reads: 719, redo_size: 5134356\n',
+            text_os : ''
         }];
 
         var ix, ixLen, el;
@@ -231,6 +258,9 @@ Ext.define('rtm.src.rtmDashAbnormalLogInfo', {
         for (ix = 0, ixLen = this.conEl.length; ix < ixLen; ix++) {
             el = this.conEl[ix];
 
+            if (eData[ix].status == 'error') {
+                el.title.setStyle('background', '#ff4a6a');
+            }
             el.title.items.items[0].setText(eData[ix].title);
             el.editor.setText(eData[ix].text);
             el.editor_os.setText(eData[ix].text_os);

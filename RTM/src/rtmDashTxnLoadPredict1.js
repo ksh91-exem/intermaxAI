@@ -235,7 +235,7 @@ Ext.define('rtm.src.rtmDashTxnLoadPredict1', {
      */
     drawData: function(data, stat) {
         this.chart.statId = stat;
-        this.chart.setTitle(common.Util.TR(stat));
+        this.chart.setTitle('Execution Count');
         this.chart.drawData(data, stat);
     }
 

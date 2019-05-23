@@ -235,7 +235,7 @@ Ext.define('rtm.src.rtmDashTxnLoadPredict', {
      */
     drawData: function(data, stat) {
         this.chart.statId = stat;
-        this.chart.setTitle(common.Util.TR(stat));
+        this.chart.setTitle('Elapsed Time');
         this.chart.drawData(data, stat);
     }
 
