@@ -858,8 +858,14 @@ Ext.define('config.config_system_setting', {
                                 url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID,
                                 method : 'DELETE',
                                 success : function(response) {
-                                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
-                                    self.onButtonClick('Refresh', 'sys');
+                                    var result = Ext.JSON.decode(response.responseText);
+
+                                    if (result.success === 'true') {
+                                        Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
+                                        self.onButtonClick('Refresh', 'sys');
+                                    } else {
+                                        console.error(result.message);
+                                    }
                                 },
                                 failure : function(){}
                             });
@@ -873,9 +879,15 @@ Ext.define('config.config_system_setting', {
                                 url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID + '/os/' + instID,
                                 method : 'DELETE',
                                 success : function(response) {
-                                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
-                                    self.onButtonClick('Refresh', 'svr', systemID);
-                                    self.onButtonClick('Refresh', 'ins', systemID);
+                                    var result = Ext.JSON.decode(response.responseText);
+
+                                    if (result.success === 'true') {
+                                        Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
+                                        self.onButtonClick('Refresh', 'svr', systemID);
+                                        self.onButtonClick('Refresh', 'ins', systemID);
+                                    } else {
+                                        console.error(result.message);
+                                    }
                                 },
                                 failure : function(){}
                             });
@@ -888,9 +900,15 @@ Ext.define('config.config_system_setting', {
                                 url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID + '/instance/' + instID,
                                 method : 'DELETE',
                                 success : function(response) {
-                                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
-                                    self.onButtonClick('Refresh', 'svr', systemID);
-                                    self.onButtonClick('Refresh', 'ins', systemID);
+                                    var result = Ext.JSON.decode(response.responseText);
+
+                                    if (result.success === 'true') {
+                                        Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
+                                        self.onButtonClick('Refresh', 'svr', systemID);
+                                        self.onButtonClick('Refresh', 'ins', systemID);
+                                    } else {
+                                        console.error(result.message);
+                                    }
                                 },
                                 failure : function(){}
                             });
@@ -903,8 +921,14 @@ Ext.define('config.config_system_setting', {
                                 url : common.Menu.useGoogleCloudURL + '/admin/system/' + systemID + '/tier/' + tierID,
                                 method : 'DELETE',
                                 success : function(response) {
-                                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
-                                    self.onButtonClick('Refresh', 'tier', systemID);
+                                    var result = Ext.JSON.decode(response.responseText);
+
+                                    if (result.success === 'true') {
+                                        Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
+                                        self.onButtonClick('Refresh', 'tier', systemID);
+                                    } else {
+                                        console.error(result.message);
+                                    }
                                 },
                                 failure : function(){}
                             });
@@ -1178,9 +1202,15 @@ Ext.define('config.config_system_setting', {
                 enable   : data.enable
             }),
             success : function(response) {
-                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
-                this.onButtonClick('Refresh', 'svr', data.sys_id);
-                this.onButtonClick('Refresh', 'ins', data.sys_id);
+                var result = Ext.JSON.decode(response.responseText);
+
+                if (result.success === 'true') {
+                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                    this.onButtonClick('Refresh', 'svr', data.sys_id);
+                    this.onButtonClick('Refresh', 'ins', data.sys_id);
+                } else {
+                    console.error(result.message);
+                }
             }.bind(this),
             failure : function(){}
         });

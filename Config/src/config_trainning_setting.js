@@ -330,8 +330,14 @@ Ext.define('config.config_trainning_setting', {
                 auto_training   : data.auto_training
             }),
             success : function(response) {
-                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
-                this.executeSQL();
+                var result = Ext.JSON.decode(response.responseText);
+
+                if (result.success === 'true') {
+                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                    this.executeSQL();
+                } else {
+                    console.error(result.message);
+                }
             }.bind(this),
             failure : function(){}
         });

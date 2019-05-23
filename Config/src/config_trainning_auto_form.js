@@ -157,8 +157,14 @@ Ext.define('config.config_trainning_auto_form', {
             method : 'POST',
             jsonData : data,
             success : function(response) {
-                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
-                this.initDataSetting();
+                var result = Ext.JSON.decode(response.responseText);
+
+                if (result.success === 'true') {
+                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                    this.initDataSetting();
+                } else {
+                    console.error(result.message);
+                }
             }.bind(this),
             failure : function(){}
         });
