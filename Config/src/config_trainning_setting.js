@@ -260,7 +260,7 @@ Ext.define('config.config_trainning_setting', {
             method : 'GET',
             success : function(response) {
                 var result = Ext.JSON.decode(response.responseText);
-                if (result.success === 'true') {
+                if (result.success === true) {
                     self.grid.clearNodes();
 
                     data = result.data;
@@ -308,7 +308,7 @@ Ext.define('config.config_trainning_setting', {
             method : 'GET',
             success : function(response) {
                 var result = Ext.JSON.decode(response.responseText);
-                if (result.success === 'true') {
+                if (result.success === true) {
                     data = result.data;
 
                     for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
@@ -332,7 +332,7 @@ Ext.define('config.config_trainning_setting', {
             success : function(response) {
                 var result = Ext.JSON.decode(response.responseText);
 
-                if (result.success === 'true') {
+                if (result.success === true) {
                     Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
                     this.executeSQL();
                 } else {

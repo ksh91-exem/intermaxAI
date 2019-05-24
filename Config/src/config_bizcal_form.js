@@ -222,7 +222,7 @@ Ext.define('config.config_bizcal_form', {
             method : 'GET',
             success : function(response) {
                 var result = Ext.JSON.decode(response.responseText);
-                if (result.success === 'true') {
+                if (result.success === true) {
                     data = result.data;
                     self.was_grid.clearRows();
 
@@ -618,7 +618,7 @@ Ext.define('config.config_bizcal_form', {
             success : function(response) {
                 var result = Ext.JSON.decode(response.responseText);
 
-                if (result.success === 'true') {
+                if (result.success === true) {
                     if(currentData.start === currentData.end){
                         self.removeAllRefArray();
                         Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));

@@ -111,7 +111,7 @@ Ext.define('config.config_trainning_progress_form', {
             method : 'GET',
             success : function(response) {
                 var result = Ext.JSON.decode(response.responseText);
-                if (result.success === 'true') {
+                if (result.success === true) {
                     self.grid.clearRows();
 
                     data = result.data;

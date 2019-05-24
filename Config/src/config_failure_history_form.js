@@ -336,7 +336,7 @@ Ext.define('config.config_failure_history_form', {
             success : function(response) {
                 var result = Ext.JSON.decode(response.responseText);
 
-                if (result.success === 'true') {
+                if (result.success === true) {
                     if(currentData.start === currentData.end){
                         self.removeAllRefArray();
                         Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));

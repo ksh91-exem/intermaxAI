@@ -860,7 +860,7 @@ Ext.define('config.config_system_setting', {
                                 success : function(response) {
                                     var result = Ext.JSON.decode(response.responseText);
 
-                                    if (result.success === 'true') {
+                                    if (result.success === true) {
                                         Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
                                         self.onButtonClick('Refresh', 'sys');
                                     } else {
@@ -881,7 +881,7 @@ Ext.define('config.config_system_setting', {
                                 success : function(response) {
                                     var result = Ext.JSON.decode(response.responseText);
 
-                                    if (result.success === 'true') {
+                                    if (result.success === true) {
                                         Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
                                         self.onButtonClick('Refresh', 'svr', systemID);
                                         self.onButtonClick('Refresh', 'ins', systemID);
@@ -902,7 +902,7 @@ Ext.define('config.config_system_setting', {
                                 success : function(response) {
                                     var result = Ext.JSON.decode(response.responseText);
 
-                                    if (result.success === 'true') {
+                                    if (result.success === true) {
                                         Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
                                         self.onButtonClick('Refresh', 'svr', systemID);
                                         self.onButtonClick('Refresh', 'ins', systemID);
@@ -923,7 +923,7 @@ Ext.define('config.config_system_setting', {
                                 success : function(response) {
                                     var result = Ext.JSON.decode(response.responseText);
 
-                                    if (result.success === 'true') {
+                                    if (result.success === true) {
                                         Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Delete succeeded'));
                                         self.onButtonClick('Refresh', 'tier', systemID);
                                     } else {
@@ -964,7 +964,7 @@ Ext.define('config.config_system_setting', {
                     method : 'GET',
                     success : function(response) {
                         var result = Ext.JSON.decode(response.responseText);
-                        if (result.success === 'true') {
+                        if (result.success === true) {
                             data = result.data;
                             self.grid[key].clearRows();
 
@@ -985,7 +985,7 @@ Ext.define('config.config_system_setting', {
                     method : 'GET',
                     success : function(response) {
                         var result = Ext.JSON.decode(response.responseText);
-                        if (result.success === 'true') {
+                        if (result.success === true) {
                             data = result.data;
                             self.grid[key].clearRows();
 
@@ -1008,7 +1008,7 @@ Ext.define('config.config_system_setting', {
                     method : 'GET',
                     success : function(response) {
                         var result = Ext.JSON.decode(response.responseText);
-                        if (result.success === 'true') {
+                        if (result.success === true) {
                             data = result.data;
                             self.grid[key].clearRows();
 
@@ -1033,7 +1033,7 @@ Ext.define('config.config_system_setting', {
                         var result = Ext.JSON.decode(response.responseText);
                         var treeObj = {};
 
-                        if (result.success === 'true') {
+                        if (result.success === true) {
                             data = result.data;
                             self.grid[key].clearNodes();
 
@@ -1064,7 +1064,7 @@ Ext.define('config.config_system_setting', {
                     success : function(response) {
                         var result = Ext.JSON.decode(response.responseText);
 
-                        if (result.success === 'true') {
+                        if (result.success === true) {
                             data = result.data;
                             self.grid[key].clearRows();
 
@@ -1088,7 +1088,7 @@ Ext.define('config.config_system_setting', {
                     success : function(response) {
                         var result = Ext.JSON.decode(response.responseText);
 
-                        if (result.success === 'true') {
+                        if (result.success === true) {
                             data = result.data;
                             self.grid[key].clearRows();
 
@@ -1204,7 +1204,7 @@ Ext.define('config.config_system_setting', {
             success : function(response) {
                 var result = Ext.JSON.decode(response.responseText);
 
-                if (result.success === 'true') {
+                if (result.success === true) {
                     Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
                     this.onButtonClick('Refresh', 'svr', data.sys_id);
                     this.onButtonClick('Refresh', 'ins', data.sys_id);
