@@ -45,8 +45,9 @@ Ext.define('config.config_failure_history_form', {
             listeners   : {
                 close: function(){
                     if ( self.isWasNameModifiedAll ) {
-                        self.parent.onButtonClick('Refresh', 'failure', self.failureTime);
-                        self.parent.onButtonClick('Refresh', 'history', self.failureTime);
+                        self.parent.onButtonClick('Refresh', 'failure');
+                        self.parent.onButtonClick('Refresh', 'history');
+                        self.parent.setBusiness();
                     }
                 }
             }
@@ -318,8 +319,6 @@ Ext.define('config.config_failure_history_form', {
             currentData.end = ixLen;
             this.editUpdate(currentData);
         }
-        
-        self.CancelButton.fireEvent('click');
     },
 
     editUpdate : function(currentData) {
@@ -340,6 +339,7 @@ Ext.define('config.config_failure_history_form', {
                     if(currentData.start === currentData.end){
                         self.removeAllRefArray();
                         Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                        self.CancelButton.fireEvent('click');
                     }
                 } else {
                     console.error(result.message);
