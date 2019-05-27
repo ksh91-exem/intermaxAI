@@ -67,15 +67,17 @@ Ext.define('rtm.src.rtmDashboardInstanceInfo', {
 
         this.instanceText = Ext.create('Ext.form.Label',{
             xtype : 'label',
-            margin: '70 0 0 10',
             width : '100%',
             height: '100%',
             style : {
+                'line-height' : 10,
                 'font-size' : '15px',
                 'text-align' : 'center',
                 'color' : '#ffffff'
             }
         });
+
+        console.log(this.instanceText);
         
         this.topContentsArea.add(this.frameTitle);
         this.instanceInfoArea.add(this.instanceText);

@@ -1,109 +1,3 @@
-var XMAlertWindow = function(arg){
-    this.initProperty(arg);
-    this.init();
-
-    arg = null;
-};
-
-XMAlertWindow.prototype.init = function(){
-    this.createLayer();
-};
-
-XMAlertWindow.prototype.initProperty = function(arg){
-    this.parent = null;
-    this.target = null;
-    this.width = 200;
-    this.height = 60;
-    this.level = null;
-    this.alertName = null;
-    this.instanceName = null;
-    this.time = null;
-    this.desc = null;
-    this.timer = null;
-    this.index = null;
-
-    this.criticalCss = {
-        'box-shadow': '0px 0px 6px #CD3F3F',
-        'background': 'linear-gradient(to bottom, #FACAD4 0%, #f8b2c2 50%, #f694ab 100%)',
-        'border'    : '2px solid #c1002c'
-    };
-
-    for(var key in arg){
-        if(this[key] !== undefined){
-            this[key] = arg[key];
-        }
-    }
-
-    arg = null;
-};
-
-XMAlertWindow.prototype.createLayer = function(){
-    this.$alertLayer  = $('<div class="xm-server-status-alarm"></div>').css({
-        position        : 'absolute',
-        width           : this.width,
-        height          : this.height,
-        display         : 'none',
-        transition      : 'all',
-        borderRadius    : '5px',
-        zIndex          : 999999,
-        border          : '1px solid #ff2b2b',
-        fontSize        : '14px',
-        color           : '#fff'
-    });
-
-    var $headerLayer = $('<div></div>').css({
-        position    : 'relative',
-        top         : '0px',
-        left        : '0px',
-        height      : 38,
-        width       : '100%'
-    });
-
-    var $title = $('<div></div>',{
-        text : this.instanceName
-    }).css({
-        position    : 'absolute',
-        top         : '17px',
-        left        : '23px',
-        fontSize    : '15px'
-    });
-
-    this.$headerCloseBtn = $('<div>x</div>',{
-        'class' : 'opacity-hover'
-    }).css({
-        position    : 'absolute',
-        top         : '3px',
-        right       : '9px',
-        cursor      : 'pointer',
-        color       : '#fff',
-        fontSize    : '18px',
-        textShadow  : '0px 0px 1px #000'
-    }).click(function(){
-        this.parent.removeItem(this.index);
-
-    }.bind(this));
-
-    this.$headerFin = $('<div></div>').css({
-
-    });
-
-    this.$contentLayer = $('<div></div>',{
-        text: '[ ' + Ext.Date.format(new Date(this.time), Comm.dateFormat.HMSMS) + ' ] ' + this.alertName
-    }).css({
-        position        : 'relative',
-        width           : '100%',
-        height          : '60px',
-        paddingLeft     : '23px'
-    });
-
-    $headerLayer.append($title).append(this.$headerFin).append(this.$headerCloseBtn);
-
-    this.$alertLayer.append($headerLayer).append(this.$contentLayer);
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////
-
-
 /**
  * @note 전체 창에 중요 알람(서버 on, down 등)의 상태를 관리한다.
  */
@@ -112,31 +6,26 @@ var AlertWindowManager = function(arg){
     this.init();
     this.bindEvent();
 
+    this.aa = 1;
+
     arg = null;
 };
 
 AlertWindowManager.prototype.init = function(){
-    this.$container = $('<div></div>').css({
-        position    : 'absolute',
-        right       : '0px',
-        bottom      : '0px'
-    });
+    this.container = document.createElement('div');
+    this.container.setAttribute('style', 'position:absolute;right:15px;bottom:21px;');
 
-    this.$target.append(this.$container);
+    this.target.appendChild(this.container);
 };
 
 AlertWindowManager.prototype.initProperty = function(arg){
     this.id         = null;
-    this.$target    = null;
-    this.alertList  = [];
-    // 오른쪽 하단부터 시작
-    this.offSet     = {
-        x: 0,
-        y: 0
-    };
+    //this.alertList  = [];
+    this.alertList  = {};
+    this.firstAlarm = true;
 
-    this.alertWindowWidth = 300;
-    this.alertWindowHeight = 100;
+    this.alertWindowWidth = 800;
+    this.alertWindowHeight = 400;
 
     for(var key in arg){
         if(this[key] !== undefined){
@@ -144,91 +33,184 @@ AlertWindowManager.prototype.initProperty = function(arg){
         }
     }
 
-    this.$target = $('#' + this.id);
-    arg = null;
+    this.target = document.body;
 
+    arg = null;
 };
 
 AlertWindowManager.prototype.bindEvent = function(){
-    window.addEventListener('resize', function(){
-        if(this.resizeTimer){
-            clearTimeout(this.resizeTimer);
+    var self = this;
+
+    window.onresize = function(e){
+        if(e){
+            e.preventDefault();
         }
 
-        this.resizeTimer = setTimeout(function(){
-            var margin = 10;
-            var alertHeight = this.alertWindowHeight + margin;
-            var len = this.alertList.length;
-            var row = Math.ceil(this.$target.height() / alertHeight) - 1;
-            var lineHeight = alertHeight * row;
-            var col = -1;
 
-            for (var ix = 0; ix < len; ix++) {
-                if (ix % row === 0) {
-                    col++;
-                }
+        //this.resizeTimer = setTimeout(function(){
+        var margin = 10;
+        var alertHeight = self.alertWindowHeight + margin;
+        var list = Object.keys(self.alertList);
+        var len = list.length;
+        var row = Math.ceil(window.innerHeight / alertHeight) - 1;
+        var lineHeight = alertHeight * row;
+        var col = -1;
 
-                this.alertList[ix].$alertLayer.css({
-                    top: (alertHeight * -(ix + 1)) + (lineHeight * col),
-                    left: (this.alertWindowWidth * -(col + 1)) - (margin * col)
-                });
+        for(var ix = 0; ix < len; ix++){
+            if(ix % row == 0){
+                col++;
             }
-        }.bind(this), 300);
 
-    }.bind(this));
+            self.alertList[list[ix]].style.top = ((alertHeight * -(ix + 1)) + (lineHeight * col)) + 'px';
+            self.alertList[list[ix]].style.left = ((self.alertWindowWidth * -(col + 1)) - (margin * col)) + 'px';
+
+            if(ix == 0){
+                if(self.alertList[list[ix]].className.indexOf('first') == -1){
+                    self.alertList[list[ix]].className += ' first';
+                }
+            }
+        }
+        //}, 300);
+
+    };
+};
+
+AlertWindowManager.prototype.createItem = function(alert){
+    if(this.alertList[ alert.instanceName ] == null){
+        var alertLayer = document.createElement('div');
+        alertLayer.className = 'xm-server-status-alarm';
+        alertLayer.dataset.instanceName = alert.instanceName;
+
+        var headerLayer = document.createElement('div');
+        headerLayer.className = 'xm-server-status-alarm-header';
+
+        var title = document.createElement('div');
+        // title.textContent = alert.instanceName;
+        title.textContent = '';
+        title.className = 'xm-server-status-alarm-header-title';
+
+        var headerFin = document.createElement('div');
+
+        headerLayer.appendChild(title);
+        headerLayer.appendChild(headerFin);
+
+        var headerCloseBtn = document.createElement('div');
+        headerCloseBtn.textContent = 'x';
+        headerCloseBtn.className = 'xm-server-status-alarm-header-close opacity-hover';
+        headerCloseBtn.onclick = this.closeEvent.bind(this);
+
+        var headerCloseAllBtn = document.createElement('div');
+        headerCloseAllBtn.textContent = common.Util.TR('CLOSE ALL');
+        headerCloseAllBtn.className = 'xm-server-status-alarm-header-close-all opacity-hover';
+        headerCloseAllBtn.onclick = this.closeAllEvent.bind(this);
+
+        headerLayer.appendChild(headerCloseAllBtn);
+        headerLayer.appendChild(headerCloseBtn);
+
+        var contentLayer = document.createElement('div');
+        // contentLayer.innerHTML = '<div>[ ' + Ext.Date.format(new Date(alert.time), Comm.dateFormat.HMSMS) + ' ] ' + alert.alertName + '</div>';
+        contentLayer.innerHTML = '<div>' +
+            '11시 36분 현재, 1개 거래 트랜잭션에서 이상이 탐지되었습니다.<br>' +
+            '문제 거래 트랜잭션의 평균 수행 시간이, 정상 범위를 3.54 편차만큼 벗어났습니다.<br>'+
+            '추가로 해당 거래 트랜잭션의 1개 수치에서 이상이 발견되었습니다.<br>' +
+            'SQL 처리 관련 수치입니다.<br><br>' +
+
+            '구간별 근본원인 분석 결과, Oracle Database, 1개의 구간에서 문제를 발견했습니다.<br><br>' +
+
+            'Oracle Database 구간에서는 1개의 인스턴스에서 문제가 발견되었으며<br>' +
+            '세부적으로는, 인스턴스 6에서 동시성 제어 관련, 유입 부하 증감 관련 지표에 변화가 발생했습니다.<br>' +
+            'SQL 상세 분석 결과, 특정 SQL에서 다음의 문제가 발견되었습니다.<br>' +
+            'SQL wait 이벤트에서, enq: TX - row lock contention 이벤트가 비정상적으로 증가했습니다.<br>' +
+            'SQL stat에서, physical reads, redo size 수치가 비정상적으로 증가했습니다.'
+        + '</div>';
+        contentLayer.className = 'xm-server-status-alarm-body';
+
+        alertLayer.appendChild(headerLayer);
+        alertLayer.appendChild(contentLayer);
+
+        this.container.appendChild(alertLayer);
+        this.alertList[ alert.instanceName ] = alertLayer;
+    }else{
+        var content = this.alertList[ alert.instanceName].childNodes[1];
+        content.innerHTML = '<div>[ ' + Ext.Date.format(new Date(alert.time), Comm.dateFormat.HMSMS) + ' ] ' + alert.alertName + '</div>' + content.innerHTML;
+    }
 };
 
 /**
  *
- * @param data [ instanceName, date, alarm name,
+ * @param data
+ * [time, serverType, serverId, serverName, alertResourceName, alertValue, alertResourceName, alertLevel, alertType, description]
  */
 AlertWindowManager.prototype.addItem = function(data){
-    var alert = new XMAlertWindow({
-        parent  : this,
+    var alert = {
         width   : this.alertWindowWidth,
         height  : this.alertWindowHeight,
-        time    : +data[1],
-        instanceName: data[0],
-        level   : data[5],
-        alertName : data[6],
-        index   : this.alertList.length
-    });
+        time    : +new Date(data[0]),
+        instanceName: data[3],
+        level   : data[7],
+        alertName : data[4],
+        firstAlarm: this.firstAlarm
+    };
 
-    this.$container.append(alert.$alertLayer);
-    this.alertList.push(alert);
+    if (this.aa == 1) {
+        this.createItem(alert);
+        this.aa = 2;
+    }
+
+    this.firstAlarm = false;
 
     window.onresize();
 
-    alert.$alertLayer.fadeIn();
+    data = null;
 };
 
-AlertWindowManager.prototype.setItemPosition = function(){
 
-};
-
-AlertWindowManager.prototype.removeItem = function(index){
-    this.alertList[index].$alertLayer.remove();
-    delete this.alertList[index];
-    this.alertList.splice(index,1);
+AlertWindowManager.prototype.removeItem = function(instanceName){
+    if(this.alertList[instanceName] == null){
+        return;
+    }
+    this.alertList[instanceName].remove();
+    delete this.alertList[instanceName];
 
     var margin = 10;
     var alertHeight = this.alertWindowHeight + margin;
-    var len = this.alertList.length;
-    var row = Math.ceil(this.$target.height() / alertHeight) - 1;
+    var list = Object.keys(this.alertList);
+    var len = list.length;
+    var row = Math.ceil(window.innerHeight / alertHeight) - 1;
     var lineHeight = alertHeight * row;
     var col = -1;
 
     for(var ix = 0; ix < len; ix++){
-        if(ix % row === 0){
+        if(ix % row == 0){
             col++;
         }
 
-        this.alertList[ix].index = ix;
+        this.alertList[list[ix]].style.top = ((alertHeight * -(ix + 1)) + (lineHeight * col)) + 'px';
+        this.alertList[list[ix]].style.left = ((this.alertWindowWidth * - (col + 1)) - (margin * col)) + 'px';
 
-        this.alertList[ix].$alertLayer.css({
-            top: (alertHeight * -(ix + 1)) + (lineHeight * col),
-            left: (this.alertWindowWidth * -(col + 1)) - (margin * col)
-        });
+        if(ix == 0){
+            if(this.alertList[list[ix]].className.indexOf('first') == -1){
+                this.alertList[list[ix]].className += ' first';
+            }
+        }
     }
 };
 
+
+AlertWindowManager.prototype.removeAllItem = function(){
+    var list = Object.keys(this.alertList);
+    for(var ix = 0, ixLen = list.length; ix < ixLen; ix++){
+        this.alertList[list[ix]].remove();
+        delete this.alertList[list[ix]];
+    }
+
+    this.firstAlarm = true;
+};
+
+AlertWindowManager.prototype.closeEvent = function(e){
+    this.removeItem(e.target.parentElement.parentElement.dataset.instanceName);
+};
+
+AlertWindowManager.prototype.closeAllEvent = function(){
+    this.removeAllItem();
+};
