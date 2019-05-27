@@ -787,7 +787,28 @@ Ext.define('rtm.src.rtmCommon', {
         rtmPopupList         : [],
 
         // 업무 모니터링 화면이 추가되어 있는지 확인하는 구분값 (true: 추가, false: 미추가)
-        isAddRtmBizView      : false
+        isAddRtmBizView      : false,
+
+        SERVER_STATUS : {
+            DB_BOOT                 : 'DB Boot',
+            DB_DOWN                 : 'DB Down',
+            SERVER_BOOT             : 'Server Boot',
+            SERVER_DOWN             : 'Server Down',
+            SERVER_CONNECT          : 'Connected',
+            SERVER_DISCONNECT       : 'Disconnected',
+            JVM_BOOT                : 'JVM Boot',
+            JVM_DOWN                : 'JVM Down',
+            TP_BOOT                 : 'TP Boot',
+            TP_DOWN                 : 'TP Down',
+            WSM_BOOT                : 'WSM Boot',
+            WSM_DOWN                : 'WSM Down',
+            API_BOOT                : 'API Boot',
+            API_DOWN                : 'API Down',
+            DG_CONNECT              : 'Gather Connect',
+            DG_DISCONNECT           : 'Gather Disconnected',
+            PJS_BOOT                : 0,
+            PJS_DOWN                : 2
+        }
     },
 
     layoutVersion: {
@@ -6142,7 +6163,6 @@ Ext.define('rtm.src.rtmCommon', {
             common.Menu.getClassConfig(className.substring(className.lastIndexOf('.') + 1))
         );
         rtmPanel.title = common.Util.TR('Business Monitor');
-        rtmPanel.rec = rec;
 
         // 탭 패널에서 패널 순서를 변경하지 못하게 고정하는 옵션
         rtmPanel.reorderable = false;
@@ -7001,6 +7021,74 @@ Ext.define('rtm.src.rtmCommon', {
         }
 
         return bizName;
+    },
+
+    checkAlarmPopupOptionDetail: function(data) {
+        var alarmName    = data[4],
+            alertValue   = data[6],
+            isDB         = data[1] == 2,
+            isPlatformJS = data[3] === 'PlatformJS',
+            detailOption = Comm.web_env_info['JSON_RTM_ALARM_POPUP_OPTION'] ? JSON.parse(Comm.web_env_info['JSON_RTM_ALARM_POPUP_OPTION']) : null,
+            result       = false;
+
+        if (alarmName !== '' && detailOption && detailOption['alarmPopup'] === 'ON') {
+            if (detailOption['All'] === 'ON' && this.checkAllAlarmPopup(data)) {
+                result = true;
+
+            } else {
+                if (isPlatformJS) {
+                    if (alertValue == realtime.SERVER_STATUS.PJS_BOOT || alertValue == realtime.SERVER_STATUS.PJS_DOWN) {
+                        result = detailOption['PJS'] === 'ON';
+                    }
+
+                } else if (isDB) {
+                    result = detailOption['DB'] === 'ON';
+
+                } else {
+                    switch (alarmName) {
+                        case realtime.SERVER_STATUS.SERVER_DOWN :
+                        case realtime.SERVER_STATUS.SERVER_BOOT :
+                        case realtime.SERVER_STATUS.SERVER_CONNECT :
+                        case realtime.SERVER_STATUS.SERVER_DISCONNECT :
+                        case realtime.SERVER_STATUS.JVM_BOOT :
+                        case realtime.SERVER_STATUS.JVM_DOWN :
+                        case realtime.SERVER_STATUS.TP_BOOT :
+                        case realtime.SERVER_STATUS.TP_DOWN :
+                        case realtime.SERVER_STATUS.WSM_BOOT :
+                        case realtime.SERVER_STATUS.WSM_DOWN :
+                        case realtime.SERVER_STATUS.API_BOOT :
+                        case realtime.SERVER_STATUS.API_DOWN :
+                            result = detailOption['SERVER'] === 'ON';
+                            break;
+                        case realtime.SERVER_STATUS.DG_CONNECT:
+                        case realtime.SERVER_STATUS.DG_DISCONNECT :
+                            result = detailOption['DG'] === 'ON';
+                            break;
+                        default:
+                            result = detailOption[alarmName] === 'ON';
+                            break;
+                    }
+                }
+            }
+        }
+
+        return result;
+    },
+
+    checkAllAlarmPopup: function(data) {
+        var isDB         = data[1] == 2,
+            isPlatformJS = data[3] === 'PlatformJS',
+            alertValue   = data[6],
+            alarmName    = data[4];
+
+        return isDB || (isPlatformJS && alertValue == realtime.SERVER_STATUS.PJS_BOOT) || (isPlatformJS && alertValue == realtime.SERVER_STATUS.PJS_DOWN)
+            || alarmName === realtime.SERVER_STATUS.SERVER_DOWN || alarmName === realtime.SERVER_STATUS.SERVER_BOOT
+            || alarmName === realtime.SERVER_STATUS.SERVER_CONNECT || alarmName === realtime.SERVER_STATUS.SERVER_DISCONNECT
+            || alarmName === realtime.SERVER_STATUS.JVM_BOOT || alarmName === realtime.SERVER_STATUS.JVM_DOWN
+            || alarmName === realtime.SERVER_STATUS.TP_BOOT || alarmName === realtime.SERVER_STATUS.TP_DOWN
+            || alarmName === realtime.SERVER_STATUS.WSM_BOOT || alarmName === realtime.SERVER_STATUS.WSM_DOWN
+            || alarmName === realtime.SERVER_STATUS.API_BOOT || alarmName === realtime.SERVER_STATUS.API_DOWN
+            || alarmName === realtime.SERVER_STATUS.DG_CONNECT || alarmName === realtime.SERVER_STATUS.DG_DISCONNECT
     }
 });
 

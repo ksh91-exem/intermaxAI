@@ -5089,3 +5089,86 @@ div.observer-alert-message {
     margin-top: 4px;
     margin-right: 6px;
 }
+
+/* 서버 상태 alarm */
+.xm-server-status-alarm{
+    position        : absolute;
+    width           : 800px;
+    height          : 400px;
+    /*display         : none;*/
+    border-radius    : 5px;
+    z-index          : 999999;
+    border          : 1px solid #ff2b2b;
+    font-size        : 14px;
+    color           : #fff;
+    background : -webkit-linear-gradient(top, #ff7c7c 0%, #ff3a3a 100%);
+    background : -moz-linear-gradient(top, #ff7c7c 0%, #ff3a3a 100%);
+    background : -ms-linear-gradient(top, #ff7c7c 0%, #ff3a3a 100%);
+    background : -o-linear-gradient(top, #ff7c7c 0%, #ff3a3a 100%);
+    background : linear-gradient(top, #ff7c7c 0%, #ff3a3a 100%);
+}
+
+.xm-server-status-alarm-header{
+    position: relative;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 38px;
+}
+
+.xm-server-status-alarm-header-title{
+    position: absolute;
+    top: 17px;
+    left: 23px;
+    font-size: 15px;
+}
+
+.xm-server-status-alarm-header-close{
+    position: absolute;
+    top: 3px;
+    right: 9px;
+    curosr: pointer;
+    color: #fff;
+    font-size: 18px;
+    textShadow: 0px 0px 1px #000;
+}
+
+.xm-server-status-alarm-header-close-all{
+    position: absolute;
+    top: 8px;
+    right: 26px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 12px;
+    text-shadow: 0px 0px 1px #000;
+    display: none;
+}
+
+.xm-server-status-alarm.first .xm-server-status-alarm-header-close-all{
+    display: block;
+}
+
+.xm-server-status-alarm-body{
+    position: relative;
+    width: 100%;
+    /*height: 50px;*/
+    height: 250px;
+    padding-left: 16px;
+    overflow: auto;
+}
+
+.xm-server-status-alarm-body div{
+    margin: 3px 0px;
+    /*font-size: 13px;*/
+    font-size: 16px;
+}
+
+.xm-server-status-alarm-body div:first-child{
+    margin: 0px 0px 3px 0px;
+}
+
+div.xm-server-status-alarm ::-webkit-scrollbar {width: 8px; height: 8px; border: none; background: none; }
+div.xm-server-status-alarm ::-webkit-scrollbar-button:start:decrement {display: none;}
+div.xm-server-status-alarm ::-webkit-scrollbar-button:end:increment   {display: none;}
+div.xm-server-status-alarm ::-webkit-scrollbar-track {background: rgba(0,0,0,0.3); height:2px; width:2px;}
+div.xm-server-status-alarm ::-webkit-scrollbar-thumb {background: rgba(0,0,0,0.7); -webkit-box-shadow: inset 0 0 4px rgba(0,0,0,.1)}

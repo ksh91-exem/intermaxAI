@@ -100,6 +100,10 @@ Ext.define ('common.RTMDataManager', {
 
         // 지나간 Transaction Monitor 데이터를 가져오는 SQL 실행 유무를 체크하기 위한 플래그.
         this.isBeforeDataSelect = false;
+
+        this.alertStatusManager = new AlertWindowManager({
+            id : 'homediv'
+        });
     },
 
 
@@ -809,7 +813,7 @@ Ext.define ('common.RTMDataManager', {
      */
 
     /** 사용하지 않는 함수 주석 처리.
-    onActiveRemoteFrame: function(data){
+     onActiveRemoteFrame: function(data){
         if (!data || !this.frameGroup) {
             data = null;
             return;
@@ -923,9 +927,76 @@ Ext.define ('common.RTMDataManager', {
 
         this.onHeaderAlarm(data);
 
+        this.onAlarmPopup(data);
+
         this.onAlarmSound(data[6]);
 
         data = null;
+    },
+
+    onAlarmPopup: function(data) {
+        var isAlarmPopup = Comm.RTComm.checkAlarmPopupOptionDetail(data);
+
+        if (isAlarmPopup) {
+            var dbInfoObjIdx = 0,
+                serverType   = data[1],
+                serverId     = data[2],
+                instanceName = data[3],
+                alertName    = data[4],
+                alertValue   = data[6],
+                alertData    = data.concat(),
+                keys, key, ix, ixLen;
+
+            keys = Object.keys(Comm.allDBInfo);
+            for (ix = 0, ixLen = keys.length; ix < ixLen; ix++) {
+                key = keys[ix];
+                if (instanceName == Comm.allDBInfo[key].instanceName) {
+                    dbInfoObjIdx = key;
+                }
+            }
+
+            if (Comm.wasInfoObj[serverId] && Comm.wasInfoObj[serverId].alarmServerFlag == null) {
+                Comm.wasInfoObj[serverId].alarmServerFlag = true;
+            }
+
+            if (Comm.allDBInfo[dbInfoObjIdx] && Comm.allDBInfo[dbInfoObjIdx].alarmServerFlag == null) {
+                Comm.allDBInfo[dbInfoObjIdx].alarmServerFlag = true;
+            }
+
+            if (realtime.downAlarms.indexOf(alertName) !== -1) {
+
+                if (serverType === 1 && Comm.wasInfoObj[serverId] && Comm.wasInfoObj[serverId].alarmServerFlag) {
+                    this.alertStatusManager.addItem(alertData);
+                    Comm.wasInfoObj[serverId].alarmServerFlag = false;
+
+                } else if (serverType === 2 && Comm.allDBInfo[dbInfoObjIdx] && Comm.allDBInfo[dbInfoObjIdx].alarmServerFlag) {
+                    this.alertStatusManager.addItem(alertData);
+                    Comm.allDBInfo[dbInfoObjIdx].alarmServerFlag = false;
+
+                } else if (instanceName === 'PlatformJS' && alertValue == realtime.SERVER_STATUS.PJS_DOWN) {
+                    this.alertStatusManager.addItem(alertData);
+
+                } else if (instanceName === 'PlatformJS' && alertValue == realtime.SERVER_STATUS.PJS_BOOT) {
+                    alertData[4] = realtime.SERVER_STATUS.SERVER_CONNECT;
+                    this.alertStatusManager.addItem(alertData);
+                }
+
+            } else if (realtime.bootAlarms.indexOf(alertName) !== -1) {
+
+                if (serverType === 1 && Comm.wasInfoObj[serverId] && !Comm.wasInfoObj[serverId].alarmServerFlag) {
+                    this.alertStatusManager.addItem(alertData);
+                    Comm.wasInfoObj[serverId].alarmServerFlag = true;
+
+                } else if (serverType === 2 && Comm.allDBInfo[dbInfoObjIdx] && !Comm.allDBInfo[dbInfoObjIdx].alarmServerFlag) {
+                    this.alertStatusManager.addItem(alertData);
+                    Comm.allDBInfo[dbInfoObjIdx].alarmServerFlag = true;
+
+                }
+
+            } else {
+                this.alertStatusManager.addItem(alertData);
+            }
+        }
     },
 
     /**
@@ -1160,22 +1231,22 @@ Ext.define ('common.RTMDataManager', {
      * 실행 주기: 10초
      */
     onRefreshLoadPredictChart: function() {
-        if (this.loadPredictChartTimerId) {
-            clearTimeout(this.loadPredictChartTimerId);
-        }
-
-        var key, ix, ixLen;
-        for (ix = 0, ixLen = this.frameKeys[this.frameGroup.WAS_LOAD_PREDICT].length; ix < ixLen; ix++) {
-            key = this.frameKeys[this.frameGroup.WAS_LOAD_PREDICT][ix];
-            if (this.frameManager[this.frameGroup.WAS_LOAD_PREDICT][key].refreshChartData) {
-                this.frameManager[this.frameGroup.WAS_LOAD_PREDICT][key].refreshChartData();
-            }
-        }
-        key   = null;
-        ix    = null;
-        ixLen = null;
-
-        this.loadPredictChartTimerId = setTimeout(this.onRefreshLoadPredictChart.bind(this), 10000);
+        // if (this.loadPredictChartTimerId) {
+        //     clearTimeout(this.loadPredictChartTimerId);
+        // }
+        //
+        // var key, ix, ixLen;
+        // for (ix = 0, ixLen = this.frameKeys[this.frameGroup.WAS_LOAD_PREDICT].length; ix < ixLen; ix++) {
+        //     key = this.frameKeys[this.frameGroup.WAS_LOAD_PREDICT][ix];
+        //     if (this.frameManager[this.frameGroup.WAS_LOAD_PREDICT][key].refreshChartData) {
+        //         this.frameManager[this.frameGroup.WAS_LOAD_PREDICT][key].refreshChartData();
+        //     }
+        // }
+        // key   = null;
+        // ix    = null;
+        // ixLen = null;
+        //
+        // this.loadPredictChartTimerId = setTimeout(this.onRefreshLoadPredictChart.bind(this), 10000);
     },
 
     /**

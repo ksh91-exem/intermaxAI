@@ -10,7 +10,29 @@ Ext.define('config.config_myview', {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    initProperty: function(){
+        this.popupObj  = {};
+
+        if (Comm.web_env_info['JSON_RTM_ALARM_POPUP_OPTION']) {
+            this.popupObj = JSON.parse(Comm.web_env_info['JSON_RTM_ALARM_POPUP_OPTION']);
+        } else {
+            this.popupObj.alarmPopup = 'ON';
+            this.popupObj.All        = 'OFF';
+            this.popupObj.DB         = 'OFF';
+            this.popupObj.SERVER     = 'ON';
+            this.popupObj.DG         = 'OFF';
+            this.popupObj.PJS        = 'OFF';
+        }
+
+        this.popupDetailKeyList = Object.keys(this.popupObj);
+    },
+
     init: function(target) {
+        this.initProperty();
+        this.initLayout(target);
+    },
+
+    initLayout: function(target) {
         this.target = target;
 
         var panel = Ext.create('Ext.panel.Panel', {
@@ -169,12 +191,12 @@ Ext.define('config.config_myview', {
             }]
         });
 
-        var alarmSound_panel = Ext.create('Ext.panel.Panel', {
+        var alarmSetting_panel = Ext.create('Ext.panel.Panel', {
             layout: 'vbox',
             cls: 'x-config-used-round-panel',
             region: 'north',
             width: '100%',
-            height: 80,
+            height: 105,
             border: false,
             split: true,
             margin: '3 6 3 6',
@@ -184,7 +206,7 @@ Ext.define('config.config_myview', {
                 xtype: 'container',
                 layout: 'absolute',
                 itemId: 'alarm_panel_title',
-                html: common.Util.usedFont(9, common.Util.TR('Alarm Sound')),
+                html: common.Util.usedFont(9, common.Util.TR('Alarm Setting')),
                 width: '100%',
                 padding: '3 0 0 10',
                 height: 25,
@@ -237,8 +259,8 @@ Ext.define('config.config_myview', {
         panel.add(myservice_panel);
         panel.add(mypassword_panel);
 
-        panel.add(alarmSound_panel);
-        this.alarmSoundSetting(alarmSound_panel.getComponent('alarm_panel_body'));
+        panel.add(alarmSetting_panel);
+        this.alarmSetting(alarmSetting_panel.getComponent('alarm_panel_body'));
 
         if (!common.Menu.useOTP) {
             panel.add(restartConfig_panel);
@@ -918,7 +940,7 @@ Ext.define('config.config_myview', {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    alarmSoundSetting: function(target) {
+    alarmSetting: function(target) {
         var self = this;
 
         var left = Ext.create('Ext.container.Container', {
@@ -934,6 +956,13 @@ Ext.define('config.config_myview', {
                 width: 180,
                 style: 'text-align:right;',
                 html: common.Util.usedFont(9, common.Util.TR('Alarm Sound'))
+            }, {
+                xtype: 'label',
+                x: 0,
+                y: 45,
+                width: 180,
+                style: 'text-align:right;',
+                html: common.Util.usedFont(9, common.Util.TR('Alarm Popup'))
             }]
         });
 
@@ -942,39 +971,6 @@ Ext.define('config.config_myview', {
             itemId: 'alarmSoundSetting_body',
             height: '100%',
             style : { background: '#ffffff' }
-        });
-
-        this.alarmObj = Ext.create('Exem.XMAlarmSound',{
-//            warningUrl     : '../sound/mx_warning.mp3',
-//            criticalUrl    : '../sound/mx_critical.mp3',
-            soundUrls: {
-                KO: {warning : '../sound/mx_warning_ko.mp3', critical: '../sound/mx_critical_ko.mp3'},
-                EN: {warning : '../sound/mx_warning_en.mp3', critical: '../sound/mx_critical_en.mp3'},
-                JA: {warning : '../sound/mx_warning_ja.mp3', critical: '../sound/mx_critical_ja.mp3'},
-                ZH: {warning : '../sound/mx_warning_zh.mp3', critical: '../sound/mx_critical_zh.mp3'}
-            },
-            userLanguage : window.nation,
-            getAlarmSoundOn   : function() {
-                return 'ON';
-            },
-            getCriticalSoundOn: function() {
-                return 'ON';
-            },
-            getWarningSoundOn : function() {
-                return 'ON';
-            },
-            afterPlayEndCritical: function() {
-                target.down('#w_play_button').setDisabled(false);
-                target.down('#w_play_button').setStyle('opacity', '1');
-                target.down('#c_play_button').isPressed = false;
-                target.down('#c_play_button').setStyle('background', 'url(../images/earphone_MouseOff.png)');
-            },
-            afterPlayEndWarning: function() {
-                target.down('#c_play_button').setDisabled(false);
-                target.down('#c_play_button').setStyle('opacity', '1');
-                target.down('#w_play_button').isPressed = false;
-                target.down('#w_play_button').setStyle('background', 'url(../images/earphone_MouseOff.png)');
-            }
         });
 
         var toggleAllOnOff = Ext.create('Ext.ux.toggleslide.ToggleSlide', {
@@ -998,7 +994,7 @@ Ext.define('config.config_myview', {
             }
         });
 
-        var configField = Ext.create('Ext.form.FieldSet', {
+        var configAlarmSoundField = Ext.create('Ext.form.FieldSet', {
             x: 10,
             y: 15,
             border: false,
@@ -1136,7 +1132,62 @@ Ext.define('config.config_myview', {
             }]
         });
 
-        right.add(configField);
+        var togglePopupOnOff = Ext.create('Ext.ux.toggleslide.ToggleSlide', {
+            width  : 100,
+            margin: '1 1 0 1',
+            onText : common.Util.TR('On'),
+            offText: common.Util.TR('Off'),
+            state  : (this.popupObj.alarmPopup == 'ON'),
+            listeners: {
+                change: function(toggle, state) {
+                    if (state) {
+                        this.popupObj.alarmPopup = 'ON';
+                        this.popupDetailAll.setDisabled(false);
+                        this.popupDetailDB.setDisabled(false);
+                        this.popupDetailSERVER.setDisabled(false);
+                        this.popupDetailDG.setDisabled(false);
+                        this.popupDetailPJS.setDisabled(false);
+                    } else {
+                        this.popupObj.alarmPopup = 'OFF';
+                        this.popupDetailAll.setDisabled(true);
+                        this.popupDetailDB.setDisabled(true);
+                        this.popupDetailSERVER.setDisabled(true);
+                        this.popupDetailDG.setDisabled(true);
+                        this.popupDetailPJS.setDisabled(true);
+                    }
+
+                    common.WebEnv.Save('JSON_RTM_ALARM_POPUP_OPTION', JSON.stringify(this.popupObj));
+                }.bind(this)
+            }
+        });
+
+        this.popupDetailAll        = this.addCheckBox('All',        'All');
+        this.popupDetailDB         = this.addCheckBox('Database',   'DB');
+        this.popupDetailSERVER     = this.addCheckBox('Server',     'SERVER');
+        this.popupDetailDG         = this.addCheckBox('DataGather', 'DG');
+        this.popupDetailPJS        = this.addCheckBox('PlatformJS', 'PJS');
+
+        var configAlarmPopupField = Ext.create('Ext.form.FieldSet', {
+            x: 10,
+            y: 45,
+            border: false,
+            items: [{
+                xtype: 'fieldcontainer',
+                layout: 'hbox',
+                margin: '0 0 0 0',
+                items: [togglePopupOnOff,
+                    {
+                        xtype : 'tbspacer',
+                        width : 1,
+                        height: 23,
+                        margin: '0 25 0 10',
+                        style : 'background-image: url(../images/sidebyside_white.png);'
+                    }, this.popupDetailAll, this.popupDetailDB, this.popupDetailSERVER, this.popupDetailDG, this.popupDetailPJS]
+            }]
+        });
+
+        right.add(configAlarmSoundField);
+        right.add(configAlarmPopupField);
         target.add(left, right);
     },
 
@@ -1288,6 +1339,48 @@ Ext.define('config.config_myview', {
 
         hourCombo.setValue(checkHour);
         minCombo.setValue(checkMinute);
-    }
+    },
 
+    addCheckBox: function (name, id) {
+        return Ext.create('Ext.form.field.Checkbox', {
+            boxLabel: name,
+            height: 18,
+            margin : id == 'All' ? null : '0 0 0 10',
+            itemId: id,
+            checked : this.popupObj[id] == 'ON',
+            fieldStyle: 'background-image: url(../images/xm_icon_White_v1.png);'+
+            'width: 16px;' +
+            'height: 16px;'+
+            'margin-top: 3px;'+
+            'background-position: '+ ((this.popupObj[id] == 'ON') ? '-5px -160px;':'-5px -177px;') +
+            'cursor: pointer;',
+            listeners: {
+                afterrender: function(me) {
+                    if (this.popupObj['alarmPopup'] == 'OFF') {
+                        me.setDisabled(true);
+                    }
+                }.bind(this),
+
+                change: function(me, newValue){
+                    if (newValue) {
+                        if (id == 'All') {
+                            this.popupDetailDB.setValue(false);
+                            this.popupDetailSERVER.setValue(false);
+                            this.popupDetailDG.setValue(false);
+                            this.popupDetailPJS.setValue(false);
+                        } else {
+                            this.popupDetailAll.setValue(false);
+                        }
+                        this.popupObj[id] = 'ON';
+                        me.setFieldStyle('background-position: -5px -160px');
+                    } else {
+                        this.popupObj[id] = 'OFF';
+                        me.setFieldStyle('background-position: -5px -177px');
+                    }
+
+                    common.WebEnv.Save('JSON_RTM_ALARM_POPUP_OPTION', JSON.stringify(this.popupObj));
+                }.bind(this)
+            }
+        });
+    }
 });
