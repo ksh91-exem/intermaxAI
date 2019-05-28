@@ -112,7 +112,7 @@ Ext.define('config.config_failure_history_setting', {
 
     },
 
-    setFailure: function(selecteddate = "") {
+    setFailure: function(selectedDate = "") {
         var allDateList = Object.keys(this.calendarFailureTypes),
             ix, ixLen, failureCheck;
 
@@ -121,13 +121,16 @@ Ext.define('config.config_failure_history_setting', {
                 return item == 2;
             });
 
-            if (failureCheck && selecteddate != allDateList[ix]) {
+            if (failureCheck && selectedDate != allDateList[ix]) {
                 this.calendar._findBlock(allDateList[ix]).querySelector('button').style = 'background: #e95e5e;box-shadow: inset 0 1px 3px #e95e5e;';
+            }
+            else if (failureCheck && selectedDate == allDateList[ix]) {
+                this.calendar._findBlock(selectedDate).querySelector('button').removeAttribute('style');
             }
         }
     },
 
-    setAnomaly: function(selecteddate = "") {
+    setAnomaly: function(selectedDate = "") {
         var allDateList = Object.keys(this.calendarFailureTypes),
             ix, ixLen, anomalyCheck;
 
@@ -136,8 +139,11 @@ Ext.define('config.config_failure_history_setting', {
                 return item == 1;
             });
 
-            if (anomalyCheck && selecteddate != allDateList[ix]) {
+            if (anomalyCheck && selectedDate != allDateList[ix]) {
                 this.calendar._findBlock(allDateList[ix]).querySelector('button').style = 'background: #f6c151;box-shadow: inset 0 1px 3px #f6c151;';
+            }
+            else if (anomalyCheck && selectedDate == allDateList[ix]) {
+                this.calendar._findBlock(selectedDate).querySelector('button').removeAttribute('style');
             }
         }
     },
