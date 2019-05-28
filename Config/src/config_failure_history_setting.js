@@ -79,13 +79,14 @@ Ext.define('config.config_failure_history_setting', {
 
         this.calendar.init();
 
-        vboxCon.add([Ext.create('Ext.container.Container', {
+        this.calendarLegend = Ext.create('Ext.container.Container', {
             width : '100%',
             height : 30,
             margin : '0 0 0 5',
-            layout: 'hbox',
-            cls : 'businessLegend'
-        }), this.calendar]);
+            layout: 'fit'
+        });
+
+        vboxCon.add([this.calendarLegend, this.calendar]);
 
         var wasListPanel = this.createWasListPanel();
         var wasListPanel2 = this.createHistoryListPanel();
@@ -98,7 +99,7 @@ Ext.define('config.config_failure_history_setting', {
 
     initDataSetting: function(){
         setTimeout(function(){
-            document.getElementsByClassName('businessLegend')[0].innerHTML +=
+            this.calendarLegend.el.dom.innerHTML =
                 '<div class="XMLineChart-legend" style="width: 135px;">' +
                 '<div class="XMLineChart-legend-container horizontal"><span class="businessCalendar-legend-color" data-series-index="0" data-check="1" style="background-color: rgb(233, 94, 94); cursor:default;"></span>' +
                 '<span class="XMLineChart-legend-name" title="장애" data-series-index="0" style="color: rgb(85, 85, 85);line-height:27px;">장애</span>' +
@@ -106,18 +107,18 @@ Ext.define('config.config_failure_history_setting', {
                 '<div class="XMLineChart-legend-container horizontal"><span class="businessCalendar-legend-color" data-series-index="1" data-check="1" style="background-color: rgb(246, 193, 81); cursor:default;"></span>' +
                 '<span class="XMLineChart-legend-name" title="이상" data-series-index="1" style="color: rgb(85, 85, 85);line-height:27px;">이상</span>' +
                 '</div>';
-        }, 50);
+        }.bind(this), 50);
 
         this.setSystemCombo();
 
     },
 
-    setFailure: function(selectedDate = "") {
+    setFailure: function(selectedDate) {
         var allDateList = Object.keys(this.calendarFailureTypes),
             ix, ixLen, failureCheck;
 
         for (ix = 0, ixLen = allDateList.length; ix < ixLen; ix++) {
-            failureCheck = this.calendarFailureTypes[allDateList[ix]].find(item => {
+            failureCheck = this.calendarFailureTypes[allDateList[ix]].find(function(item) {
                 return item == 2;
             });
 
@@ -130,12 +131,12 @@ Ext.define('config.config_failure_history_setting', {
         }
     },
 
-    setAnomaly: function(selectedDate = "") {
+    setAnomaly: function(selectedDate) {
         var allDateList = Object.keys(this.calendarFailureTypes),
             ix, ixLen, anomalyCheck;
 
         for (ix = 0, ixLen = allDateList.length; ix < ixLen; ix++) {
-            anomalyCheck = this.calendarFailureTypes[allDateList[ix]].find(item => {
+            anomalyCheck = this.calendarFailureTypes[allDateList[ix]].find(function(item) {
                 return item == 1;
             });
 
@@ -490,22 +491,6 @@ Ext.define('config.config_failure_history_setting', {
                 break;
             }
         }
-    },
-
-    insertDeleteAutoId: function(serverId){
-        var dataSet = {};
-        dataSet.sql_file = 'IMXConfig_Insert_Delete_Auto_Id.sql';
-        dataSet.bind = [{
-            name    : 'serverId',
-            value   : serverId,
-            type    : SQLBindType.INTEGER
-        }];
-
-        if(common.Util.isMultiRepository()) {
-            dataSet.database = cfg.repositoryInfo.currentRepoName;
-        }
-
-        WS.SQLExec(dataSet, function() {}, this);
     },
 
     setSystemCombo: function() {

@@ -183,12 +183,12 @@ Ext.application({
         $body.append('<div id="descBorad"></div>');
 
         var typeInfo = '<div id="MenuServerType" class="server-type-info">'     +
-                       '<div id="TypeWAS" style="display:none;">WAS</div>'      +
-                       '<div id="TypeTP"  style="display:none;">TP</div>'       +
-                       '<div id="TypeTUX" style="display:none;">Tuxedo</div>'   +
-                       '<div id="TypeWEB" style="display:none;">WEB</div>'      +
-                       '<div id="TypeCD"  style="display:none;">C Daemon</div>' +
-                       '<div id="TypeE2E" style="display:none;">EtoE</div></div>';
+            '<div id="TypeWAS" style="display:none;">WAS</div>'      +
+            '<div id="TypeTP"  style="display:none;">TP</div>'       +
+            '<div id="TypeTUX" style="display:none;">Tuxedo</div>'   +
+            '<div id="TypeWEB" style="display:none;">WEB</div>'      +
+            '<div id="TypeCD"  style="display:none;">C Daemon</div>' +
+            '<div id="TypeE2E" style="display:none;">EtoE</div></div>';
         $body.append(typeInfo);
 
         $('#descBorad').append('<div id="Menuimage"></div>');
@@ -209,14 +209,14 @@ Ext.application({
         $('#MenuList').append('<div id="pa-menu-group" style="float:left;height:100%"></div>');
 
         $('#rtm-menu-group').append('<div class="rtm-menu-group-title" ' +
-                'style="height: 24px;border-bottom: 1px solid lightgray; border-right: 1px solid lightgray; margin-right:-1px; background-color:transparent;font-size:14px;padding:2px 0 0px 10px;font-weight:bold;text-align:center;line-height:21px;">'
-                + common.Util.TR('Real-Time Monitoring')
-                + '</div>');
+            'style="height: 24px;border-bottom: 1px solid lightgray; border-right: 1px solid lightgray; margin-right:-1px; background-color:transparent;font-size:14px;padding:2px 0 0px 10px;font-weight:bold;text-align:center;line-height:21px;">'
+            + common.Util.TR('Real-Time Monitoring')
+            + '</div>');
 
         $('#pa-menu-group').append('<div class="pa-menu-group-title" ' +
-                'style="height: 24px;border-bottom: 1px solid lightgray;background-color:transparent;font-size:14px;padding:2px 0 0px 10px;font-weight:bold;text-align:center;line-height:21px;">'
-                + common.Util.TR('Performance Analysis')
-                + '</div>');
+            'style="height: 24px;border-bottom: 1px solid lightgray;background-color:transparent;font-size:14px;padding:2px 0 0px 10px;font-weight:bold;text-align:center;line-height:21px;">'
+            + common.Util.TR('Performance Analysis')
+            + '</div>');
     },
 
 
@@ -743,7 +743,7 @@ Ext.application({
 
             for (ix = 0, ixLen = common.Menu.mainMenuData.length; ix < ixLen; ix++) {
                 if (common.Menu.mainMenuData[ix].ID === subListId) {
-                //if (common.Menu.mainMenuData[ix].text === submenutext) {
+                    //if (common.Menu.mainMenuData[ix].text === submenutext) {
                     $('#MenuClose').removeClass('btnon');
 
                     $('#MenuBorad').removeClass('active');
@@ -979,6 +979,12 @@ Ext.application({
             }
         } else if (mData.ID === 'M_rtmTablespaceUsage' && !window.isTablespace) {
             return false;
+        }
+
+        if (!common.Menu.useExtMaxGaugeDetail) {
+            if (mData.ID === 'M_rtmMFOSessionList' || mData.ID === 'M_rtmMFOLockTree') {
+                return false;
+            }
         }
 
         return true;

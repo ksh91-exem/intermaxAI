@@ -40,7 +40,7 @@ Ext.define('config.config_bizcal_setting', {
             listeners   : {
                 change: function(me) {
                     this.executeSQL();
-                    this.setBusiness();
+                    this.resetCalendar();
                 }.bind(this)
             }
         });
@@ -109,7 +109,6 @@ Ext.define('config.config_bizcal_setting', {
                             this.calendar._findBlock(date).querySelector('button').innerHTML += '<br> ' + data[ix].name;
                         }
                     }
-
                 }
             }.bind(this),
             failure : function(){}
@@ -157,13 +156,13 @@ Ext.define('config.config_bizcal_setting', {
                 handler: function() { this.onButtonClick('Add'); }
             }, {
                 html: '<img src="../images/cfg_edit.png" width="15" height="15">',
-                id: 'cfg_was_name_edit',
+                id: 'cfg_name_edit',
                 disabled: true,
                 scope: this,
                 handler: function() { this.onButtonClick('Edit'); }
             }, {
                 html: '<img src="../images/cfg_delete.png" width="15" height="15">',
-                id: 'cfg_was_name_delete',
+                id: 'cfg_name_delete',
                 disabled: true,
                 scope: this,
                 handler: function() { this.onButtonClick('Delete'); }
@@ -230,8 +229,8 @@ Ext.define('config.config_bizcal_setting', {
             defaultbufferSize: 300,
             defaultPageSize: 300,
             itemclick:function() {
-                self.wasNameToolbar.getComponent('cfg_was_name_edit').setDisabled(false);
-                self.wasNameToolbar.getComponent('cfg_was_name_delete').setDisabled(false);
+                self.wasNameToolbar.getComponent('cfg_name_edit').setDisabled(false);
+                self.wasNameToolbar.getComponent('cfg_name_delete').setDisabled(false);
             }
         });
 
@@ -298,8 +297,8 @@ Ext.define('config.config_bizcal_setting', {
                 this.refreshLoading = true;
                 this.executeSQL();
 
-                this.wasNameToolbar.getComponent('cfg_was_name_edit').setDisabled(true);
-                this.wasNameToolbar.getComponent('cfg_was_name_delete').setDisabled(true);
+                this.wasNameToolbar.getComponent('cfg_name_edit').setDisabled(true);
+                this.wasNameToolbar.getComponent('cfg_name_delete').setDisabled(true);
                 break;
             default :
                 break;
@@ -371,5 +370,10 @@ Ext.define('config.config_bizcal_setting', {
             }.bind(this),
             failure : function(){}
         });
+    },
+
+    resetCalendar: function() {
+        this.calendar.allClearDate();
+        this.calendar.fromCalendar.draw();
     }
 });

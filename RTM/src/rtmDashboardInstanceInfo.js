@@ -77,8 +77,6 @@ Ext.define('rtm.src.rtmDashboardInstanceInfo', {
             }
         });
 
-        console.log(this.instanceText);
-        
         this.topContentsArea.add(this.frameTitle);
         this.instanceInfoArea.add(this.instanceText);
 
