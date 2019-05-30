@@ -305,6 +305,12 @@ Ext.define('config.config_metric_setting', {
             data    : this.rightGridStoreData
         });
 
+        var cellEdit = Ext.create('Ext.grid.plugin.CellEditing', {
+            clicksToEdit: 1
+        })
+
+        var weightEditOption = { xtype: 'numberfield', readOnly: false, minValue: 1, maxValue: 3 };
+
         this.rightGrid = Ext.create('Ext.grid.Panel', {
             width       : '100%',
             flex        : 1,
@@ -321,11 +327,11 @@ Ext.define('config.config_metric_setting', {
                 ptype: 'bufferedrenderer',
                 trailingBufferZone: 20,    // 현재 렌더링된 스크롤 밑으로 버퍼링할 레코드 갯수
                 leadingBufferZone : 20      // 스크롤 위쪽
-            }],
+            }, cellEdit],
             columns: [
                 { text: common.Util.TR('Name')       , flex: 1, dataIndex: 'metric_id' },
                 { text: common.Util.TR('Use Type')   , flex: 1, dataIndex: 'use_type' , hidden: true, renderer: this.renderUseType },
-                { text: common.Util.TR('Weight')     , flex: 1, dataIndex: 'weight'   , renderer: this.renderWeight },
+                { text: common.Util.TR('Weight')     , flex: 1, dataIndex: 'weight'   , xtype: 'gridcolumn', editor: weightEditOption, renderer: this.renderWeight },
                 { text: common.Util.TR('Description'), flex: 1, dataIndex: 'desc' },
                 { text: 'sys_id'                     , flex: 1, dataIndex: 'sys_id'   , hidden: true },
                 { text: common.Util.TR('Instance')   , flex: 1, dataIndex: 'inst_type', hidden: true },
@@ -342,23 +348,57 @@ Ext.define('config.config_metric_setting', {
             selModel : Ext.create('Ext.selection.CheckboxModel',{
                 showHeaderCheckbox: false,
                 ignoreRightMouseSelection: true,
-                mode: 'SIMPLE',
-                listeners:{
-                    beforeselect: {
-                        fn: function(me, record, index, eOpts) {
-                            if (record.data.use_type == 2){
-                                return false;
-                            }
-                        }
-                    }
-                }
+                mode: 'SIMPLE'
             }),
             bodyStyle: { cursor: 'pointer' },
-            listeners: {
-                cellcontextmenu: function(me, td, cellIndex, record, tr, rowIndex, e ) {
-                    e.stopEvent();
-                }.bind(this)
-            }
+            listeners: (function(){
+                var editing, ix, ixLen, lastDeselection, isEditColumnClicked;
+                
+                return {
+                    beforeselect: function(me, record, index, eOpts) {
+                        if (record.data.use_type == 2){
+                            return false;
+                        }
+                        return !editing;
+                    },
+                    beforeedit: function(editor, e) {
+                        var grid = e.grid,
+                            record = e.record,
+                            selections = grid.getSelectionModel().getSelection();
+                        
+                        if (record.data.use_type == 2){ // 필수 지표는 편집 불가
+                            return false;
+                        }
+
+                        if (lastDeselection == record && isEditColumnClicked) { // 선택된 row 편집 시 select 전체 해제되는 현상 방지
+                            selections.push(record)
+                            grid.getSelectionModel().select(selections)
+                            return true;
+                        }
+                        
+                        editing = true;
+                    },
+                    edit: function() {
+                        editing = false;
+                    },
+                    canceledit: function() {
+                        editing = false;
+                    },
+                    deselect: function(me, record, eOpts) {
+                        lastDeselection = record;
+                    },
+                    cellclick: function (me, rowIndex, columnIndex, record) {
+                        if (columnIndex == 3){
+                            isEditColumnClicked = true;
+                        } else {
+                            isEditColumnClicked = false;
+                        }
+                    }.bind(this),
+                    cellcontextmenu: function(me, td, cellIndex, record, tr, rowIndex, e ) {
+                        e.stopEvent();
+                    }.bind(this)
+                }
+            }())
         });
 
         this.rightGridArea.add(this.rightGrid);
@@ -390,7 +430,7 @@ Ext.define('config.config_metric_setting', {
                 val = weightSet[ix];
             }
         }
-        
+
         return val;
     },
 
@@ -526,8 +566,8 @@ Ext.define('config.config_metric_setting', {
         this.rightGrid.getSelectionModel().deselectAll();
         this.leftGridStoreData = $.extend(true, [], this.loadedLeftGridStoreData);
         this.rightGridStoreData = $.extend(true, [], this.loadedRightGridStoreData);
-        this.leftGrid.getStore().loadData(this.loadedLeftGridStoreData);
-        this.rightGrid.getStore().loadData(this.loadedRightGridStoreData);
+        this.leftGrid.getStore().loadData(this.leftGridStoreData);
+        this.rightGrid.getStore().loadData(this.rightGridStoreData);
     },
 
     createImangeBtn: function(cls, text){
