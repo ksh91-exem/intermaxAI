@@ -1,4 +1,4 @@
-Ext.define('config.config_trainning_setting', {
+Ext.define('config.config_training_setting', {
     extend: 'Exem.Form',
     layout: { type: 'vbox', align: 'stretch' },
     width: '100%',
@@ -99,7 +99,7 @@ Ext.define('config.config_trainning_setting', {
                     border: false,
                     margin: '7 0 0 7',
                     bodyStyle: { background: '#eeeeee' },
-                    html: Comm.RTComm.setFont(9, common.Util.TR('Trainning List'))
+                    html: Comm.RTComm.setFont(9, common.Util.TR('Training List'))
                 },
                 this.sysNameToolbar
             ]
@@ -161,8 +161,8 @@ Ext.define('config.config_trainning_setting', {
 
                     self.autoTrainInstance(record.data);
                 } else if (cellIndex == 6) {
-                    if (record.get('status') == common.Util.TR('Trainning in Progress')) {
-                        var wasForm = Ext.create('config.config_trainning_progress_form');
+                    if (record.get('status') == common.Util.TR('Training in Progress')) {
+                        var wasForm = Ext.create('config.config_training_progress_form');
                         wasForm.parent = this;
                         wasForm.systemID = record.data.sys_id;
                         wasForm.instID = record.data.inst_id;
@@ -171,7 +171,7 @@ Ext.define('config.config_trainning_setting', {
                 } else if (cellIndex == 3) {
 
                 } else {
-                    var wasForm = Ext.create('config.config_trainning_history_form');
+                    var wasForm = Ext.create('config.config_training_history_form');
                     wasForm.parent = this;
                     wasForm.systemID = record.data.sys_id;
                     wasForm.instID = record.data.inst_id;
@@ -189,7 +189,7 @@ Ext.define('config.config_trainning_setting', {
         this.grid.addColumn({text: common.Util.CTR('End Training Date')  , dataIndex: 'end_time'     , width: 140, type: Grid.String, alowEdit: false, editMode: false});
         this.grid.addColumn({text: common.Util.CTR('Status')             , dataIndex: 'status'       , width: 120, type: Grid.String, alowEdit: false, editMode: false,
             renderer: function(v, m, r) {
-                if (v == common.Util.TR('Trainning in Progress')) {
+                if (v == common.Util.TR('Training in Progress')) {
                     m.style = 'cursor:pointer';
                 }
                 return v;
@@ -220,7 +220,7 @@ Ext.define('config.config_trainning_setting', {
         switch (cmd) {
             case 'Manual' :
                 if (this.grid.getCheckedRows().length > 0) {
-                    wasForm = Ext.create('config.config_trainning_manual_form');
+                    wasForm = Ext.create('config.config_training_manual_form');
                     wasForm.data = this.grid.getCheckedRows();
                     wasForm.parent = this;
                     wasForm.init();
@@ -230,7 +230,7 @@ Ext.define('config.config_trainning_setting', {
                 break;
 
             case 'Auto' :
-                wasForm = Ext.create('config.config_trainning_auto_form');
+                wasForm = Ext.create('config.config_training_auto_form');
                 wasForm.parent   = this;
                 wasForm.systemID = this.systemTypeCombo.getValue();
                 wasForm.init();
@@ -277,11 +277,11 @@ Ext.define('config.config_trainning_setting', {
                         } else if (data[ix].status == 1) {
                             status = common.Util.TR('Training Request');
                         } else if (data[ix].status == 2) {
-                            status = common.Util.TR('Trainning in Progress');
+                            status = common.Util.TR('Training in Progress');
                         } else if (data[ix].status == 3) {
                             status = common.Util.TR('Complete Training');
                         } else if (data[ix].status == 4) {
-                            status = common.Util.TR('Trainning Error');
+                            status = common.Util.TR('Training Error');
                         }
 
                         self.grid.addNode(null, [

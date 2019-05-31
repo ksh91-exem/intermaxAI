@@ -1,4 +1,4 @@
-Ext.define('config.config_trainning_progress_form', {
+Ext.define('config.config_training_progress_form', {
     parent: null,
 
     systemID : '',

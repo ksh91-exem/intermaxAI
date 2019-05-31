@@ -158,4 +158,4 @@
         - config_tier_information_ordering      : 구간 정보 순서 설정 / Tier Information Order Settings
 
     - AI 설정 / AI Configuration
-        - config_ai_trainning                   : AI 학습 설정 / AI Learning Setting
+        - config_ai_training                   : AI 학습 설정 / AI Learning Setting

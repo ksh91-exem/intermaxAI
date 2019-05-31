@@ -195,7 +195,7 @@ Ext.define('config.config', {
                 // ETE Configuration
                 Ext.getCmp('cfg_menu_eteconfiguration').setVisible(false);
                 // AI Configuration
-                Ext.getCmp('cfg_menu_trainningAI').setVisible(false);
+                Ext.getCmp('cfg_menu_trainingAI').setVisible(false);
                 Ext.getCmp('cfg_menu_userconfiguration').expand();
 
                 this.treeUserPanel.getRootNode().appendChild({ text: common.Util.TR('My Configuration'), id: 'config_myview', leaf: true });

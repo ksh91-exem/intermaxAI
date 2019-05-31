@@ -118,7 +118,7 @@ Ext.define('config.config_ui', {
                         id: 'cfg_menu_eteconfiguration'
                     }, {
                         title: usefont(12, common.Util.TR('AI Configuration')),
-                        id: 'cfg_menu_trainningAI'
+                        id: 'cfg_menu_trainingAI'
                     }]
                 }, {
                     title: '',
@@ -225,7 +225,7 @@ Ext.define('config.config_ui', {
                         { text: common.Util.TR('WebServer Settings')        , id: 'config_webserver_setting'      , leaf: true },
                         { text: common.Util.TR('Common(Other) Settings')    , id: 'config_other_setting'          , leaf: true },
                         { text: common.Util.TR('System Settings')           , id: 'config_system_setting'         , leaf: true },
-                        { text: common.Util.TR('Trainning Settings')        , id: 'config_trainning_setting'      , leaf: true },
+                        { text: common.Util.TR('Training Settings')         , id: 'config_training_setting'      , leaf: true },
                         { text: common.Util.TR('Business Calendar Settings'), id: 'config_bizcal_setting'         , leaf: true },
                         { text: common.Util.TR('Failure History Settings')  , id: 'config_failure_history_setting', leaf: true },
                         { text: common.Util.TR('Metric Settings')           , id: 'config_metric_setting'         , leaf: true }
@@ -577,7 +577,7 @@ Ext.define('config.config_ui', {
         Ext.getCmp('cfg_menu_propertyconfiguration').add(this.treePropertyPanel);
         Ext.getCmp('cfg_menu_senderHistory').add(this.treeSenderHistoryPanel);
         Ext.getCmp('cfg_menu_eteconfiguration').add(this.treeETEPanel);
-        Ext.getCmp('cfg_menu_trainningAI').add(this.treeAIPanel);
+        Ext.getCmp('cfg_menu_trainingAI').add(this.treeAIPanel);
         Ext.getCmp('cfg_tab_body').add(tabPanel);
 
         // DB연결이 있어야지 DB설정이 보이도록 변경
@@ -641,8 +641,8 @@ Ext.define('config.config_ui', {
                 menu.setHidden(true);
             }
 
-            if(common.Menu.hiddenList.indexOf('cfg_menu_trainningAI') !== -1){
-                menu = Ext.getCmp('cfg_menu_trainningAI');
+            if(common.Menu.hiddenList.indexOf('cfg_menu_trainingAI') !== -1){
+                menu = Ext.getCmp('cfg_menu_trainingAI');
                 menu.setHidden(true);
             }
         }
