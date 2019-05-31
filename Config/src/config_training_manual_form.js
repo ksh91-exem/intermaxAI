@@ -1,4 +1,4 @@
-Ext.define('config.config_trainning_manual_form', {
+Ext.define('config.config_training_manual_form', {
     parent: null,
 
     data : null,

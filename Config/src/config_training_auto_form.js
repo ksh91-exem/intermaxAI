@@ -1,4 +1,4 @@
-Ext.define('config.config_trainning_auto_form', {
+Ext.define('config.config_training_auto_form', {
     parent: null,
 
     init: function (state) {

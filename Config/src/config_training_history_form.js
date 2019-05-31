@@ -1,4 +1,4 @@
-Ext.define('config.config_trainning_history_form', {
+Ext.define('config.config_training_history_form', {
     parent: null,
 
     systemID : '',
@@ -122,11 +122,11 @@ Ext.define('config.config_trainning_history_form', {
                         } else if (data[ix].status == 1) {
                             status = common.Util.TR('Training Request');
                         } else if (data[ix].status == 2) {
-                            status = common.Util.TR('Trainning in Progress');
+                            status = common.Util.TR('Training in Progress');
                         } else if (data[ix].status == 3) {
                             status = common.Util.TR('Complete Training');
                         } else if (data[ix].status == 4) {
-                            status = common.Util.TR('Trainning Error');
+                            status = common.Util.TR('Training Error');
                         }
 
                         self.grid.addRow([
