@@ -1990,4 +1990,8 @@ window.msgMap = {
     ,"Metric Settings"                                           : "지표 설정"
     ,"System"                                                    : "시스템"
     ,"Weight"                                                    : "가중치"
+    ,"Training Cancel"                                           : "학습 취소"
+    ,"Alarm Setting"                                             : "알람 설정"
+    ,"Alarm Popup"                                               : "알람 팝업"
+    ,"Are you sure you want to cancel?"                          : "취소 하시겠습니까?"
 };

@@ -168,8 +168,11 @@ Ext.define('config.config_trainning_manual_form', {
                 inst_ids   : inst_ids
             },
             success : function(response) {
-                Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Training succeeded'));
-                this.cancelButton.fireEvent('click');
+                var result = Ext.JSON.decode(response.responseText);
+                if (result.success === true) {
+                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Training succeeded'));
+                    this.cancelButton.fireEvent('click');
+                }
             }.bind(this),
             failure : function(){}
         });

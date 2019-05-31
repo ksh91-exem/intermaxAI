@@ -31,7 +31,7 @@ Ext.define('config.config_trainning_progress_form', {
             layout: 'vbox',
             width: '100%',
             flex: 1,
-            margin: '4 4 4 4',
+            margin: '4 4 0 4',
             border: false
         });
 
@@ -75,9 +75,20 @@ Ext.define('config.config_trainning_progress_form', {
                 align: 'middle'
             },
             width: '100%',
-            height: 25,
+            height: 35,
             border: false,
             bodyStyle: { background: '#f5f5f5' }
+        });
+
+        this.trainingCancelButton = Ext.create('Ext.button.Button', {
+            text: common.Util.TR('Training Cancel'),
+            cls: 'x-btn-config-default',
+            width: 70,
+            listeners: {
+                click: function() {
+                    this.trainingCancel();
+                }.bind(this)
+            }
         });
 
         this.cancelButton = Ext.create('Ext.button.Button', {
@@ -92,7 +103,7 @@ Ext.define('config.config_trainning_progress_form', {
             }
         });
 
-        panelC.add(this.cancelButton);
+        panelC.add([this.trainingCancelButton, this.cancelButton]);
 
         form.add(panelA);
         form.add(panelC);
@@ -127,6 +138,34 @@ Ext.define('config.config_trainning_progress_form', {
             }.bind(this),
             failure : function(){}
         });
-    }
+    },
+
+    trainingCancel: function() {
+        var self = this;
+
+        Ext.MessageBox.confirm(common.Util.TR('Warning'), common.Util.TR('Are you sure you want to cancel?'), function() {
+            Ext.Ajax.request({
+                url : common.Menu.useGoogleCloudURL + '/training/' + self.systemID + '/' + self.instID,
+                method : 'DELETE',
+                success : function(response) {
+                    var result = Ext.JSON.decode(response.responseText);
+                    if (result.success === true) {
+                        this.showMessage(common.Util.TR('Info'), common.Util.TR(data.message), Ext.Msg.OK, Ext.MessageBox.ERROR);
+                    }
+                }.bind(this),
+                failure : function(){}
+            });
+        });
+    },
+
+    showMessage: function(title, message, buttonType, icon, fn) {
+        Ext.Msg.show({
+            title  : common.Util.TR(title),
+            msg    : message,
+            buttons: buttonType,
+            icon   : icon,
+            fn     : fn
+        });
+    },
 
 });

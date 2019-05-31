@@ -1797,4 +1797,12 @@ window.msgMap = {
     ,"Edit Business Type"                                        : "Edit Business Type"
     ,"Failure List"                                              : "Failure List"
     ,"Failure History"                                           : "Failure History"
+    ,"Failure Type"                                              : "Failure Type"
+    ,"Metric Settings"                                           : "Metric Settings"
+    ,"System"                                                    : "System"
+    ,"Weight"                                                    : "Weight"
+    ,"Training Cancel"                                           : "Training Cancel"
+    ,"Alarm Setting"                                             : "Alarm Setting"
+    ,"Alarm Popup"                                               : "Alarm Popup"
+    ,"Are you sure you want to cancel?"                          : "Are you sure you want to cancel?"
 };

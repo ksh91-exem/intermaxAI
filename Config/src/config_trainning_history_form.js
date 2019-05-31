@@ -115,8 +115,6 @@ Ext.define('config.config_trainning_history_form', {
 
                     data = result.data;
 
-                    console.log(data);
-
                     for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
 
                         if (data[ix].status == 0) {

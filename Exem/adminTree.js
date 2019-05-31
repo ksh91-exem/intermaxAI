@@ -8,6 +8,7 @@ Ext.define("Exem.adminTree", {
     layout  : 'border',
 
     useCheckBox  : true,                // 그리드 가장 좌측에 체크박스가 생길것인지.
+    initChecked  : true,
     rowNumber    : false,                // 그리드 가장 좌측에 Row number를 보일 것인지.
     localeType   : 'Y-m-d H:i:s',       // 그리드 시간값을 표시할 type
     defaultHeaderHeight: null,          // 컬럼의 한칸 기본 높이 설정.
@@ -242,7 +243,7 @@ Ext.define("Exem.adminTree", {
               nodeObj.id = self.treeIndex++;
 
               if (self.useCheckBox === true) {
-                  nodeObj.checked = true;
+                  nodeObj.checked = self.initChecked;
               }
           }
           return nodeObj;

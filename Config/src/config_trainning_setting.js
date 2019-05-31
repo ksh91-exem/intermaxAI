@@ -138,6 +138,7 @@ Ext.define('config.config_trainning_setting', {
             useEmptyText: true,
             bufferedRenderer: true,
             sortableColumns: false,
+            initChecked : false,
             emptyTextMsg: common.Util.TR('No data to display'),
             cellclick:function(thisGrid, td, cellIndex, record) {
                 if (cellIndex == 7) {
@@ -160,11 +161,13 @@ Ext.define('config.config_trainning_setting', {
 
                     self.autoTrainInstance(record.data);
                 } else if (cellIndex == 6) {
-                    var wasForm = Ext.create('config.config_trainning_progress_form');
-                    wasForm.parent = this;
-                    wasForm.systemID = record.data.sys_id;
-                    wasForm.instID = record.data.inst_id;
-                    wasForm.init();
+                    if (record.get('status') == common.Util.TR('Trainning in Progress')) {
+                        var wasForm = Ext.create('config.config_trainning_progress_form');
+                        wasForm.parent = this;
+                        wasForm.systemID = record.data.sys_id;
+                        wasForm.instID = record.data.inst_id;
+                        wasForm.init();
+                    }
                 } else if (cellIndex == 3) {
 
                 } else {
@@ -173,15 +176,6 @@ Ext.define('config.config_trainning_setting', {
                     wasForm.systemID = record.data.sys_id;
                     wasForm.instID = record.data.inst_id;
                     wasForm.init();
-                }
-            },
-            configRowClass: function(record){
-                if (record.get('auto_training') != record.get('auto_training')) {
-                    if (record.get('auto_training') == 0) {
-                        return 'modify-row allow';
-                    } else {
-                        return 'modify-row reject';
-                    }
                 }
             }
         });
@@ -193,7 +187,14 @@ Ext.define('config.config_trainning_setting', {
         this.grid.addColumn({text: common.Util.CTR('Name')               , dataIndex: 'name'         , width: 120, type: Grid.tree  , alowEdit: false, editMode: false});
         this.grid.addColumn({text: common.Util.CTR('Start Training Date'), dataIndex: 'start_time'   , width: 140, type: Grid.String, alowEdit: false, editMode: false});
         this.grid.addColumn({text: common.Util.CTR('End Training Date')  , dataIndex: 'end_time'     , width: 140, type: Grid.String, alowEdit: false, editMode: false});
-        this.grid.addColumn({text: common.Util.CTR('Status')             , dataIndex: 'status'       , width: 120, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Status')             , dataIndex: 'status'       , width: 120, type: Grid.String, alowEdit: false, editMode: false,
+            renderer: function(v, m, r) {
+                if (v == common.Util.TR('Trainning in Progress')) {
+                    m.style = 'cursor:pointer';
+                }
+                return v;
+            }
+        });
         this.grid.addColumn({text: common.Util.CTR('Automatic Learning') , dataIndex: 'auto_training', width: 110, type: Grid.String, alowEdit: false, editMode: false,
             renderer: function(v, m, r) {
                 if (r.get('auto_training') == 0) {
@@ -218,10 +219,14 @@ Ext.define('config.config_trainning_setting', {
 
         switch (cmd) {
             case 'Manual' :
-                wasForm = Ext.create('config.config_trainning_manual_form');
-                wasForm.data = this.grid.getCheckedRows();
-                wasForm.parent = this;
-                wasForm.init();
+                if (this.grid.getCheckedRows().length > 0) {
+                    wasForm = Ext.create('config.config_trainning_manual_form');
+                    wasForm.data = this.grid.getCheckedRows();
+                    wasForm.parent = this;
+                    wasForm.init();
+                } else {
+                    Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('At least one server must be selected.'));
+                }
                 break;
 
             case 'Auto' :
