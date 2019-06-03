@@ -45,6 +45,9 @@ Ext.define('config.config_bizcal_setting', {
             }
         });
 
+        var maxDate = new Date();
+        maxDate.setFullYear(maxDate.getFullYear() + 30);
+
         this.calendar = Ext.create('Exem.BusinessCalendar',{
             flex : 1,
             multiSelectDate : false,
@@ -55,6 +58,7 @@ Ext.define('config.config_bizcal_setting', {
             parent          : this,
             paramTextField  : this.baseDateTextField,
             isPreventInit  : true,
+            maxDate : maxDate,
             cls : 'businessCalendar',
             margin : '5 300 0 10'
         });

@@ -27,13 +27,14 @@ Ext.define('Exem.BusinessCalendar',{
     isSelectMonthColor : null,
     clickMonthLabel : false,
     parent : null,
+    maxDate : new Date(),
 
     constructor: function(){
         this.callParent(arguments);
     },
     listeners: {
         render: function() {
-            this.fromCalendar = this.createCalendar( this.calArea.id, new Date());
+            this.fromCalendar = this.createCalendar( this.calArea.id, this.maxDate );
             this.fromCalendar.show();
             // N:M에서 오버라이드 함수 수행
             if(this.isSelectMonthColor) {
