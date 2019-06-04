@@ -186,16 +186,49 @@ Ext.define('config.config_metric_setting', {
             padding: '0 10 10 6',
             layout : {
                 type : 'hbox' ,
+                pack : 'begin',
+                align: 'middle'
+            }
+        });
+
+        var addButtonCon = Ext.create('Exem.Container',{
+            width  : 30,
+            height : 30,
+            padding: '0 0 0 0',
+            layout : {
+                type : 'vbox' ,
+                pack : 'center',
+                align: 'begin'
+            }
+        });
+
+        var saveButtonCon = Ext.create('Exem.Container',{
+            flex   : 1,
+            height : 30,
+            padding: '0 0 0 0',
+            layout : {
+                type : 'hbox' ,
                 pack : 'center',
                 align: 'middle'
             }
         });
 
         // 하단 버튼 영역
+        this.addBtn = Ext.create('Exem.Button',{
+            text  : '<img src="../images/cfg_add.png" width="15" height="15">',
+            height: 22,
+            width : 28 ,
+            listeners: {
+                scope: this,
+                click: function() {
+                    this.onButtonClick('Add');
+                }
+            }
+        });
         this.okBtn = Ext.create('Exem.Button',{
             text  : common.Util.TR('Apply'),
             height: 22,
-            margin : '0 5 0 0',
+            margin : '0 5 0 -30',
             width : 80 ,
             listeners: {
                 scope: this,
@@ -221,7 +254,9 @@ Ext.define('config.config_metric_setting', {
             }
         });
 
-        buttonArea.add(this.okBtn, this.cancelBtn);
+        addButtonCon.add(this.addBtn);
+        saveButtonCon.add(this.okBtn, this.cancelBtn);
+        buttonArea.add(addButtonCon, saveButtonCon);
 
         this.target.add(titleArea, bodyArea, buttonArea);
     },
@@ -570,6 +605,23 @@ Ext.define('config.config_metric_setting', {
         this.rightGrid.getStore().loadData(this.rightGridStoreData);
     },
 
+    onButtonClick: function(cmd) {
+        var self = this,
+            metricForm;
+
+        switch (cmd) {
+            case 'Add' :
+                metricForm = Ext.create('config.config_metric_form');
+                metricForm.parent = self;
+                metricForm.systemID = self.systemTypeCombo.getValue();
+                metricForm.instanceType = self.instanceTypeCombo.getValue();
+                metricForm.init('Add');
+                break;
+            default :
+                break;
+        }
+    },
+
     createImangeBtn: function(cls, text){
         var _width  = 28;
         var _height = 26;
@@ -720,7 +772,23 @@ Ext.define('config.config_metric_setting', {
             }
             return cls;
         }.bind(this);
-    }
+    },
+
+    changeMetricInfo: function(record) {
+        var leftList  = this.leftGridStoreData;
+        var rightList = this.rightGridStoreData;
+
+        if (record.use_type == 0) {
+            leftList.push(record);
+            this.leftGridStoreData = leftList;
+        } else if (record.use_type == 1) {
+            rightList.push(record);
+            this.rightGridStoreData = rightList;
+        }
+
+        this.leftGrid.getStore().loadData(leftList);
+        this.rightGrid.getStore().loadData(rightList);
+    },
 
 
 });
