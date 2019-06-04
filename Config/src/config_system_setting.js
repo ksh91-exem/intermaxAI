@@ -575,7 +575,7 @@ Ext.define('config.config_system_setting', {
                 this.grid[key].beginAddColumns();
                 this.grid[key].addColumn({text: 'sys_id'                      ,   dataIndex: 'sys_id',    width: 120, type: Grid.Number      , alowEdit: false, editMode: false, hide: true});
                 this.grid[key].addColumn({text: common.Util.CTR('Name')       ,   dataIndex: 'name'  ,    width: 120, type: Grid.String      , alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Description'),   dataIndex: 'desc'  ,    width: 120, type: Grid.StringNumber, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Description'),   dataIndex: 'desc'  ,    width: 200, type: Grid.StringNumber, alowEdit: false, editMode: false});
                 this.grid[key].endAddColumns();
 
                 break;
@@ -608,8 +608,8 @@ Ext.define('config.config_system_setting', {
                 this.grid[key].addColumn({text: common.Util.CTR('address')           , dataIndex: 'addr'         , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
                 this.grid[key].addColumn({text: common.Util.CTR('Name')              , dataIndex: 'name'         , width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
                 this.grid[key].addColumn({text: common.Util.CTR('Description')       , dataIndex: 'desc'         , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('isEnabled')         , dataIndex: 'enable'       , width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true})
-                this.grid[key].addColumn({text: common.Util.CTR('Automatic Learning'), dataIndex: 'auto_training', width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true})
+                this.grid[key].addColumn({text: common.Util.CTR('isUsed')            , dataIndex: 'enable'       , width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
+                this.grid[key].addColumn({text: common.Util.CTR('Automatic Learning'), dataIndex: 'auto_training', width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
                 this.grid[key].endAddColumns();
 
                 break;
@@ -663,18 +663,18 @@ Ext.define('config.config_system_setting', {
                 this.grid[key].addColumn({text: common.Util.CTR('Type')       ,   dataIndex: 'type'   , width: 80 , type: Grid.String, alowEdit: false, editMode: false});
                 this.grid[key].addColumn({text: common.Util.CTR('Name')       ,   dataIndex: 'name'   , width: 80 , type: Grid.String, alowEdit: false, editMode: false});
                 this.grid[key].addColumn({text: common.Util.CTR('Description'),   dataIndex: 'desc'   , width: 80 , type: Grid.String, alowEdit: false, editMode: false, hide: true});
-                this.grid[key].addColumn({text: common.Util.CTR('isEnabled')  ,   dataIndex: 'enable' , width: 110, type: Grid.String, alowEdit: false, editMode: false,
+                this.grid[key].addColumn({text: common.Util.CTR('isUsed')     ,   dataIndex: 'enable' , width: 110, type: Grid.String, alowEdit: false, editMode: false,
                     renderer: function(v, m, r) {
                         if (r.get('enable') == 0) {
                             return '<div class="x-toggle-slide-container" style="width: 92px;">' +
                             '<div style="left: 45px; z-index: 10000; width: 39px;" class="x-toggle-slide-thumb" ></div><div class="holder">' +
-                            '<label class="x-toggle-slide-label-on" style="width: 68.5px; margin-left: 0px;"><span><span style="font-size:8pt;">'+common.Util.TR('Reject')+'</span></span></label>' +
-                            '<label class="x-toggle-slide-label-off" style="width: 68.5px;"><span><span style="font-size:8pt;">'+common.Util.TR('Allow')+'</span></span></label></div></div>';
+                            '<label class="x-toggle-slide-label-on" style="width: 68.5px; margin-left: -8px;"><span><span style="font-size:8pt;">'+common.Util.TR('Unused')+'</span></span></label>' +
+                            '<label class="x-toggle-slide-label-off" style="width: 68.5px;"><span><span style="font-size:8pt;">'+common.Util.TR('Used')+'</span></span></label></div></div>';
                         } else {
                             return '<div class="x-toggle-slide-container" style="width: 92px;">' +
                             '<div style="left: 0px; z-index: 10000; width: 39px;" class="x-toggle-slide-thumb" ></div><div class="holder">' +
-                            '<label class="x-toggle-slide-label-on" style="width: 68.5px; margin-left: -45px;"><span style="font-size:8pt;">'+common.Util.TR('Reject')+'</span></label>' +
-                            '<label class="x-toggle-slide-label-off" style="width: 68.5px;"><span><span style="font-size:8pt;">'+common.Util.TR('Allow')+'</span></span></label></div></div>';
+                            '<label class="x-toggle-slide-label-on" style="width: 68.5px; margin-left: -45px;"><span style="font-size:8pt;">'+common.Util.TR('Unused')+'</span></label>' +
+                            '<label class="x-toggle-slide-label-off" style="width: 68.5px;"><span><span style="font-size:8pt;">'+common.Util.TR('Used')+'</span></span></label></div></div>';
                         }
                     }
                 });
