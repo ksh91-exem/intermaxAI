@@ -494,12 +494,6 @@ Ext.define('config.config_tiername_form', {
             return false;
         }
 
-        if (desc.indexOf(' ') > -1) {
-            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Blank Character is not allowed'));
-            self.descEdit.focus();
-            return false;
-        }
-
         var descByteLen = this.getTextLength(desc);
 
         if(descByteLen > 64){
