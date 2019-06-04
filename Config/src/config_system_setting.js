@@ -708,9 +708,8 @@ Ext.define('config.config_system_setting', {
                 this.grid[key].beginAddColumns();
                 this.grid[key].addColumn({text: 'sys_id'                      , dataIndex: 'sys_id' , width: 120, type: Grid.String, alowEdit: false, editMode: false, hide: true});
                 this.grid[key].addColumn({text: 'tier_id'                     , dataIndex: 'tier_id', width: 120, type: Grid.String, alowEdit: false, editMode: false, hide: true});
-                this.grid[key].addColumn({text: common.Util.CTR('Name')       , dataIndex: 'name'   , width: 120, type: Grid.tree  , alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Tier Type')  , dataIndex: 'type'   , width: 120, type: Grid.String, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'   , width: 120, type: Grid.String, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Name')       , dataIndex: 'name'   , width: 180, type: Grid.tree  , alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'   , width: 180, type: Grid.String, alowEdit: false, editMode: false});
                 this.grid[key].endAddColumns();
 
                 break;
@@ -1039,9 +1038,9 @@ Ext.define('config.config_system_setting', {
 
                             for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
                                 if (data[ix].parent_id == 0) {
-                                    treeObj[data[ix].tier_id] = self.grid[key].addNode(null, [data[ix].sys_id, data[ix].tier_id, data[ix].name, data[ix].type, data[ix].desc]);
+                                    treeObj[data[ix].tier_id] = self.grid[key].addNode(null, [data[ix].sys_id, data[ix].tier_id, data[ix].name, data[ix].desc]);
                                 } else {
-                                    treeObj[data[ix].tier_id] = self.grid[key].addNode(treeObj[data[ix].parent_id], [data[ix].sys_id, data[ix].tier_id, data[ix].name, data[ix].type, data[ix].desc]);
+                                    treeObj[data[ix].tier_id] = self.grid[key].addNode(treeObj[data[ix].parent_id], [data[ix].sys_id, data[ix].tier_id, data[ix].name, data[ix].desc]);
                                 }
                             }
 

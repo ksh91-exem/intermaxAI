@@ -132,17 +132,19 @@ Ext.define('config.config_insname_form', {
             allowBlank: true
         });
 
-        this.typeEdit = Ext.create('Ext.form.field.Text', {
+        this.typeEdit = Ext.create('Exem.ComboBox', {
             x: 0,
             y: 37,
-            width: 270,
+            store: Ext.create('Exem.Store'),
+            width : 270,
             labelWidth: 80,
-            labelAlign: 'right',
-            maxLength : 128,
-            enforceMaxLength : true,
-            fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('Type')),
-            allowBlank: true
+            margin: '0 5 5 0',
+            fieldLabel : common.Util.CTR('Type') + ':'
         });
+
+        this.typeEdit.addItem('os' , 'os');
+        this.typeEdit.addItem('ora', 'ora');
+        this.typeEdit.addItem('was', 'was');
 
         this.nameEdit = Ext.create('Ext.form.field.Text', {
             x: 0,
@@ -278,7 +280,7 @@ Ext.define('config.config_insname_form', {
                 self.instIdEdit.setDisabled(true);
 
                 self.instIdEdit.setValue(self.instID);
-                self.typeEdit.setValue(self.type);
+                self.typeEdit.selectByValue(self.type);
                 self.nameEdit.setValue(self.name);
                 self.descEdit.setValue(self.desc);
 
@@ -452,20 +454,6 @@ Ext.define('config.config_insname_form', {
         // CHECK: TYPE + Byte Check
         if (type == '' && !itemChange) {
             Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter Type.'));
-            self.typeEdit.focus();
-            return false;
-        }
-
-        if (type.indexOf(' ') > -1 ) {
-            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Blank Character is not allowed'));
-            self.typeEdit.focus();
-            return false;
-        }
-
-        var typeByteLen = this.getTextLength(type);
-
-        if(typeByteLen > 128){
-            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('You have exceeded the number of byte of the column you want to save.'));
             self.typeEdit.focus();
             return false;
         }

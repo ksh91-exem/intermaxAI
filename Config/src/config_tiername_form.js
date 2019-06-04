@@ -100,10 +100,9 @@ Ext.define('config.config_tiername_form', {
         panelA1.add(this.grid);
 
         this.grid.beginAddColumns();
-        this.grid.addColumn({text: 'tier_id'                     , dataIndex: 'tier_id', width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
-        this.grid.addColumn({text: common.Util.CTR('Name')       , dataIndex: 'name'   , width: 80, type: Grid.tree        , alowEdit: false, editMode: false});
-        this.grid.addColumn({text: common.Util.CTR('Tier Type')  , dataIndex: 'type'   , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
-        this.grid.addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'   , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: 'tier_id'                     , dataIndex: 'tier_id', width: 80 , type: Grid.String      , alowEdit: false, editMode: false, hide: true});
+        this.grid.addColumn({text: common.Util.CTR('Name')       , dataIndex: 'name'   , width: 120, type: Grid.tree        , alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'   , width: 120, type: Grid.StringNumber, alowEdit: false, editMode: false});
         this.grid.endAddColumns();
 
         panelA.add(panelA1);
@@ -154,21 +153,9 @@ Ext.define('config.config_tiername_form', {
             allowBlank: true
         });
 
-        this.typeEdit = Ext.create('Ext.form.field.Text', {
-            x: 0,
-            y: 64,
-            width: 270,
-            labelWidth: 80,
-            labelAlign: 'right',
-            maxLength : 64,
-            enforceMaxLength : true,
-            fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('Tier Type')),
-            allowBlank: true
-        });
-
         this.descEdit = Ext.create('Ext.form.field.Text', {
             x: 0,
-            y: 91,
+            y: 64,
             width: 270,
             labelWidth: 80,
             labelAlign: 'right',
@@ -180,9 +167,9 @@ Ext.define('config.config_tiername_form', {
 
 
         if (state == 'Add') {
-            panelA2.add(this.parentEdit, this.nameEdit, this.typeEdit, this.descEdit);
+            panelA2.add(this.parentEdit, this.nameEdit, this.descEdit);
         } else {
-            panelA2.add(this.tierIdEdit, this.nameEdit, this.typeEdit, this.descEdit);
+            panelA2.add(this.tierIdEdit, this.nameEdit, this.descEdit);
         }
         panelA.add(panelA2);
 
@@ -263,9 +250,9 @@ Ext.define('config.config_tiername_form', {
 
                     for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
                         if (data[ix].parent_id == 0) {
-                            treeObj[data[ix].tier_id] = self.grid.addNode(null, [data[ix].tier_id, data[ix].name, data[ix].type, data[ix].desc]);
+                            treeObj[data[ix].tier_id] = self.grid.addNode(null, [data[ix].tier_id, data[ix].name, data[ix].desc]);
                         } else {
-                            treeObj[data[ix].tier_id] = self.grid.addNode(treeObj[data[ix].parent_id], [data[ix].tier_id, data[ix].name, data[ix].type, data[ix].desc]);
+                            treeObj[data[ix].tier_id] = self.grid.addNode(treeObj[data[ix].parent_id], [data[ix].tier_id, data[ix].name, data[ix].desc]);
                         }
                     }
 
@@ -282,7 +269,6 @@ Ext.define('config.config_tiername_form', {
                                 bfObj.preIndex  = ix;
                                 bfObj.tierID    = tempRowData.tier_id;
                                 bfObj.name      = tempRowData.name;
-                                bfObj.type      = tempRowData.type;
                                 bfObj.desc      = tempRowData.desc;
                             }
                         }
@@ -304,7 +290,6 @@ Ext.define('config.config_tiername_form', {
 
                 self.parentEdit.setDisabled(true);
                 self.nameEdit.setValue(self.name);
-                self.typeEdit.setValue(self.type);
                 self.descEdit.setValue(self.desc);
 
                 self.nameEdit.focus();
@@ -321,7 +306,6 @@ Ext.define('config.config_tiername_form', {
         // 넣을 데이터 가져오기.
         var tierID   = self.grid.getSelectedRow()[0] ? self.grid.getSelectedRow()[0].data.tier_id : 0;
         var name     = self.nameEdit.getValue();
-        var type     = self.typeEdit.getValue();
         var desc     = self.descEdit.getValue();
         var cusorPointCheck = false;
         var ix, ixLen;
@@ -342,7 +326,6 @@ Ext.define('config.config_tiername_form', {
                 method : 'POST',
                 params : JSON.stringify({
                     parent_id : tierID,
-                    type      : type,
                     name      : name,
                     desc      : desc
                 }),
@@ -368,14 +351,13 @@ Ext.define('config.config_tiername_form', {
 
             // 마지막 변경사항 추가하기 위해
             if (cusorPointCheck) {
-                self.addRefArray(tierID, name, type, desc);
+                self.addRefArray(tierID, name, desc);
             }
 
             for (ix = 0, ixLen = refObjArray.length; ix < ixLen; ix++) {
                 var currentData = {};
                 var currentTierID = refObjArray[ix].tierID;
                 var currentName = refObjArray[ix].name;
-                var currentType = refObjArray[ix].type;
                 var currentDesc = refObjArray[ix].desc;
                 var record = self.grid.findRow('tier_id', currentTierID);
 
@@ -386,31 +368,23 @@ Ext.define('config.config_tiername_form', {
                 }
 
 
-                if (currentType == '') {
-                    Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter the remaining Type.'));
-                    return;
-                }
-
-
                 if (currentDesc == '') {
                     Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter the remaining Description.'));
                     return;
                 }
 
                 if (record) {
-                    self.setGridRow(currentTierID, currentName, currentType, currentDesc);
+                    self.setGridRow(currentTierID, currentName, currentDesc);
 
                     if(ix == ixLen - 1){
                         self.beforeObj.tierID = currentTierID;
                         self.beforeObj.name   = currentName;
-                        self.beforeObj.type   = currentType;
                         self.beforeObj.desc   = currentDesc;
                     }
                 }
 
                 currentData.tierID = currentTierID;
                 currentData.name   = currentName;
-                currentData.type   = currentType;
                 currentData.desc   = currentDesc;
                 currentData.start  = ix + 1;
                 currentData.end    = ixLen;
@@ -441,7 +415,6 @@ Ext.define('config.config_tiername_form', {
         // 넣을 데이터 가져오기.
         var tierID = self.tierIdEdit.getValue();
         var name   = self.nameEdit.getValue();
-        var type   = self.typeEdit.getValue();
         var desc   = self.descEdit.getValue();
         var ix;
 
@@ -463,27 +436,6 @@ Ext.define('config.config_tiername_form', {
         if (nameByteLen > 128) {
             Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('You have exceeded the number of byte of the column you want to save.'));
             self.nameEdit.focus();
-            return false;
-        }
-
-        // CHECK: Type + Byte Check
-        if (type == '' && !itemChange) {
-            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Please enter Type.'));
-            self.typeEdit.focus();
-            return false;
-        }
-
-        if (type.indexOf(' ') > -1 ) {
-            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Blank Character is not allowed'));
-            self.typeEdit.focus();
-            return false;
-        }
-
-        var typeByteLen = this.getTextLength(type);
-
-        if(typeByteLen > 128){
-            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('You have exceeded the number of byte of the column you want to save.'));
-            self.typeEdit.focus();
             return false;
         }
 
@@ -539,14 +491,13 @@ Ext.define('config.config_tiername_form', {
         return true;
     },
 
-    setGridRow: function(tierID, name, type, desc) {
+    setGridRow: function(tierID, name, desc) {
         var ix, ixLen;
         for (ix = 0, ixLen = this.grid.getNodeCount(); ix < ixLen; ix++) {
             if (this.grid.getNode(ix).data.tier_id == tierID) {
                 var record = this.grid.findRow('tier_id', tierID);
 
                 record.set('name', name);
-                record.set('type', type);
                 record.set('desc', desc);
 
                 this.grid.drawTree();
@@ -567,22 +518,18 @@ Ext.define('config.config_tiername_form', {
         // 선택 포인트가 넘어가기 전에 값들을 미리 담아둔다.
         var preTierIdEdit    = self.tierIdEdit;
         var preNameEdit      = self.nameEdit;
-        var preTypeEdit      = self.typeEdit;
         var preDescEdit      = self.descEdit;
         var preTierIdEditValue = self.tierIdEdit.getValue();
         var preNameEditValue  = self.nameEdit.getValue();
-        var preTypeEditValue  = self.typeEdit.getValue();
         var preDescEditValue  = self.descEdit.getValue();
 
         // 선택된 포인트의 값들을 저장한다.
         var rdTierID = recordData.tier_id;
         var rdName = recordData.name;
-        var rdType = recordData.type;
         var rdDesc = recordData.desc;
 
         if (beforeObjOne.name == '') {
             beforeObjOne.name = preNameEditValue;
-            beforeObjOne.type = preTypeEditValue;
             beforeObjOne.desc = preDescEditValue;
         }
 
@@ -607,11 +554,6 @@ Ext.define('config.config_tiername_form', {
                 isModified = true;
             }
 
-            if (beforeObjOne.type != preTypeEditValue) {
-                grid.updateCell('type', beforeObjOne.preIndex, preTypeEditValue);
-                isModified = true;
-            }
-
             if (beforeObjOne.desc != preDescEditValue) {
                 grid.updateCell('desc', beforeObjOne.preIndex, preDescEditValue);
                 isModified = true;
@@ -626,38 +568,34 @@ Ext.define('config.config_tiername_form', {
         }
 
         if (isModified) {
-            self.addRefArray(preTierIdEditValue, preNameEditValue, preTypeEditValue, preDescEditValue);
+            self.addRefArray(preTierIdEditValue, preNameEditValue, preDescEditValue);
         }
 
         // 선택 포인트가 이전포인트와 같을 경우, 변경된 값을 동기화 시켜 보여주기 위해
         if (preTierIdEditValue == rdTierID) {
             rdTierID = preTierIdEditValue;
             rdName   = preNameEditValue;
-            rdType   = preTypeEditValue;
             rdDesc   = preDescEditValue;
         }
 
         // 선택된 값들이 다시 이전 선택들의 값이 되기 위해
         beforeObjOne.tierID = rdTierID;
         beforeObjOne.name   = rdName;
-        beforeObjOne.type   = rdType;
         beforeObjOne.desc   = rdDesc;
 
         preTierIdEdit.setValue(rdTierID);
         preNameEdit.setValue(rdName);
-        preTypeEdit.setValue(rdType);
         preDescEdit.setValue(rdDesc);
 
         return true;
     },
 
-    addRefArray: function (tierID, name, type, desc) {
+    addRefArray: function (tierID, name, desc) {
         var self = this;
 
         var tempObj = {
             tierID : tierID,
             name   : name,
-            type   : type,
             desc   : desc
         };
 
@@ -683,7 +621,6 @@ Ext.define('config.config_tiername_form', {
             method : 'PUT',
             params : JSON.stringify({
                 name : currentData.name,
-                type : currentData.type,
                 desc : currentData.desc
             }),
             success : function(response) {
@@ -693,6 +630,7 @@ Ext.define('config.config_tiername_form', {
                     if(currentData.start === currentData.end){
                         self.removeAllRefArray();
                         Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                        self.cancelButton.fireEvent('click');
                     }
                 } else {
                     console.error(result.message);
