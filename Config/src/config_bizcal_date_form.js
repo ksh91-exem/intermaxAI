@@ -146,7 +146,7 @@ Ext.define('config.config_bizcal_date_form', {
 
     setCombo: function() {
         var self = this,
-            ix, ixLen, jx, jxLen, data,
+            ix, ixLen, data,
             bizTypeData;
 
         this.dateEdit.setValue(this.selectDate);
@@ -162,11 +162,11 @@ Ext.define('config.config_bizcal_date_form', {
 
                     for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
                         this.businessTypeCombo.addItem(data[ix].type_id, data[ix].name);
+                    }
 
-                        bizTypeData = this.parent.calendarData[this.selectDate.replace(/-/gi,'')] || '';
-                        for (jx = 0, jxLen = bizTypeData.length; jx < jxLen; jx++) {
-                            this.businessTypeCombo.selectByValue(bizTypeData[ix]);
-                        }
+                    bizTypeData = this.parent.calendarData[this.selectDate.replace(/-/gi,'')] || '';
+                    for (ix = 0, ixLen = bizTypeData.length; ix < ixLen; ix++) {
+                        this.businessTypeCombo.selectByValue(bizTypeData[ix]);
                     }
                 }
             }.bind(this),

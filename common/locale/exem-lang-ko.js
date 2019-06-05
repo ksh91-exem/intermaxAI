@@ -1971,6 +1971,7 @@ window.msgMap = {
     ,"isUsed"                                                    : "사용 여부"
     ,"Used"                                                      : "사용"
     ,"Unused"                                                    : "미사용"
+    ,"Tier Name"                                                 : "구간 이름"
     ,"Parent Tier Name"                                          : "상위 구간 이름"
     ,"System List"                                               : "시스템 목록"
     ,"Edit System"                                               : "시스템 수정"
@@ -1997,4 +1998,8 @@ window.msgMap = {
     ,"Alarm Setting"                                             : "알람 설정"
     ,"Alarm Popup"                                               : "알람 팝업"
     ,"Are you sure you want to cancel?"                          : "취소 하시겠습니까?"
+    ,"Tier Mapping Settings"                                     : "구간 맵핑 설정"
+    ,"Mapable Instance"                                          : "맵핑 가능 인스턴스"
+    ,"Mapped Instance"                                           : "맵핑 된 인스턴스"
+    ,"Manual Training Settings"                                  : "수동학습 설정"
 };

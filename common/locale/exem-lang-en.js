@@ -1782,6 +1782,7 @@ window.msgMap = {
     ,"isUsed"                                                    : "isUsed"
     ,"Used"                                                      : "Used"
     ,"Unused"                                                    : "Unused"
+    ,"Tier Name"                                                 : "Tier Name"
     ,"Parent Tier Name"                                          : "Parent Tier Name"
     ,"System List"                                               : "System List"
     ,"Edit System"                                               : "Edit System"
@@ -1808,4 +1809,8 @@ window.msgMap = {
     ,"Alarm Setting"                                             : "Alarm Setting"
     ,"Alarm Popup"                                               : "Alarm Popup"
     ,"Are you sure you want to cancel?"                          : "Are you sure you want to cancel?"
+    ,"Tier Mapping Settings"                                     : "Tier Mapping Settings"
+    ,"Mapable Instance"                                          : "Mapable Instance"
+    ,"Mapped Instance"                                           : "Mapped Instance"
+    ,"Manual Training Settings"                                  : "Manual Training Settings"
 };

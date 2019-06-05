@@ -732,9 +732,10 @@ Ext.define('config.config_system_setting', {
                 });
 
                 this.grid[key].beginAddColumns();
-                this.grid[key].addColumn({text: 'sys_id'                      ,   dataIndex: 'sys_id', width: 120, type: Grid.String, alowEdit: false, editMode: false, hide: true});
-                this.grid[key].addColumn({text: common.Util.CTR('Instance ID'),   dataIndex: 'inst_id' , width: 120, type: Grid.String, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Description'),   dataIndex: 'desc'  , width: 120, type: Grid.String, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: 'sys_id'                      ,   dataIndex: 'sys_id'   , width: 120, type: Grid.String, alowEdit: false, editMode: false, hide: true});
+                this.grid[key].addColumn({text: common.Util.CTR('Tier Name')  ,   dataIndex: 'tier_name', width: 120, type: Grid.String, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Instance ID'),   dataIndex: 'inst_id'  , width: 120, type: Grid.String, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Description'),   dataIndex: 'desc'     , width: 120, type: Grid.String, alowEdit: false, editMode: false});
                 this.grid[key].endAddColumns();
 
                 break;
@@ -1068,7 +1069,7 @@ Ext.define('config.config_system_setting', {
                             self.grid[key].clearRows();
 
                             for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
-                                self.grid[key].addRow([data[ix].sys_id, data[ix].inst_id, data[ix].desc]);
+                                self.grid[key].addRow([data[ix].sys_id, data[ix].tier_name, data[ix].inst_id, data[ix].desc]);
                             }
 
                             self.grid[key].drawGrid();
@@ -1159,8 +1160,8 @@ Ext.define('config.config_system_setting', {
             useColumnInfo : mappingList,
             useDefaultBtn : false,
             orderMode : true,
-            leftGridTitle : common.Util.TR('Current Mapping'),
-            rightGridTitle : common.Util.TR('Modified Mapping'),
+            leftGridTitle : common.Util.TR('Mapable Instance'),
+            rightGridTitle : common.Util.TR('Mapped Instance'),
             okFn : this.apply
         });
 

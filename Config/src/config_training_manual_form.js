@@ -19,14 +19,14 @@ Ext.define('config.config_training_manual_form', {
             cls: 'config_tab',
             listeners   : {
                 close: function(){
-                    if ( self.isWasNameModifiedAll ) {
+                    if (self.isWasNameModifiedAll) {
                         self.parent.onButtonClick('Refresh');
                     }
                 }
             }
         });
 
-        form.setTitle(common.Util.TR('수동학습 설정'));
+        form.setTitle(common.Util.TR('Manual Training Settings'));
 
         var panelA = Ext.create('Ext.panel.Panel', {
             layout: 'vbox',
