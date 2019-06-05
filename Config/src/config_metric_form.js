@@ -40,8 +40,6 @@ Ext.define('config.config_metric_form', {
           listeners   : {
               close: function(){
                   if (self.isModifiedAll) {
-                      // self.parent.onButtonClick('Refresh');
-                      // parent 그리드의 store에 추가하기?
                   }
               }
           }
@@ -415,13 +413,8 @@ Ext.define('config.config_metric_form', {
                   return false;
               }
           }
-      } else {
-          //edit mode
       }
+      
       return true;
   },
-
-  // wasClick: function(index, recordData) {
-  //   //edit mode
-  // }
 });
