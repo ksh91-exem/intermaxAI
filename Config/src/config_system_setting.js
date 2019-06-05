@@ -575,7 +575,7 @@ Ext.define('config.config_system_setting', {
                 this.grid[key].beginAddColumns();
                 this.grid[key].addColumn({text: 'sys_id'                      ,   dataIndex: 'sys_id',    width: 120, type: Grid.Number      , alowEdit: false, editMode: false, hide: true});
                 this.grid[key].addColumn({text: common.Util.CTR('Name')       ,   dataIndex: 'name'  ,    width: 120, type: Grid.String      , alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Description'),   dataIndex: 'desc'  ,    width: 120, type: Grid.StringNumber, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Description'),   dataIndex: 'desc'  ,    width: 200, type: Grid.StringNumber, alowEdit: false, editMode: false});
                 this.grid[key].endAddColumns();
 
                 break;
@@ -608,8 +608,8 @@ Ext.define('config.config_system_setting', {
                 this.grid[key].addColumn({text: common.Util.CTR('address')           , dataIndex: 'addr'         , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
                 this.grid[key].addColumn({text: common.Util.CTR('Name')              , dataIndex: 'name'         , width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
                 this.grid[key].addColumn({text: common.Util.CTR('Description')       , dataIndex: 'desc'         , width: 80, type: Grid.StringNumber, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('isEnabled')         , dataIndex: 'enable'       , width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true})
-                this.grid[key].addColumn({text: common.Util.CTR('Automatic Learning'), dataIndex: 'auto_training', width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true})
+                this.grid[key].addColumn({text: common.Util.CTR('isUsed')            , dataIndex: 'enable'       , width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
+                this.grid[key].addColumn({text: common.Util.CTR('Automatic Learning'), dataIndex: 'auto_training', width: 80, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
                 this.grid[key].endAddColumns();
 
                 break;
@@ -663,18 +663,18 @@ Ext.define('config.config_system_setting', {
                 this.grid[key].addColumn({text: common.Util.CTR('Type')       ,   dataIndex: 'type'   , width: 80 , type: Grid.String, alowEdit: false, editMode: false});
                 this.grid[key].addColumn({text: common.Util.CTR('Name')       ,   dataIndex: 'name'   , width: 80 , type: Grid.String, alowEdit: false, editMode: false});
                 this.grid[key].addColumn({text: common.Util.CTR('Description'),   dataIndex: 'desc'   , width: 80 , type: Grid.String, alowEdit: false, editMode: false, hide: true});
-                this.grid[key].addColumn({text: common.Util.CTR('isEnabled')  ,   dataIndex: 'enable' , width: 110, type: Grid.String, alowEdit: false, editMode: false,
+                this.grid[key].addColumn({text: common.Util.CTR('isUsed')     ,   dataIndex: 'enable' , width: 110, type: Grid.String, alowEdit: false, editMode: false,
                     renderer: function(v, m, r) {
                         if (r.get('enable') == 0) {
                             return '<div class="x-toggle-slide-container" style="width: 92px;">' +
                             '<div style="left: 45px; z-index: 10000; width: 39px;" class="x-toggle-slide-thumb" ></div><div class="holder">' +
-                            '<label class="x-toggle-slide-label-on" style="width: 68.5px; margin-left: 0px;"><span><span style="font-size:8pt;">'+common.Util.TR('Reject')+'</span></span></label>' +
-                            '<label class="x-toggle-slide-label-off" style="width: 68.5px;"><span><span style="font-size:8pt;">'+common.Util.TR('Allow')+'</span></span></label></div></div>';
+                            '<label class="x-toggle-slide-label-on" style="width: 68.5px; margin-left: -8px;"><span><span style="font-size:8pt;">'+common.Util.TR('Unused')+'</span></span></label>' +
+                            '<label class="x-toggle-slide-label-off" style="width: 68.5px;"><span><span style="font-size:8pt;">'+common.Util.TR('Used')+'</span></span></label></div></div>';
                         } else {
                             return '<div class="x-toggle-slide-container" style="width: 92px;">' +
                             '<div style="left: 0px; z-index: 10000; width: 39px;" class="x-toggle-slide-thumb" ></div><div class="holder">' +
-                            '<label class="x-toggle-slide-label-on" style="width: 68.5px; margin-left: -45px;"><span style="font-size:8pt;">'+common.Util.TR('Reject')+'</span></label>' +
-                            '<label class="x-toggle-slide-label-off" style="width: 68.5px;"><span><span style="font-size:8pt;">'+common.Util.TR('Allow')+'</span></span></label></div></div>';
+                            '<label class="x-toggle-slide-label-on" style="width: 68.5px; margin-left: -45px;"><span style="font-size:8pt;">'+common.Util.TR('Unused')+'</span></label>' +
+                            '<label class="x-toggle-slide-label-off" style="width: 68.5px;"><span><span style="font-size:8pt;">'+common.Util.TR('Used')+'</span></span></label></div></div>';
                         }
                     }
                 });
@@ -708,9 +708,8 @@ Ext.define('config.config_system_setting', {
                 this.grid[key].beginAddColumns();
                 this.grid[key].addColumn({text: 'sys_id'                      , dataIndex: 'sys_id' , width: 120, type: Grid.String, alowEdit: false, editMode: false, hide: true});
                 this.grid[key].addColumn({text: 'tier_id'                     , dataIndex: 'tier_id', width: 120, type: Grid.String, alowEdit: false, editMode: false, hide: true});
-                this.grid[key].addColumn({text: common.Util.CTR('Name')       , dataIndex: 'name'   , width: 120, type: Grid.tree  , alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Tier Type')  , dataIndex: 'type'   , width: 120, type: Grid.String, alowEdit: false, editMode: false});
-                this.grid[key].addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'   , width: 120, type: Grid.String, alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Name')       , dataIndex: 'name'   , width: 180, type: Grid.tree  , alowEdit: false, editMode: false});
+                this.grid[key].addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'   , width: 180, type: Grid.String, alowEdit: false, editMode: false});
                 this.grid[key].endAddColumns();
 
                 break;
@@ -1039,9 +1038,9 @@ Ext.define('config.config_system_setting', {
 
                             for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
                                 if (data[ix].parent_id == 0) {
-                                    treeObj[data[ix].tier_id] = self.grid[key].addNode(null, [data[ix].sys_id, data[ix].tier_id, data[ix].name, data[ix].type, data[ix].desc]);
+                                    treeObj[data[ix].tier_id] = self.grid[key].addNode(null, [data[ix].sys_id, data[ix].tier_id, data[ix].name, data[ix].desc]);
                                 } else {
-                                    treeObj[data[ix].tier_id] = self.grid[key].addNode(treeObj[data[ix].parent_id], [data[ix].sys_id, data[ix].tier_id, data[ix].name, data[ix].type, data[ix].desc]);
+                                    treeObj[data[ix].tier_id] = self.grid[key].addNode(treeObj[data[ix].parent_id], [data[ix].sys_id, data[ix].tier_id, data[ix].name, data[ix].desc]);
                                 }
                             }
 

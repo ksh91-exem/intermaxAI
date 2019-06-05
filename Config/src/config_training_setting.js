@@ -185,10 +185,12 @@ Ext.define('config.config_training_setting', {
         this.grid.addColumn({text: 'inst_id'                             , dataIndex: 'inst_id'      , width: 120, type: Grid.tree  , alowEdit: false, editMode: false, hide: true});
         this.grid.addColumn({text: 'desc'                                , dataIndex: 'desc'         , width: 120, type: Grid.tree  , alowEdit: false, editMode: false, hide: true});
         this.grid.addColumn({text: common.Util.CTR('Name')               , dataIndex: 'name'         , width: 120, type: Grid.tree  , alowEdit: false, editMode: false});
-        this.grid.addColumn({text: common.Util.CTR('Start Training Date'), dataIndex: 'start_time'   , width: 140, type: Grid.String, alowEdit: false, editMode: false});
-        this.grid.addColumn({text: common.Util.CTR('End Training Date')  , dataIndex: 'end_time'     , width: 140, type: Grid.String, alowEdit: false, editMode: false});
+        this.grid.addColumn({text: common.Util.CTR('Start Training Date'), dataIndex: 'start_time'   , width: 140, type: Grid.String, alowEdit: false, editMode: false,
+            renderer: function(v, m) { m.style = 'cursor:pointer'; return v; }});
+        this.grid.addColumn({text: common.Util.CTR('End Training Date')  , dataIndex: 'end_time'     , width: 140, type: Grid.String, alowEdit: false, editMode: false,
+            renderer: function(v, m) { m.style = 'cursor:pointer'; return v; }});
         this.grid.addColumn({text: common.Util.CTR('Status')             , dataIndex: 'status'       , width: 120, type: Grid.String, alowEdit: false, editMode: false,
-            renderer: function(v, m, r) {
+            renderer: function(v, m) {
                 if (v == common.Util.TR('Training in Progress')) {
                     m.style = 'cursor:pointer';
                 }

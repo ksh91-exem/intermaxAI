@@ -398,12 +398,6 @@ Ext.define('config.config_sysname_form', {
             return false;
         }
 
-        if (desc.indexOf(' ') > -1) {
-            Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Blank Character is not allowed'));
-            self.descEdit.focus();
-            return false;
-        }
-
         var descByteLen = this.getTextLength(desc);
 
         if(descByteLen > 64){
@@ -436,7 +430,7 @@ Ext.define('config.config_sysname_form', {
                         self.nameEdit.focus();
                         return false;
                     } else{
-                        if(parentGrid.getRow(ix).data.sys_id === systemID){
+                        if(+parentGrid.getRow(ix).data.sys_id === systemID){
                             continue;
                         }
                         Ext.Msg.alert(common.Util.TR('ERROR'), common.Util.TR('Name is already registered.'));
@@ -590,6 +584,7 @@ Ext.define('config.config_sysname_form', {
                     if(currentData.start === currentData.end){
                         self.removeAllRefArray();
                         Ext.Msg.alert(common.Util.TR('Message'), common.Util.TR('Save Success'));
+                        self.cancelButton.fireEvent('click');
                     }
                 } else {
                     console.error(result.message);
