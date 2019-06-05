@@ -103,7 +103,7 @@ Ext.define('config.config_metric_form', {
       this.was_grid.addColumn({text: common.Util.TR('Instance')    , dataIndex: 'inst_type', width: 100, type: Grid.Number, alowEdit: false, editMode: false, hide: true});
       this.was_grid.addColumn({text: common.Util.CTR('Name')       , dataIndex: 'metric_id', width: 100, type: Grid.String, alowEdit: false, editMode: false});
       this.was_grid.addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'     , width: 100, type: Grid.String, alowEdit: false, editMode: false});
-      this.was_grid.addColumn({text: common.Util.TR('Use Type')    , dataIndex: 'use_type' , width: 100, type: Grid.Number, alowEdit: false, editMode: false, renderer: this.parent.renderUseType});
+      this.was_grid.addColumn({text: common.Util.TR('isUsed')      , dataIndex: 'use_type' , width: 100, type: Grid.Number, alowEdit: false, editMode: false, renderer: this.parent.renderUseType});
       this.was_grid.addColumn({text: common.Util.TR('Weight')      , dataIndex: 'weight'   , width: 100, type: Grid.Number, alowEdit: false, editMode: false, renderer: this.parent.renderWeight});
       this.was_grid.endAddColumns();
 
@@ -150,7 +150,7 @@ Ext.define('config.config_metric_form', {
           labelAlign: 'right',
           enableKeyEvents: true,
           multiSelect: false,
-          fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('Use Type')),
+          fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('isUsed') + ':'),
           // listeners: {
           //     scope: this,
           //     beforeselect: function(me, record) {
@@ -178,7 +178,7 @@ Ext.define('config.config_metric_form', {
           labelAlign: 'right',
           enableKeyEvents: true,
           multiSelect: false,
-          fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('Weight'))
+          fieldLabel: Comm.RTComm.setFont(9, common.Util.CTR('Weight') + ':')
       });
 
       this.weightComboData    = [];

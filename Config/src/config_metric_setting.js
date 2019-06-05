@@ -306,7 +306,7 @@ Ext.define('config.config_metric_setting', {
             }],
             columns: [
                 { text: common.Util.TR('Name')       , flex: 1, dataIndex: 'metric_id' },
-                { text: common.Util.TR('Use Type')   , flex: 1, dataIndex: 'use_type' , hidden: true, renderer: this.renderUseType },
+                { text: common.Util.TR('isUsed')   , flex: 1, dataIndex: 'use_type' , hidden: true, renderer: this.renderUseType },
                 { text: common.Util.TR('Description'), flex: 1, dataIndex: 'desc' },
                 { text: 'sys_id'                     , flex: 1, dataIndex: 'sys_id'   , hidden: true },
                 { text: common.Util.TR('Instance')   , flex: 1, dataIndex: 'inst_type', hidden: true },
@@ -365,7 +365,7 @@ Ext.define('config.config_metric_setting', {
             }, cellEdit],
             columns: [
                 { text: common.Util.TR('Name')       , flex: 1, dataIndex: 'metric_id' },
-                { text: common.Util.TR('Use Type')   , flex: 1, dataIndex: 'use_type' , hidden: true, renderer: this.renderUseType },
+                { text: common.Util.TR('isUsed')   , flex: 1, dataIndex: 'use_type' , hidden: true, renderer: this.renderUseType },
                 { text: common.Util.TR('Weight')     , flex: 1, dataIndex: 'weight'   , xtype: 'gridcolumn', editor: weightEditOption, renderer: this.renderWeight },
                 { text: common.Util.TR('Description'), flex: 1, dataIndex: 'desc' },
                 { text: 'sys_id'                     , flex: 1, dataIndex: 'sys_id'   , hidden: true },
