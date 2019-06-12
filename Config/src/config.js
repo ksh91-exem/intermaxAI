@@ -148,154 +148,18 @@ Ext.define('config.config', {
         this.area.setVisible(true);
         this.setRepositoryInfo();
 
-        // "My View" 페이지가 기본 페이지로 나오게 하는 부분
-        var defaultTab = Ext.create('config.config_myview');
-
-        var panel = Ext.create('Ext.panel.Panel', {
-            layout  : 'vbox',
-            id      : 'config_myview_panel',
-            width   : '100%',
-            height  : '100%',
-            flex    : 1,
-            title   : common.Util.TR('My Configuration'),
-            closable: false,
-            border  : false
-        });
-
-        cfg.tabpanel.add(panel);
-        try {
-            cfg.tabpanel.setActiveTab(0);
-        } catch(e) {
-            cfg.tabpanel.setActiveTab(0);
-        }
-
-        cfg.tabpanel.items.items[0].id = 'config_myview_panel';
-        cfg.tabpanel.items.items[0].setTitle(common.Util.TR('My Configuration'));
-
-        defaultTab.init(panel);
-
-        // admin_check 상태에 따라 보여질 화면를 조정한다.
-        switch (Comm.web_env_info['admin_check']) {
-            // 일반 모드
-            case 0 :
-                // Repository Configuration
-                Ext.getCmp('config-myview-repoPanel').setVisible(false);
-                // Configuration
-                Ext.getCmp('cfg_menu_configuration').setVisible(false);
-                // Alert Configuration
-                Ext.getCmp('cfg_menu_alertconfiguration').setVisible(false);
-                // Business Configuration
-                Ext.getCmp('cfg_menu_businessconfiguration').setVisible(false);
-                // Repository Configuration
-                Ext.getCmp('cfg_menu_repositoryconfiguration').setVisible(false);
-                // Property Configuration
-                Ext.getCmp('cfg_menu_propertyconfiguration').setVisible(false);
-                // Sender History
-                Ext.getCmp('cfg_menu_senderHistory').setVisible(false);
-                // ETE Configuration
-                Ext.getCmp('cfg_menu_eteconfiguration').setVisible(false);
-                // AI Configuration
-                Ext.getCmp('cfg_menu_trainingAI').setVisible(false);
-                Ext.getCmp('cfg_menu_userconfiguration').expand();
-
-                this.treeUserPanel.getRootNode().appendChild({ text: common.Util.TR('My Configuration'), id: 'config_myview', leaf: true });
-                if (Comm.web_env_info['property_load'] === 1) {
-                    this.treeUserPanel.getRootNode().appendChild({ text: common.Util.TR('JSPD Property Configuration'), id: 'config_propertyconfig', leaf: true });
-                }
-                break;
-            // 관리자 모드
-            case 1 :
-                var rootnode = this.treeUserPanel.getRootNode();
-                rootnode.appendChild({ text: common.Util.TR('My Configuration'),            id: 'config_myview',                    leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('User Accounts'),               id: 'config_userlist',                  leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('User Privileges'),             id: 'config_userpermission',            leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('User Access IP Settings'),     id: 'config_user_access_ip_setting',    leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('Service Privileges'),          id: 'config_userservice',               leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('Service Order Settings'),      id: 'config_user_service_ordering',     leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('Group/Agent Order Settings'),  id: 'config_groupwas_ordering',         leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('Trace Setting'),               id: 'config_trace_list_setting',        leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('SMS Receive Setting'),         id: 'config_sms_receive_setting',       leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('SMS Receive Group Setting'),   id: 'config_sms_receive_group_setting', leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('SMS Destination Agent Settings'),  id: 'config_sms_destination_agent_setting', leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('Report Setting'),              id: 'config_report_setting',            leaf: true });
-
-                rootnode = this.treeAlertPanel.getRootNode();
-                rootnode.appendChild({ text: common.Util.TR('WAS Agent List'),                  id: 'config_alertWAS',               leaf: true });
-                if ( !window.isIMXNonDB ){
-                    rootnode.appendChild({ text: common.Util.TR('DB List'),                     id: 'config_alertDB',                leaf: true });
-                }
-                rootnode.appendChild({ text: common.Util.TR('Host List'),                   id: 'config_alertHost',              leaf: true});
-                rootnode.appendChild({ text: common.Util.TR('SMS Mapping'),                 id: 'config_alertSMS',               leaf: true});
-                rootnode.appendChild({ text: common.Util.TR('APIM Agent List'),             id: 'config_alertAPIM',              leaf: true});
-                rootnode.appendChild({ text: common.Util.TR('TP Agent List'),               id: 'config_alertTP',                leaf: true});
-                rootnode.appendChild({ text: common.Util.TR('Business List'),               id: 'config_alertBusiness',          leaf: true});
-
-                rootnode = this.treeBusinessPanel.getRootNode();
-                rootnode.appendChild({ text: common.Util.TR('Business Transaction Name'),   id: 'config_alertBusinessTxnName',   leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('Business Class Name'),         id: 'config_alertBusinessClassName', leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('Business Block Settings'),     id: 'config_blockSettings',          leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('Business Block History'),      id: 'config_blockListHistory',       leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('Business Register'),           id: 'config_businessRegister',       leaf: true });
-                rootnode.appendChild({ text: common.Util.TR('Business Tier Exclusion Register'), id: 'config_businessTierExclusionRegister', leaf: true });
-
-                rootnode = this.treeRepositoryPanel.getRootNode();
-                rootnode.appendChild({ text: common.Util.TR('Partition Manager'),           id: 'config_alertParitionManager',   leaf: true });
-
-                rootnode = this.treePropertyPanel.getRootNode();
-                rootnode.appendChild({ text: common.Util.TR('JSPD Property Configuration'), id: 'config_propertyconfig',         leaf: true });
-
-                rootnode = this.treeSenderHistoryPanel.getRootNode();
-                rootnode.appendChild({text: common.Util.TR('Sender History'),               id: 'config_senderHistory',          leaf: true});
-
-                rootnode = this.treeETEPanel.getRootNode();
-                rootnode.appendChild({text: common.Util.TR('Tier Code Enrollment'),             id: 'config_tier_code_enrollment',      leaf: true});
-                rootnode.appendChild({text: common.Util.TR('Tier Information Management'),      id: 'config_tier_information',          leaf: true});
-                rootnode.appendChild({text: common.Util.TR('Tier Information Order Settings'),  id: 'config_tier_information_ordering', leaf: true});
-                //rootnode.appendChild({text: common.Util.TR('SLA Settings Management'),          id: 'config_SLA_settings',              leaf: true});
-
-                rootnode = this.treeAIPanel.getRootNode();
-                rootnode.appendChild({text: common.Util.TR('AI Learning Setting'),             id: 'config_ai_learning_setting',      leaf: true});
-                break;
-            default :
-                break;
-        }
-
-        Ext.getCmp('config_execute_rtm').setVisible(false);
-        Ext.getCmp('config_execute_pa').setVisible(false);
-
-        var url = document.URL.split('/');
-        for (var ix = 0; ix < url.length; ix++) {
-            if (url[4].toUpperCase() === 'CONFIG') {
-                Ext.getCmp('config_execute_rtm').setVisible(true);
-                Ext.getCmp('config_execute_pa').setVisible(false);
-                break;
+        // 기본페이지를 System Settings로 설정
+        var initialTabRecord = {
+            data: {
+                id: 'config_system_setting',
+                text: common.Util.TR('System Settings'),
             }
         }
+        
+        this.addTab(initialTabRecord);
 
-
-
-        //1506.25 webserver는 설정된 값이 없으면 아예 패널조차 보이게 하지않도록 by정과장님 min.
-        var self = this ;
-        var dataSet = {};
-
-
-        dataSet.sql_file = 'IMXConfig_WsInfo_Count.sql' ;
-        if(common.Util.isMultiRepository()){
-            dataSet.database = cfg.repositoryInfo.currentRepoName;
-        }
-
-        WS.SQLExec(dataSet, function( header, data ){
-
-            var root_node = self.treeAlertPanel.getRootNode();
-
-            if ( data.rows[0][0] != '0' ){
-                root_node.appendChild({ text: common.Util.TR('Webserver List'),  id: 'config_alertWebServer', leaf: true });
-            }
-
-            dataSet.sql_file = null;
-            self = null ;
-
-        }) ;
+        // // admin_check 상태에 따라 보여질 화면를 조정한다.
+        // switch (Comm.web_env_info['admin_check']) {}
     },
 
     menuClick: function(s, r) {
