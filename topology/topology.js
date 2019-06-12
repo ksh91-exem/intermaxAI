@@ -15,15 +15,22 @@ var XMTopology = function() {
     this.fpsInterval = 1000 / this.fps;
     this.fpsNow = null;
     this.fpsThen = Date.now();
-
+    this.zoomRate = 100 / 100;
+    this.viewGroup = '';
     this.nodePath = {};
     this.linePath = {};
     this.nodeList = [];
+    this.tierList = [];
     this.displayNodeList = [];
     this.subNodeList = [];
-
     this.nodeMap  = {};
+    this.webMap = {};
 
+    this.orginNodeName = null;
+    this.selectedDrawObj = null;
+    this.selectedRelationObj = [];
+    this.selectedLineObj = [];
+    this.multiSelectedNode = [];
     this.groupList           = [];
     this.selectGroupIdArr    = [];
     this.nodeNameBoxList     = [];
@@ -46,6 +53,7 @@ var XMTopology = function() {
 
     // 선택된 그룹 노드
     this.selectedGroupCircle = null;
+    this.nodeMenuTarget     = null;
 
     this.groupCanvasList    = [];
     this.childCanvasList    = [];
@@ -59,6 +67,7 @@ var XMTopology = function() {
     this.clikIconPt   = null;
     this.xviewIconPt  = null;
     this.zoomIconPt   = null;
+    this.deleteIconPt = null;
     this.groupIconPt  = null;
     this.folderViewPt = null;
     this.groupChildPt = null;
@@ -70,7 +79,11 @@ var XMTopology = function() {
     this.isInit                     = false;
     this.isDisplayGroupMode         = false;
     this.isCheckCreateGroup         = false;
+    this.isNodeSelected             = false;
     this.isNodeDragMove             = false;
+    this.mouseisMoving              = false;
+    this.isAreaDraging              = false;
+    this.isCtrlNode                 = false;
     this.isRemoteInfoTextRotate     = false;
     this.isDisplayRemoteActiveCount = true;
     this.isDisplayAgentType         = false;
@@ -86,11 +99,15 @@ var XMTopology = function() {
     this.isCenterDetailLayout       = true;
     this.isDrawingLayout            = false;
     this.isDrawFrame                = true;
+    this.isSelectedDrawing          = false;
 
+    this.isAlarmDrawing             = false;
     this.isAlarmAnimate             = true;
     this.isLineAnimate              = true;
-
     this.limitAnimateNodeCount = 60;
+
+    this.isFocusWebNode     = false;
+    this.isClickWebNode     = false;
 
     this.selectNodeObj         = null;
     this.folderImgCnt          = undefined;
@@ -107,6 +124,9 @@ var XMTopology = function() {
     this.openCallTree     = null;         // 실시간 트랜잭션 경로 모드일 경우, 콜트리 화면 표시 함수
     this.openFullSQLText  = null;         // 실시간 트랜잭션 경로 모드일 경우, SQL 전문보기 화면 표시 함수
 
+    this.mouseX = 0;
+    this.mouseY = 0;
+
 };
 
 XMTopology.prototype = {
@@ -119,69 +139,88 @@ XMTopology.prototype = {
 
     // ALARM DEFINE ----------------------------------------------------------------------
     alarmType: {
-        NORMAL   : 0,
-        WARNING  : 1,
-        CRITICAL : 2,
-        DOWN     : 3
+        NORMAL: 0,
+        WARNING: 1,
+        CRITICAL: 2,
+        DOWN: 3
     },
 
     // Icon Image Position DEFINE --------------------------------------------------------
     imagePoint: {
-        xview        : {x: 12,  y: 324, w: 13,  h: 15},
-        zoom         : {x: 37,  y: 324, w: 14,  h: 14},
-        group        : {x: 60,  y: 324, w: 17,  h: 14},
-        tuxedo       : {x: 23,  y: 3,   w: 64,  h: 55},
-        tp           : {x: 23,  y: 66,  w: 64,  h: 55}, // tmax icon image
-        http         : {x: 8,   y: 128, w: 91,  h: 54},
-        tcp          : {x: 8,   y: 192, w: 91,  h: 54},
-        sap          : {x: 23,  y: 256, w: 64,  h: 55},
-        mssql        : {x: 132, y: 5,   w: 59,  h: 65},
-        sqlserver    : {x: 132, y: 5,   w: 59,  h: 65},
-        ms           : {x: 207, y: 5,   w: 55,  h: 65},
-        oracle       : {x: 132, y: 70,  w: 59,  h: 65},
-        pg           : {x: 207, y: 70,  w: 55,  h: 65},
-        postgresql   : {x: 132, y: 140, w: 59,  h: 65},
-        infomix      : {x: 132, y: 211, w: 59,  h: 65},
-        sysbase      : {x: 207, y: 211, w: 55,  h: 65},
-        mysql        : {x: 132, y: 281, w: 59,  h: 65},
-        db           : {x: 293, y: 397, w: 59,  h: 65},
-        down_db      : {x: 293, y: 467, w: 59,  h: 65},
-        warning_db   : {x: 293, y: 538, w: 59,  h: 65},
-        critical_db  : {x: 293, y: 608, w: 59,  h: 65},
-        xicon        : {x: 82,  y: 326, w: 11,  h: 11},
-        xiconover    : {x: 94,  y: 326, w: 11,  h: 11},
-        folder       : {x: 0,   y: 0,   w: 79,  h: 73},
-        folder00     : {x: 277, y: 3,   w: 79,  h: 70},
-        folder01     : {x: 277, y: 81,  w: 79,  h: 70},
-        folder02     : {x: 277, y: 160, w: 79,  h: 70},
-        folder03     : {x: 277, y: 238, w: 79,  h: 70},
-        folder04     : {x: 277, y: 316, w: 79,  h: 70},
+        xview: {x: 12, y: 324, w: 13, h: 15},
+        zoom: {x: 37, y: 324, w: 14, h: 14},
+        group: {x: 60, y: 324, w: 17, h: 14},
+        tuxedo: {x: 23, y: 3, w: 64, h: 55},
+        tp: {x: 23, y: 66, w: 64, h: 55}, // tmax icon image
+        http: {x: 8, y: 128, w: 91, h: 54},
+        tcp: {x: 8, y: 192, w: 91, h: 54},
+        down_http: {x: 8, y: 486, w: 91, h: 54},
+        down_tcp: {x: 8, y: 550, w: 91, h: 54},
+        sap: {x: 23, y: 256, w: 64, h: 55},
+        mssql: {x: 132, y: 5, w: 59, h: 65},
+        sqlserver: {x: 132, y: 5, w: 59, h: 65},
+        ms: {x: 207, y: 5, w: 55, h: 65},
+        oracle: {x: 132, y: 70, w: 59, h: 65},
+        pg: {x: 207, y: 70, w: 55, h: 65},
+        postgresql: {x: 132, y: 140, w: 59, h: 65},
+        infomix: {x: 132, y: 211, w: 59, h: 65},
+        sysbase: {x: 207, y: 211, w: 55, h: 65},
+        mysql: {x: 132, y: 281, w: 59, h: 65},
+        db: {x: 293, y: 397, w: 59, h: 65},
+        down_db: {x: 293, y: 467, w: 59, h: 65},
+        warning_db: {x: 293, y: 538, w: 59, h: 65},
+        critical_db: {x: 293, y: 608, w: 59, h: 65},
+        xicon: {x: 82, y: 326, w: 11, h: 11},
+        xiconover: {x: 94, y: 326, w: 11, h: 11},
+        folder: {x: 0, y: 0, w: 79, h: 73},
+        folder00: {x: 277, y: 3, w: 79, h: 70},
+        folder01: {x: 277, y: 81, w: 79, h: 70},
+        folder02: {x: 277, y: 160, w: 79, h: 70},
+        folder03: {x: 277, y: 238, w: 79, h: 70},
+        folder04: {x: 277, y: 316, w: 79, h: 70},
 
-        tuxedo_group   : {x: 386,  y: 3,   w: 76,  h: 71},
-        server_group   : {x: 386,  y: 3,   w: 76,  h: 71},
-        oracle_group   : {x: 386,  y: 81,  w: 76,  h: 71},
-        cloud_group    : {x: 386,  y: 159, w: 76,  h: 71},
-        http_group     : {x: 386,  y: 159, w: 76,  h: 71},
-        tcp_group      : {x: 386,  y: 240, w: 76,  h: 71},
-        server_db      : {x: 386,  y: 324, w: 76,  h: 71},
-        db_cloud       : {x: 386,  y: 404, w: 76,  h: 71},
-        server_cloud   : {x: 386,  y: 484, w: 76,  h: 71},
-        server_db_cloud: {x: 386,  y: 564, w: 76,  h: 71},
+        tuxedo_group: {x: 386, y: 3, w: 76, h: 71},
+        server_group: {x: 386, y: 3, w: 76, h: 71},
+        oracle_group: {x: 386, y: 81, w: 76, h: 71},
+        cloud_group: {x: 386, y: 159, w: 76, h: 71},
+        http_group: {x: 386, y: 159, w: 76, h: 71},
+        tcp_group: {x: 386, y: 240, w: 76, h: 71},
+        server_db: {x: 386, y: 324, w: 76, h: 71},
+        db_cloud: {x: 386, y: 404, w: 76, h: 71},
+        server_cloud: {x: 386, y: 484, w: 76, h: 71},
+        server_db_cloud: {x: 386, y: 564, w: 76, h: 71},
 
-        down_tuxedo_group   : {x: 469,  y: 3,   w: 76,  h: 71},
-        down_server_group   : {x: 469,  y: 3,   w: 76,  h: 71},
-        down_oracle_group   : {x: 469,  y: 81,  w: 76,  h: 71},
-        down_cloud_group    : {x: 469,  y: 159, w: 76,  h: 71},
-        down_http_group     : {x: 469,  y: 159, w: 76,  h: 71},
-        down_tcp_group      : {x: 469,  y: 240, w: 76,  h: 71},
-        down_server_db      : {x: 469,  y: 324, w: 76,  h: 71},
-        down_db_cloud       : {x: 469,  y: 404, w: 76,  h: 71},
-        down_server_cloud   : {x: 469,  y: 484, w: 76,  h: 71},
-        down_server_db_cloud: {x: 469,  y: 564, w: 76,  h: 71}
+        down_tuxedo_group: {x: 469, y: 3, w: 76, h: 71},
+        down_server_group: {x: 469, y: 3, w: 76, h: 71},
+        down_oracle_group: {x: 469, y: 81, w: 76, h: 71},
+        down_cloud_group: {x: 469, y: 159, w: 76, h: 71},
+        down_http_group: {x: 469, y: 159, w: 76, h: 71},
+        down_tcp_group: {x: 469, y: 240, w: 76, h: 71},
+        down_server_db: {x: 469, y: 324, w: 76, h: 71},
+        down_db_cloud: {x: 469, y: 404, w: 76, h: 71},
+        down_server_cloud: {x: 469, y: 484, w: 76, h: 71},
+        down_server_db_cloud: {x: 469, y: 564, w: 76, h: 71},
+
+        group_split: {x: 43, y: 679, w: 20, h: 20},
+        group_split_over: {x: 43, y: 699, w: 20, h: 20},
+        group_close: {x: 22, y: 679, w: 20, h: 20},
+        group_close_over: {x: 22, y: 699, w: 20, h: 20},
+
+        node_close: {x: 1, y: 679, w: 20, h: 20},
+        node_close_over: {x: 1, y: 699, w: 20, h: 20},
+        node_warn_close: {x: 64, y: 679, w: 20, h: 20},
+        node_warn_close_over: {x: 64, y: 699, w: 20, h: 20},
+        node_crit_close: {x: 85, y: 679, w: 20, h: 20},
+        node_crit_close_over: {x: 85, y: 699, w: 20, h: 20},
+        node_down_close: {x: 106, y: 679, w: 20, h: 20},
+        node_down_close_over: {x: 106, y: 699, w: 20, h: 20}
     },
 
     // Init ------------------------------------------------------------------------------
     init: function() {
+        var target = this.target || document.body;
+        this.zoomRate = this.zoomPercent / 100;
+
         if (!this.isImageLoad) {
             this.iconImg = new Image();
             this.iconImg.src = this.property.iconImg.src;
@@ -199,11 +238,10 @@ XMTopology.prototype = {
             this.getInitInfo();
         }
 
-        this.isFullCloudName    = common.Menu.topologyCloudFullName;
+        this.isFullCloudName = common.Menu.topologyCloudFullName;
         this.isDisplayCloudNode = common.Menu.topologyEnableCloud;
-        this.isDisplayTmaxNode  = common.Menu.topologyEnableTmax;
+        this.isDisplayTmaxNode = common.Menu.topologyEnableTmax;
 
-        var target = this.target || document.body;
         target.classList.add('topology');
 
         if (!this.target) {
@@ -211,40 +249,37 @@ XMTopology.prototype = {
         }
 
         this.displayCanvas = document.createElement('canvas');
-        this.canvas = document.createElement('canvas');      // 버퍼 캔버스
-
-        this.lineCanvas       = document.createElement('canvas');
+        this.nodeCanvas = document.createElement('canvas');      // 버퍼 캔버스
+        this.tierCanvas = document.createElement('canvas');
+        this.moveCanvas = document.createElement('canvas');
         this.lineEffectCanvas = document.createElement('canvas');
-        this.dragCanvas       = document.createElement('canvas');
-        this.groupCanvas      = document.createElement('canvas');
+        this.dragCanvas = document.createElement('canvas');
+        this.groupCanvas = document.createElement('canvas');
         this.groupChildCanvas = document.createElement('canvas');
-        this.navigateCanvas   = document.createElement('canvas');
-        this.nodeInfoCanvas   = document.createElement('canvas');
-        this.overCanvas       = document.createElement('canvas');
-        this.alarmCanvas      = document.createElement('canvas');
-
-        this.displayLineCanvas = document.createElement('canvas');
-
+        this.navigateCanvas = document.createElement('canvas');
+        // this.nodeInfoCanvas   = document.createElement('canvas');
+        this.overCanvas = document.createElement('canvas');
+        this.alarmCanvas = document.createElement('canvas');
         this.groupNameInputBox = document.createElement('input');
         this.groupNameInputBox.style.display = 'none';
         this.groupNameInputBox.style.position = 'absolute';
 
-        //this.lineCanvas.className       = 'topology-line-canvas';
-        this.displayLineCanvas.className= 'topology-line-canvas';
+        this.tierCanvas.className = 'topology-tier-canvas';
+        this.moveCanvas.className = 'topology-move-canvas';
         this.lineEffectCanvas.className = 'topology-line-effect-canvas';
-        this.dragCanvas.className       = 'topology-drag-canvas';
-        this.groupCanvas.className      = 'topology-group-canvas first';
+        this.dragCanvas.className = 'topology-drag-canvas';
+        this.groupCanvas.className = 'topology-group-canvas first';
         this.groupChildCanvas.className = 'topology-groupchild-canvas first';
-        this.navigateCanvas.className   = 'topology-navigate-canvas';
-        this.nodeInfoCanvas.className   = 'topology-nodeinfo-canvas';
+        this.navigateCanvas.className = 'topology-navigate-canvas';
+        // this.nodeInfoCanvas.className   = 'topology-nodeinfo-canvas';
 
-        this.overCanvas.className       = 'topology-over-canvas first';
+        this.overCanvas.className = 'topology-over-canvas first';
 
-        this.alarmCanvas.className      = 'topology-alarm-canvas';
+        this.alarmCanvas.className = 'topology-alarm-canvas';
 
-        //target.appendChild(this.lineCanvas);
-        //target.appendChild(this.canvas);
-        target.appendChild(this.displayLineCanvas);
+        //target.appendChild(this.nodeCanvas);
+        target.appendChild(this.moveCanvas);
+        target.appendChild(this.tierCanvas);
         target.appendChild(this.displayCanvas);
         target.appendChild(this.alarmCanvas);
         target.appendChild(this.lineEffectCanvas);
@@ -252,23 +287,25 @@ XMTopology.prototype = {
         target.appendChild(this.groupCanvas);
         target.appendChild(this.groupChildCanvas);
         target.appendChild(this.navigateCanvas);
-        target.appendChild(this.nodeInfoCanvas);
+        // target.appendChild(this.nodeInfoCanvas);
         target.appendChild(this.dragCanvas);
         target.appendChild(this.groupNameInputBox);
 
-        //this.lineCanvas.style.zIndex = 0;
-        this.displayLineCanvas.style.zIndex = 0;
-        this.displayCanvas.style.zIndex     = 1;
-        this.alarmCanvas.style.zIndex       = 2;
-        this.lineEffectCanvas.style.zIndex  = 3;
-        this.overCanvas.style.zIndex        = 4;
+        //this.nodeCanvas.style.zIndex = 0;
+        this.tierCanvas.style.zIndex = 0;
+        this.alarmCanvas.style.zIndex = 1;
+        this.displayCanvas.style.zIndex = 2;
 
-        this.groupCanvas.style.zIndex       = 5;
-        this.groupChildCanvas.style.zIndex  = 6;
+        this.moveCanvas.style.zIndex = 3;
+        this.lineEffectCanvas.style.zIndex = 4;
+        this.overCanvas.style.zIndex = 5;
 
-        this.navigateCanvas.style.zIndex    = 130;
-        this.nodeInfoCanvas.style.zIndex    = 140;
-        this.dragCanvas.style.zIndex        = 150;
+        this.groupCanvas.style.zIndex = 6;
+        this.groupChildCanvas.style.zIndex = 7;
+
+        this.navigateCanvas.style.zIndex = 130;
+        // this.nodeInfoCanvas.style.zIndex    = 140;
+        this.dragCanvas.style.zIndex = 150;
         this.groupNameInputBox.style.zIndex = 160;
 
         this.componentHeight = $(target).height();
@@ -276,29 +313,23 @@ XMTopology.prototype = {
         this.maxNodePosY = this.componentHeight;
         this.maxNodePosX = this.componentWidth;
 
-        this.canvas.width = this.componentWidth;
-        this.canvas.height = this.componentHeight;
-        this.canvas.style.top = '0px';
-        this.canvas.style.left = '0px';
-        this.canvas.style.position = 'absolute';
+        this.nodeCanvas.width = this.componentWidth;
+        this.nodeCanvas.height = this.componentHeight;
+        this.nodeCanvas.style.top = '0px';
+        this.nodeCanvas.style.left = '0px';
+        this.nodeCanvas.style.position = 'absolute';
+
+        this.moveCanvas.width = 0;
+        this.moveCanvas.height = 0;
+        this.moveCanvas.style.top = '0px';
+        this.moveCanvas.style.left = '0px';
+        this.moveCanvas.style.position = 'absolute';
 
         this.displayCanvas.width = this.componentWidth;
         this.displayCanvas.height = this.componentHeight;
         this.displayCanvas.style.top = '0px';
         this.displayCanvas.style.left = '0px';
         this.displayCanvas.style.position = 'absolute';
-
-        this.lineCanvas.width = this.componentWidth;
-        this.lineCanvas.height = this.componentHeight;
-        this.lineCanvas.style.top = '0px';
-        this.lineCanvas.style.left = '0px';
-        this.lineCanvas.style.position = 'absolute';
-
-        this.displayLineCanvas.width = this.componentWidth;
-        this.displayLineCanvas.height = this.componentHeight;
-        this.displayLineCanvas.style.top = '0px';
-        this.displayLineCanvas.style.left = '0px';
-        this.displayLineCanvas.style.position = 'absolute';
 
         this.lineEffectCanvas.width = this.componentWidth;
         this.lineEffectCanvas.height = this.componentHeight;
@@ -330,12 +361,6 @@ XMTopology.prototype = {
         this.navigateCanvas.style.left = '0px';
         this.navigateCanvas.style.position = 'absolute';
 
-        this.nodeInfoCanvas.width = this.componentWidth;
-        this.nodeInfoCanvas.height = this.componentHeight;
-        this.nodeInfoCanvas.style.top = '0px';
-        this.nodeInfoCanvas.style.left = '0px';
-        this.nodeInfoCanvas.style.position = 'absolute';
-
         this.overCanvas.width = 0;
         this.overCanvas.height = 0;
         this.overCanvas.style.top = '0px';
@@ -348,32 +373,35 @@ XMTopology.prototype = {
         this.alarmCanvas.style.left = '0px';
         this.alarmCanvas.style.position = 'absolute';
 
-        this.ctx              = this.canvas.getContext('2d');
-        this.displayCtx       = this.displayCanvas.getContext('2d');
-        this.lineCtx          = this.lineCanvas.getContext('2d');
-        this.displayLineCtx   = this.displayLineCanvas.getContext('2d');
-        this.lineEffectCtx    = this.lineEffectCanvas.getContext('2d');
-        this.dragCtx          = this.dragCanvas.getContext('2d');
-        this.groupCtx         = this.groupCanvas.getContext('2d');
-        this.groupChildCtx    = this.groupChildCanvas.getContext('2d');
-        this.naviCtx          = this.navigateCanvas.getContext('2d');
-        this.nodeInfoCtx      = this.nodeInfoCanvas.getContext('2d');
-        this.overCtx          = this.overCanvas.getContext('2d');
-        this.alarmCtx         = this.alarmCanvas.getContext('2d');
+        this.tierCanvas.width = this.componentWidth;
+        this.tierCanvas.height = this.componentHeight;
+        this.tierCanvas.style.top = '0px';
+        this.tierCanvas.style.left = '0px';
+        this.tierCanvas.style.position = 'absolute';
 
+        this.tierCtx = this.tierCanvas.getContext('2d');
+        this.nodeCtx = this.nodeCanvas.getContext('2d');
+        this.moveCtx = this.moveCanvas.getContext('2d');
+        this.displayCtx = this.displayCanvas.getContext('2d');
+        this.lineEffectCtx = this.lineEffectCanvas.getContext('2d');
+        this.dragCtx = this.dragCanvas.getContext('2d');
+        this.groupCtx = this.groupCanvas.getContext('2d');
+        this.groupChildCtx = this.groupChildCanvas.getContext('2d');
+        this.naviCtx = this.navigateCanvas.getContext('2d');
+        this.overCtx = this.overCanvas.getContext('2d');
+        this.alarmCtx = this.alarmCanvas.getContext('2d');
 
         this.groupCanvasList[this.groupCanvasList.length] = this.groupCanvas;
         this.childCanvasList[this.childCanvasList.length] = this.groupChildCanvas;
 
-        this.groupContextList[this.groupContextList.length]     = this.groupCtx;
+        this.groupContextList[this.groupContextList.length] = this.groupCtx;
         this.groupChildCtxtList[this.groupChildCtxtList.length] = this.groupChildCtx;
 
-
         // Add linear gradient -----------------------------------------------------------
-        this.applyAngle = function (point, angle, distance) {
+        this.applyAngle = function(point, angle, distance) {
             return {
-                  x : point.x + (Math.cos(angle) * distance),
-                  y : point.y + (Math.sin(angle) * distance)
+                x: point.x + (Math.cos(angle) * distance),
+                y: point.y + (Math.sin(angle) * distance)
             };
         };
 
@@ -400,11 +428,11 @@ XMTopology.prototype = {
      */
     nodePathInit: function() {
         var ix, ixLen;
+        var nodeObj, lineObj;
 
         this.nodePath = {};
         this.linePath = {};
 
-        var nodeObj, lineObj;
 
         for (ix = 0, ixLen = this.lineList.length; ix < ixLen; ix++) {
 
@@ -420,8 +448,8 @@ XMTopology.prototype = {
                 this.linePath[lineObj.from] = [];
             }
 
-            this.nodePath[lineObj.from].push( nodeObj );
-            this.linePath[lineObj.from].push( lineObj );
+            this.nodePath[lineObj.from].push(nodeObj);
+            this.linePath[lineObj.from].push(lineObj);
         }
 
         if (this.lineList) {
@@ -431,14 +459,15 @@ XMTopology.prototype = {
             this.lineEffectList.isLineAnimate = this.isLineAnimate;
 
             if (this.lineEffectCanvas) {
-                this.lineEffectList.lineList     = this.lineList;
+                this.lineEffectList.lineList = this.lineList;
                 this.lineEffectList.drawLineList = this.remoteWasList;
-                this.lineEffectList.nodeList     = this.nodeList;
-                this.lineEffectList.nodeMap      = this.nodeMap;
-                this.lineEffectList.canvasWidth  = this.lineEffectCanvas.width;
+                this.lineEffectList.nodeList = this.nodeList;
+                this.lineEffectList.nodeMap = this.nodeMap;
+                this.lineEffectList.canvasWidth = this.lineEffectCanvas.width;
                 this.lineEffectList.canvasHeight = this.lineEffectCanvas.height;
+                this.lineEffectList.ballZoomRate = this.zoomRate;
 
-                if (this.lineEffectList.isDrawing === false) {
+                if (!this.lineEffectList.isDrawing && this.isLineAnimate) {
                     this.lineEffectList.drawLineEffect(0);
                 }
             }
@@ -455,7 +484,7 @@ XMTopology.prototype = {
     refreshTxnPathData: function() {
         this.stopRefreshTxnPath();
 
-        if (this.isTxnPathRefresh === true) {
+        if (this.isTxnPathRefresh) {
             this.canvasTxnPathDraw();
         }
         this.refreshTxnPathTimerId = setTimeout(this.refreshTxnPathData.bind(this), 1000);
@@ -479,7 +508,7 @@ XMTopology.prototype = {
             clearTimeout(this.refreshTimerId);
         }
 
-        if (this.isRealDragDraw !== true) {
+        if (!this.isRealDragDraw) {
             this.canvasDraw();
         }
 
@@ -490,12 +519,14 @@ XMTopology.prototype = {
     /**
      */
     repeatCheckCountData: function() {
+        var ix;
+        var lastTime;
+
         if (this.repeatCheckTimerId) {
             clearTimeout(this.repeatCheckTimerId);
         }
 
-        var lastTime;
-        for (var ix = 0; ix < this.remoteWasList.length; ) {
+        for (ix = 0; ix < this.remoteWasList.length;) {
             lastTime = this.lastReceiveCount[this.remoteWasList[ix][0]];
             this.diffSec = Ext.Date.diff(lastTime, new Date(), Ext.Date.SECOND);
 
@@ -507,23 +538,26 @@ XMTopology.prototype = {
             ix++;
         }
 
-        this.repeatCheckTimerId = setTimeout(this.repeatCheckCountData.bind(this), 1000*3);
+        this.repeatCheckTimerId = setTimeout(this.repeatCheckCountData.bind(this), 1000 * 3);
     },
 
 
     /**
      */
     repeatCheckLastDest: function() {
+        var ix;
+        var diffSec;
+        var lastTime;
+        var keys;
+
         if (this.lastDestCheckTimeId) {
             clearTimeout(this.lastDestCheckTimeId);
         }
 
         if (this.activateDest) {
-            var diffSec;
-            var lastTime;
-            var keys = Object.keys(this.activateDest);
+            keys = Object.keys(this.activateDest);
 
-            for (var ix = 0; ix < keys.length; ix++) {
+            for (ix = 0; ix < keys.length; ix++) {
                 lastTime = this.lastReceiveDest[keys[ix]];
                 diffSec = Ext.Date.diff(lastTime, new Date(), Ext.Date.SECOND);
 
@@ -533,7 +567,7 @@ XMTopology.prototype = {
             }
         }
 
-        this.lastDestCheckTimeId = setTimeout(this.repeatCheckLastDest.bind(this), 1000*3);
+        this.lastDestCheckTimeId = setTimeout(this.repeatCheckLastDest.bind(this), 1000 * 3);
     },
 
 
@@ -545,9 +579,10 @@ XMTopology.prototype = {
      */
     checkOldReceiveData: function(lastTime) {
         var isOldData = false;
+        var diffSec;
 
         if (lastTime) {
-            var diffSec = Ext.Date.diff(new Date(lastTime), new Date(), Ext.Date.SECOND);
+            diffSec = Ext.Date.diff(new Date(lastTime), new Date(), Ext.Date.SECOND);
             if (diffSec > 3) {
                 isOldData = true;
             }
@@ -586,11 +621,11 @@ XMTopology.prototype = {
      */
     canvasTxnPathDraw: function() {
 
-        this.clearLayout();
-        this.clearLineLayout();
+        this.clearNodeLayout();
 
-        this.drawTxnNodeLayout();
         this.drawTxnLineLayout();
+        this.drawTxnNodeLayout();
+
     },
 
 
@@ -598,35 +633,55 @@ XMTopology.prototype = {
      * 토폴로지 뷰 구성 요소들 그리기
      */
     canvasDraw: function() {
-        if (this.isInit !== true || !this.isDrawFrame) {
+        if (!this.isInit || !this.isDrawFrame || this.isSelectedDrawing) {
             return;
         }
 
-        this.clearLayout();
-        this.clearLineLayout();
-        this.clearNodeInfoLayout();
+        this.clearNodeLayout();
 
         this.checkServerStatus();
-        this.drawLineLayout();
-        this.drawNodeLayout();
+        this.drawLineLayout(this.nodeCtx);
+        this.drawNodeLayout(this.nodeCtx);
 
         if (this.isDisplayGroupMode && this.selectedGroupCircle && this.selectedGroupCircle.isGroupMode) {
             this.clearGroupChildLayout();
 
             // 선택된 노드에 웹 서버가 포함된 경우는 그룹을 분리하는 버튼을 표시하지 않는다.
-            if (!this.selectedGroupCircle.isWebContain) {
+            if (!this.selectedGroupCircle.isWebContain || !this.isClickWebNode) {
                 this.drawGroupSplitX(this.selectedGroupCircle, this.getGroupCircleRadius(this.selectedGroupCircle.childList.length, this.groupCircleRadius));
+                this.drawGroupCloseX(this.selectedGroupCircle, this.getGroupCircleRadius(this.selectedGroupCircle.childList.length, this.groupCircleRadius));
+            } else {
+                this.drawGroupCloseX(this.selectedGroupCircle, this.getGroupCircleRadius(this.selectedGroupCircle.webList.length, this.groupCircleRadius));
             }
-            this.drawGroupCloseX(this.selectedGroupCircle, this.getGroupCircleRadius(this.selectedGroupCircle.childList.length, this.groupCircleRadius));
+
             this.drawGroupChild(this.selectedGroupCircle);
         }
+    },
+
+    canvasSelectedDraw: function(backHide) {
+        if (!this.isInit || !this.isDrawFrame) {
+            return;
+        }
+
+        if (this.moveCtx) {
+            this.moveCtx.clearRect(0, 0, this.componentWidth, this.componentHeight);
+        }
+
+        if (backHide) {
+            this.moveCtx.save();
+            this.moveCtx.fillStyle = 'rgba(' + this.getHexToRgb('#212227') + ',' + 0.6 + ')';
+            this.moveCtx.fillRect(0, 0, this.componentWidth, this.componentHeight);
+            this.moveCtx.restore();
+        }
+
+        this.drawLineLayout(this.moveCtx);
+        this.drawNodeLayout(this.moveCtx);
 
     },
 
-
-    clearLayout: function() {
-        if (this.ctx) {
-            this.ctx.clearRect(0, 0, this.componentWidth, this.componentHeight);
+    clearNodeLayout: function() {
+        if (this.nodeCtx) {
+            this.nodeCtx.clearRect(0, 0, this.componentWidth, this.componentHeight);
         }
 
         if (this.displayCtx) {
@@ -639,28 +694,13 @@ XMTopology.prototype = {
             this.overCtx.clearRect(0, 0, this.componentWidth, this.componentHeight);
         }
 
-        this.overCanvas.width  = 0;
+        this.overCanvas.width = 0;
         this.overCanvas.height = 0;
-    },
-
-    clearNodeInfoLayout: function() {
-        if (this.nodeInfoCtx) {
-            this.nodeInfoCtx.clearRect(0, 0, this.componentWidth, this.componentHeight);
-        }
     },
 
     clearAlarmLayout: function() {
         if (this.alarmCtx) {
             this.alarmCtx.clearRect(0, 0, this.componentWidth, this.componentHeight);
-        }
-    },
-
-    clearLineLayout: function() {
-        if (this.lineCtx) {
-            this.lineCtx.clearRect(0, 0, this.componentWidth, this.componentHeight);
-        }
-        if (this.displayLineCtx) {
-            this.displayLineCtx.clearRect(0, 0, this.componentWidth, this.componentHeight);
         }
     },
 
@@ -678,24 +718,27 @@ XMTopology.prototype = {
 
     clearGroupLayout: function() {
         if (this.displayGroupViewStep > 1) {
-            this.groupContextList[this.displayGroupViewStep - 1].clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.groupChildCtxtList[this.displayGroupViewStep - 1].clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.groupContextList[this.displayGroupViewStep - 1].clearRect(0, 0, this.nodeCanvas.width, this.nodeCanvas.height);
+            this.groupChildCtxtList[this.displayGroupViewStep - 1].clearRect(0, 0, this.nodeCanvas.width, this.nodeCanvas.height);
 
         } else {
-            this.groupCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.groupChildCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.groupCtx.clearRect(0, 0, this.nodeCanvas.width, this.nodeCanvas.height);
+            this.groupChildCtx.clearRect(0, 0, this.nodeCanvas.width, this.nodeCanvas.height);
         }
 
-        this.naviCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // this.naviCtx.clearRect(0, 0, this.nodeCanvas.width, this.nodeCanvas.height);
+        this.clearNaviLayout();
     },
 
     clearAllGroupLayout: function() {
-        for (var ix = 0, ixLen = this.groupContextList.length; ix < ixLen; ix++) {
-            this.groupContextList[ix].clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.groupChildCtxtList[ix].clearRect(0, 0, this.canvas.width, this.canvas.height);
+        var ix, ixLen;
+        for (ix = 0, ixLen = this.groupContextList.length; ix < ixLen; ix++) {
+            this.groupContextList[ix].clearRect(0, 0, this.nodeCanvas.width, this.nodeCanvas.height);
+            this.groupChildCtxtList[ix].clearRect(0, 0, this.nodeCanvas.width, this.nodeCanvas.height);
         }
 
-        this.naviCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // this.naviCtx.clearRect(0, 0, this.nodeCanvas.width, this.nodeCanvas.height);
+        this.clearNaviLayout();
 
         this.displayGroupViewStep = 0;
         this.selectGroupIdArr.length = 0;
@@ -712,7 +755,17 @@ XMTopology.prototype = {
         }
     },
 
+    clearTierLayout: function() {
+        if (this.tierCtx) {
+            this.tierCtx.clearRect(0, 0, this.tierCanvas.width, this.tierCanvas.height);
+        }
+    },
+
     clearNaviLayout: function() {
+        this.deleteIconPt = null;
+        this.xviewIconPt = null;
+        this.zoomIconPt = null;
+        this.groupIconPt = null;
         this.naviCtx.clearRect(0, 0, this.navigateCanvas.width, this.navigateCanvas.height);
     },
 
@@ -722,89 +775,87 @@ XMTopology.prototype = {
      *
      * @descr 그룹 노드: 노드 갯수, 일반 노드: 에이전트 타입 (JAVA)
      */
-    drawNodeInfo: function(node) {
+    drawNodeInfo: function(node, drawCtx) {
         var cx = node.x;
         var cy = node.y;
+        var appType, serverId, serverType;
 
-        var radius = this.property.outCircle.radius;
+        var radius = this.getSizeValue(this.property.outCircle.radius, 'draw');
+        if (drawCtx === undefined) {
+            drawCtx = this.nodeCtx;
+        }
 
-        this.nodeInfoCtx.beginPath();
-        this.nodeInfoCtx.arc(
-            cx - radius - 18,
-            cy + radius + 4,
-            21,
+        drawCtx.beginPath();
+        drawCtx.arc(
+            cx - radius - (this.getSizeValue(18, 'draw')),
+            cy + radius + (this.getSizeValue(4, 'draw')),
+            this.getSizeValue(21, 'draw'),
             0,
             2 * Math.PI
         );
-        this.nodeInfoCtx.closePath();
+        drawCtx.closePath();
 
         if (node.isHide) {
-            this.nodeInfoCtx.fillStyle = 'transparent';
+            drawCtx.fillStyle = 'transparent';
         } else {
-            this.nodeInfoCtx.fillStyle = 'rgba('+this.getHexToRgb(this.backgroundColor) +','+ 0.2 + ')';;
+            drawCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.backgroundColor) + ',' + 0.2 + ')';
         }
-        this.nodeInfoCtx.fill();
+        drawCtx.fill();
 
-        this.nodeInfoCtx.beginPath();
-        this.nodeInfoCtx.arc(
-            cx - radius - 18,
-            cy + radius + 4,
-            19,
+        drawCtx.beginPath();
+        drawCtx.arc(
+            cx - radius - (this.getSizeValue(18, 'draw')),
+            cy + radius + (this.getSizeValue(4, 'draw')),
+            this.getSizeValue(19, 'draw'),
             0,
             2 * Math.PI
         );
-        this.nodeInfoCtx.closePath();
+        drawCtx.closePath();
 
         if (node.isHide) {
-            this.nodeInfoCtx.fillStyle = 'transparent';
+            drawCtx.fillStyle = 'transparent';
         } else {
-            this.nodeInfoCtx.fillStyle = '#30A0F8';
+            drawCtx.fillStyle = '#30A0F8';
         }
-        this.nodeInfoCtx.fill();
+        drawCtx.fill();
 
-        this.nodeInfoCtx.fillStyle = (node.isHide)? 'transparent' : '#FFFFFF';
-        this.nodeInfoCtx.textAlign = 'center';
+        drawCtx.fillStyle = (node.isHide) ? 'transparent' : '#FFFFFF';
+        drawCtx.textAlign = 'center';
 
         // 노드 에이전트 타입 설정
-        var appType = 'JAVA';
-
-        var serverId = node.id.split('-')[1];
-        var serverType;
+        appType = 'JAVA';
+        serverId = node.id.split('-')[1];
 
         if (Comm.wasInfoObj[serverId]) {
             serverType = Comm.wasInfoObj[serverId].type;
         }
 
-        if (serverType === 'TP') {
-            appType = 'TP';
-
-        } else if (serverType === '.NET') {
-            appType = '.NET';
-
+        if (serverType === 'TP' || serverType === 'TUX' || serverType === '.NET') {
+            appType = serverType;
         } else if (Comm.wasAppType) {
             appType = Comm.wasAppType[serverId] || 'JAVA';
         }
 
-        if (node.isGroupMode === true) {
-            this.nodeInfoCtx.font = 'normal 13px "Droid Sans"';
-            this.nodeInfoCtx.fillText(
+        if (node.isGroupMode) {
+            drawCtx.font = 'normal ' + this.getSizeValue(13, 'font') + 'px "Droid Sans"';
+            drawCtx.fillText(
                 node.childNodeAllCount,
-                cx - radius - 18,
-                cy + radius + 2
+                cx - radius - (this.getSizeValue(18, 'draw')),
+                cy + radius + (this.getSizeValue(2, 'draw'))
             );
-            this.nodeInfoCtx.font = 'normal 10px "Droid Sans"';
-            this.nodeInfoCtx.fillText(
+            drawCtx.font = 'normal ' + this.getSizeValue(10, 'font') + 'px "Droid Sans"';
+            drawCtx.fillText(
                 'Nodes',
-                cx - radius - 18,
-                cy + radius + 13
+                cx - radius - (this.getSizeValue(18, 'draw')),
+                cy + radius + (13 * this.getSizeValue(13, 'font', 'rate'))
             );
 
         } else {
-            this.nodeInfoCtx.font = 'normal 11px "Droid Sans"';
-            this.nodeInfoCtx.fillText(
+            drawCtx.font = 'normal ' + this.getSizeValue(11, 'font') + 'px "Droid Sans"';
+            drawCtx.fillText(
                 appType,
-                cx - radius - 18,
-                cy + radius + 8
+                cx - radius - (this.getSizeValue(18, 'draw')),
+                cy + radius + (this.getSizeValue(8, 'draw'))
             );
         }
 
@@ -817,139 +868,167 @@ XMTopology.prototype = {
      *
      * @param {object} node - 선택된 서버 개체
      */
-    drawNodeWebInfo: function(node) {
+    drawNodeWebInfo: function(node, drawCtx) {
         var cx = node.x;
         var cy = node.y;
 
-        var radius = this.property.outCircle.radius;
+        var radius = this.getSizeValue(this.property.outCircle.radius, 'draw');
+
+        if (drawCtx === undefined) {
+            drawCtx = this.nodeCtx;
+        }
 
         // 웹 정보가 표시되는 원 그리기
-        this.nodeInfoCtx.beginPath();
-        this.nodeInfoCtx.arc(
-            cx - radius - 18,
-            cy + radius - 46,
-            21,
+        drawCtx.beginPath();
+        drawCtx.arc(
+            cx - radius - (this.getSizeValue(13, 'draw')),
+            cy + radius - (this.getSizeValue(45, 'draw')),
+            this.getSizeValue(21, 'draw'),
             0,
             2 * Math.PI
         );
-        this.nodeInfoCtx.closePath();
+        drawCtx.closePath();
 
         if (node.isHide) {
-            this.nodeInfoCtx.fillStyle = 'transparent';
+            drawCtx.fillStyle = 'transparent';
+        } else if (node.webStatus === 3) {
+            drawCtx.fillStyle = 'rgba(' + this.getHexToRgb('#72757B') + ',' + 0.2 + ')';
+        } else if (node.webStatus === 2) {
+            drawCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.property.inCircle.criticalFill) + ',' + 0.2 + ')';
+        } else if (node.webStatus === 1) {
+            drawCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.property.inCircle.warningFill) + ',' + 0.2 + ')';
         } else {
-            this.nodeInfoCtx.fillStyle = 'rgba('+this.getHexToRgb(this.backgroundColor) +','+ 0.2 + ')';;
+            drawCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.backgroundColor) + ',' + 0.2 + ')';
         }
-        this.nodeInfoCtx.fill();
+        drawCtx.fill();
 
-        this.nodeInfoCtx.beginPath();
-        this.nodeInfoCtx.arc(
-            cx - radius - 18,
-            cy + radius - 46,
-            19,
+        drawCtx.beginPath();
+        drawCtx.arc(
+            cx - radius - (this.getSizeValue(13, 'draw')),
+            cy + radius - (this.getSizeValue(45, 'draw')),
+            this.getSizeValue(19, 'draw'),
             0,
             2 * Math.PI
         );
-        this.nodeInfoCtx.closePath();
+        drawCtx.closePath();
 
         if (node.isHide) {
-            this.nodeInfoCtx.fillStyle = 'transparent';
+            drawCtx.fillStyle = 'transparent';
+        } else if (node.webStatus === 3) {
+            drawCtx.fillStyle = '#72757B';
+        } else if (node.webStatus === 2) {
+            drawCtx.fillStyle = this.property.inCircle.criticalFill;
+        } else if (node.webStatus === 1) {
+            drawCtx.fillStyle = this.property.inCircle.warningFill;
         } else {
-            this.nodeInfoCtx.fillStyle = '#30A0F8';
+            drawCtx.fillStyle = '#30A0F8';
         }
-        this.nodeInfoCtx.fill();
+
+        drawCtx.fill();
 
         // 아이콘에 보여지는 정보 그리기
-        this.nodeInfoCtx.fillStyle = (node.isHide)? 'transparent' : '#FFFFFF';
-        this.nodeInfoCtx.textAlign = 'center';
+        drawCtx.fillStyle = (node.isHide) ? 'transparent' : '#FFFFFF';
+        drawCtx.textAlign = 'center';
 
-        this.nodeInfoCtx.font = 'normal 13px "Droid Sans"';
-        this.nodeInfoCtx.fillText(
+        drawCtx.font = 'normal ' + this.getSizeValue(13, 'font') + 'px "Droid Sans"';
+        drawCtx.fillText(
             node.webNodeAllCount,
-            cx - radius - 18,
-            cy + radius - 49
+            cx - radius - (this.getSizeValue(13, 'draw')),
+            cy + radius - (this.getSizeValue(48, 'draw'))
         );
-        this.nodeInfoCtx.font = 'normal 10px "Droid Sans"';
-        this.nodeInfoCtx.fillText(
-            node.webNodeAllCount > 1? 'WEBS' : 'WEB',
-            cx - radius - 18,
-            cy + radius - 36
+        drawCtx.font = 'normal ' + this.getSizeValue(10, 'font') + 'px "Droid Sans"';
+        drawCtx.fillText(
+            node.webNodeAllCount > 1 ? 'WEBS' : 'WEB',
+            cx - radius - (this.getSizeValue(13, 'draw')),
+            cy + radius - (this.getSizeValue(35, 'draw'))
         );
-
     },
 
-
-
     /**
-     * 
+     *
      * @param {object} node
      */
-    drawGroupDownAlarm: function(node) {
-        if (node.isGroupMode !== true) {
+    drawGroupDownAlarm: function(node, drawCtx) {
+        var radius;
+        var downCount;
+
+        if (!node.isGroupMode) {
             return;
         }
 
-        var downCount = this.getDownAlarmCountInNode(node);
+        downCount = this.getDownAlarmCountInNode(node);
+        if (drawCtx === undefined) {
+            drawCtx = this.nodeCtx;
+        }
 
         if (downCount === 0) {
             return;
         }
 
-        this.nodeInfoCtx.beginPath();
-        this.nodeInfoCtx.arc(
-            node.x + this.property.outCircle.radius + 14,
-            node.y + this.property.outCircle.radius + 4,
-            13,
+        radius = this.getSizeValue(this.property.outCircle.radius, 'draw');
+
+        drawCtx.beginPath();
+        drawCtx.arc(
+            node.x + radius + (this.getSizeValue(14, 'draw')),
+            node.y + radius + (this.getSizeValue(4, 'draw')),
+            this.getSizeValue(13, 'draw'),
             0,
             2 * Math.PI
         );
-        this.nodeInfoCtx.closePath();
+        drawCtx.closePath();
 
         if (node.isHide) {
-            this.nodeInfoCtx.fillStyle = 'transparent';
+            drawCtx.fillStyle = 'transparent';
         } else {
-            this.nodeInfoCtx.fillStyle = 'rgba('+this.getHexToRgb(this.backgroundColor) +','+ 0.2 + ')';;
+            drawCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.backgroundColor) + ',' + 0.2 + ')';
         }
-        this.nodeInfoCtx.fill();
+        drawCtx.fill();
 
-        this.nodeInfoCtx.beginPath();
-        this.nodeInfoCtx.arc(
-            node.x + this.property.outCircle.radius + 14,
-            node.y + this.property.outCircle.radius + 4,
-            11,
+        drawCtx.beginPath();
+        drawCtx.arc(
+            node.x + radius + (this.getSizeValue(14, 'draw')),
+            node.y + radius + (this.getSizeValue(4, 'draw')),
+            this.getSizeValue(11, 'draw'),
             0,
             2 * Math.PI
         );
-        this.nodeInfoCtx.closePath();
+        drawCtx.closePath();
 
         if (node.isHide) {
-            this.nodeInfoCtx.fillStyle = 'transparent';
+            drawCtx.fillStyle = 'transparent';
         } else {
-            this.nodeInfoCtx.fillStyle = '#72757B';
+            drawCtx.fillStyle = '#72757B';
         }
-        this.nodeInfoCtx.fill();
+        drawCtx.fill();
 
-        this.nodeInfoCtx.fillStyle = (node.isHide)? 'transparent' : (this.fontColor || '#FFFFFF');
-        this.nodeInfoCtx.textAlign = 'center';
+        drawCtx.fillStyle = (node.isHide) ? 'transparent' : (this.fontColor || '#FFFFFF');
+        drawCtx.textAlign = 'center';
 
-        this.nodeInfoCtx.font = 'normal 13px "Droid Sans"';
-        this.nodeInfoCtx.fillText(
+        drawCtx.font = 'normal ' + this.getSizeValue(13, 'font') + 'px "Droid Sans"';
+        drawCtx.fillText(
             downCount,
-            node.x + this.property.outCircle.radius + 14,
-            node.y + this.property.outCircle.radius + 8
+            node.x + radius + (this.getSizeValue(14, 'draw')),
+            node.y + radius + (this.getSizeValue(8, 'draw'))
         );
     },
 
 
     /**
      */
-    drawNodeData: function(node) {
+    drawNodeData: function(node, drawCtx) {
         var agentId = node.id.split('-')[1];
         var childNodeId;
         var tps = 0;
         var txnElapse = 0;
+        var text1, text2;
+        var fontSizeRate = 0;
 
         var ix, ixLen;
-        if (node.id.indexOf('GROUP-') === 0) {
+        if (drawCtx === undefined) {
+            drawCtx = this.nodeCtx;
+        }
+
+        if (node.id.startsWith('GROUP-')) {
             for (ix = 0, ixLen = node.childList.length; ix < ixLen; ix++) {
                 childNodeId = this.getServerIdByNodeId(node.childList[ix].id);
                 tps += this.tpsAvgMin[childNodeId] || 0;
@@ -967,49 +1046,69 @@ XMTopology.prototype = {
             txnElapse = Math.round(txnElapse * 1000) / 1000;
         }
 
+        drawCtx.globalAlpha = node.isDeleted ? 0.3 : 1;
+
         if (node.isHide) {
-            this.ctx.fillStyle = 'transparent';
+            drawCtx.fillStyle = 'transparent';
         } else {
-            this.ctx.fillStyle = 'rgba('+this.getHexToRgb(this.backgroundColor) +','+ 0.7 + ')';
+            drawCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.backgroundColor) + ',' + 0.7 + ')';
         }
-        this.ctx.fillRect(
-            node.x + this.property.outCircle.radius * 2 + 10,
-            node.y - this.property.outCircle.radius, 60, 12
-        );
-        this.ctx.fillRect(
-            node.x + this.property.outCircle.radius * 2 + 10,
-            node.y - this.property.outCircle.radius + 15, 30, 12
+
+        /*
+         확대/축소 시 font사이즈가 10이하로 변경안되는 버그 발생
+         font사이즈 10이하일 경우 강제로 10으로 값을 가져옴
+         10일 경우의 확대/축소 비율을 재계산
+         */
+        fontSizeRate = this.getSizeValue(12, 'font', 'rate');
+        text1 = tps + ' calls/sec';
+        drawCtx.fillRect(
+            node.x + (this.getSizeValue(this.property.outCircle.radius * 2 + 10, 'draw')),
+            node.y + ((-this.property.outCircle.radius) * fontSizeRate),
+            60 * fontSizeRate,
+            12 * fontSizeRate
         );
 
-        this.ctx.fillStyle = this.fontColor || '#FFFFFF';
-        this.ctx.textAlign = 'left';
+        text2 = txnElapse + ' s' + ((node.remoteType === 'TIBCO (async)') ? ' (async)' : '');
+        drawCtx.fillRect(
+            node.x + (this.getSizeValue(this.property.outCircle.radius * 2 + 10, 'draw')),
+            node.y + ((-this.property.outCircle.radius + 15) * fontSizeRate),
+            40 * fontSizeRate,
+            12 * fontSizeRate
+        );
 
-        this.ctx.font = 'normal 12px "Droid Sans"';
-        this.ctx.fillText(
-            tps + ' calls/sec',
-            node.x + this.property.outCircle.radius * 2 + 12,
-            node.y - this.property.outCircle.radius + 10
+        drawCtx.font = 'normal ' + this.getSizeValue(12, 'font') + 'px "Droid Sans"';
+        drawCtx.fillStyle = this.fontColor || '#FFFFFF';
+        drawCtx.textAlign = 'left';
+
+        drawCtx.fillText(
+            text1,
+            node.x + (this.getSizeValue(this.property.outCircle.radius * 2 + 12, 'draw')),
+            node.y + ((-this.property.outCircle.radius + 10) * fontSizeRate)
         );
-        this.ctx.fillText(
-            txnElapse + ' s' + ((node.remoteType === 'TIBCO (async)')? ' (async)':''),
-            node.x + this.property.outCircle.radius * 2 + 12,
-            node.y - this.property.outCircle.radius + 25
+
+        drawCtx.fillText(
+            text2,
+            node.x + (this.getSizeValue(this.property.outCircle.radius * 2 + 12, 'draw')),
+            node.y + ((-this.property.outCircle.radius + 25) * fontSizeRate)
         );
+
+        drawCtx.globalAlpha = 1;
+
     },
 
 
     /**
      * Transaction Path Popup Monitor
      *
-     * @param {} node
+     * @param node
      */
     drawTxnRect: function(node) {
         var px = node.x - 25;
         var py = node.y - 40;
 
-        var rectFillStyle = this.property.rect.fillStyle;
+        // var rectFillStyle = this.property.rect.fillStyle;
 
-        var grd = this.ctx.createLinearGradient(px, py ,px, py + 70);
+        var grd = this.nodeCtx.createLinearGradient(px, py, px, py + 70);
 
         if (this.alarmType.DOWN === node.status) {
             grd.addColorStop(0.3, '#65B509');
@@ -1028,14 +1127,14 @@ XMTopology.prototype = {
             grd.addColorStop(1, '#3C6E04');
         }
 
-        this.ctx.fillStyle = grd;
-        this.ctx.shadowColor = '#000000';
-        this.ctx.shadowBlur = 5;
-        this.ctx.shadowOffsetX = 3;
-        this.ctx.shadowOffsetY = 3;
+        this.nodeCtx.fillStyle = grd;
+        this.nodeCtx.shadowColor = '#000000';
+        this.nodeCtx.shadowBlur = 5;
+        this.nodeCtx.shadowOffsetX = 3;
+        this.nodeCtx.shadowOffsetY = 3;
 
         this.roundRect(
-            this.ctx, px, py,
+            this.nodeCtx, px, py,
             this.property.rect.width,
             this.property.rect.height,
             this.property.rect.radius,
@@ -1043,101 +1142,100 @@ XMTopology.prototype = {
             false
         );
 
-        this.ctx.shadowColor= 'transparent';
-        this.ctx.shadowBlur = 0;
-
-        this.ctx.fillStyle = '#FFF';
-        this.ctx.font      = 'normal 11px "Droid Sans"';
-        this.ctx.textAlign = 'left';
+        this.nodeCtx.shadowColor = 'transparent';
+        this.nodeCtx.shadowBlur = 0;
+        this.nodeCtx.fillStyle = '#FFF';
+        this.nodeCtx.font = 'normal 11px "Droid Sans"';
+        this.nodeCtx.textAlign = 'left';
 
         // Agent Name
-        this.ctx.fillText(
-            this.fittingString(this.ctx, node.name, 120),
+        this.nodeCtx.fillText(
+            this.fittingString(this.nodeCtx, node.name, 120),
             node.x - 15,
             node.y - 20
         );
 
-        //grd = this.ctx.createLinearGradient(px + 5, py + 27 ,px + 130, py + 27);
+        //grd = this.nodeCtx.createLinearGradient(px + 5, py + 27 ,px + 130, py + 27);
         //grd.addColorStop(0.3, '#65B509');
         //grd.addColorStop(1, '#3C6E04');
 
         if (this.alarmType.DOWN === node.status) {
-            this.ctx.strokeStyle = '#212227';
+            this.nodeCtx.strokeStyle = '#212227';
 
         } else if (this.alarmType.CRITICAL === node.status) {
-            this.ctx.strokeStyle = '#212227';
+            this.nodeCtx.strokeStyle = '#212227';
 
         } else if (this.alarmType.WARNING === node.status) {
-            this.ctx.strokeStyle = '#482B01';
+            this.nodeCtx.strokeStyle = '#482B01';
 
         } else {
-            this.ctx.strokeStyle = '#264403';
+            this.nodeCtx.strokeStyle = '#264403';
         }
-        this.ctx.lineWidth = this.property.rect.lineWidth;
-        this.ctx.beginPath();
-        this.ctx.moveTo(px + 5, py + 27);
-        this.ctx.lineTo(px + 130, py + 27);
-        //this.ctx.closePath();
-        this.ctx.stroke();
+        this.nodeCtx.lineWidth = this.property.rect.lineWidth;
+        this.nodeCtx.beginPath();
+        this.nodeCtx.moveTo(px + 5, py + 27);
+        this.nodeCtx.lineTo(px + 130, py + 27);
+        //this.nodeCtx.closePath();
+        this.nodeCtx.stroke();
 
         // Txn Name
-        this.ctx.fillText(
-            this.fittingString(this.ctx, node.txnName, 120),
+        this.nodeCtx.fillText(
+            this.fittingString(this.nodeCtx, node.txnName, 120),
             //node.txnName,
             node.x - 15,
             node.y
         );
 
-        this.ctx.beginPath();
-        this.ctx.moveTo(px + 5, py + 46);
-        this.ctx.lineTo(px + 130, py + 46);
-        //this.ctx.closePath();
-        this.ctx.stroke();
+        this.nodeCtx.beginPath();
+        this.nodeCtx.moveTo(px + 5, py + 46);
+        this.nodeCtx.lineTo(px + 130, py + 46);
+        //this.nodeCtx.closePath();
+        this.nodeCtx.stroke();
 
         // Elapsed Time
-        this.ctx.fillText(
-            'Elapsed : ' + ((node.status === 3)? 0 : node.elapseTime),
+        this.nodeCtx.fillText(
+            'Elapsed : ' + ((node.status === 3) ? 0 : node.elapseTime),
             node.x - 15,
             node.y + 19
         );
 
         // CallTree Icon
-        this.ctx.beginPath();
-        this.ctx.arc(
+        this.nodeCtx.beginPath();
+        this.nodeCtx.arc(
             px + this.property.rect.width - 8,
             py + this.property.rect.height - 9,
             22,
             0,
             2 * Math.PI
         );
-        this.ctx.closePath();
+        this.nodeCtx.closePath();
 
-        this.ctx.fillStyle = 'rgba('+this.getHexToRgb(this.backgroundColor) +','+ 0.2 + ')';;
-        this.ctx.fill();
+        this.nodeCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.backgroundColor) + ',' + 0.2 + ')';
+        this.nodeCtx.fill();
 
-        this.ctx.beginPath();
-        this.ctx.arc(
+        this.nodeCtx.beginPath();
+        this.nodeCtx.arc(
             px + this.property.rect.width - 9,
             py + this.property.rect.height - 10,
             20,
             0,
             2 * Math.PI
         );
-        this.ctx.closePath();
+        this.nodeCtx.closePath();
 
-        this.ctx.fillStyle = '#1D95F4';
-        this.ctx.fill();
+        this.nodeCtx.fillStyle = '#1D95F4';
+        this.nodeCtx.fill();
 
-        this.ctx.fillStyle = this.fontColor || '#FFFFFF';
-        this.ctx.textAlign = 'center';
-        this.ctx.font = 'normal 12px "Droid Sans"';
+        this.nodeCtx.fillStyle = this.fontColor || '#FFFFFF';
+        this.nodeCtx.textAlign = 'center';
+        this.nodeCtx.font = 'normal 12px "Droid Sans"';
 
-        this.ctx.fillText(
+        this.nodeCtx.fillText(
             'Call',
             px + this.property.rect.width - 9,
             py + this.property.rect.height - 11
         );
-        this.ctx.fillText(
+        this.nodeCtx.fillText(
             'Tree',
             px + this.property.rect.width - 9,
             py + this.property.rect.height
@@ -1159,239 +1257,314 @@ XMTopology.prototype = {
      *
      * @param {object} node
      */
-    drawCircle: function(node) {
+    drawCircle: function(node, drawCtx) {
         var ix, ixLen;
+        var activeCnt;
+        var lines;
 
-        this.ctx.beginPath();
-        this.ctx.arc(
+        if (drawCtx === undefined) {
+            drawCtx = this.nodeCtx;
+        }
+
+        drawCtx.globalAlpha = node.isDeleted ? 0.3 : 1;
+
+        drawCtx.beginPath();
+        drawCtx.arc(
             node.x,
             node.y,
-            this.property.outCircle.radius * 2,
+            this.getSizeValue(this.property.outCircle.radius * 2, 'draw'),
             0,
             2 * Math.PI
         );
-        this.ctx.arc(
+
+        drawCtx.arc(
             node.x,
             node.y,
-            this.property.inCircle.radius * 2 + 6,
+            this.getSizeValue(this.property.inCircle.radius * 2 + 6, 'draw'),
             0,
             2 * Math.PI,
             true
         );
-        this.ctx.closePath();
+
+        drawCtx.closePath();
 
         if (node.isHide) {
-            this.ctx.strokeStyle = 'transparent';
+            drawCtx.strokeStyle = 'transparent';
         } else if (node.status === 3) {
-            this.ctx.strokeStyle = '#72757B';
+            drawCtx.strokeStyle = '#72757B';
         } else if (node.status === 2) {
-            this.ctx.strokeStyle = this.property.outCircle.criticalFill;
+            drawCtx.strokeStyle = this.property.outCircle.criticalFill;
         } else if (node.status === 1) {
-            this.ctx.strokeStyle = this.property.outCircle.warningFill;
+            drawCtx.strokeStyle = this.property.outCircle.warningFill;
         } else {
-            this.ctx.strokeStyle = this.property.outCircle.fillStyle;
+            drawCtx.strokeStyle = this.property.outCircle.fillStyle;
         }
 
-        this.ctx.lineWidth = this.property.outCircle.lineWidth;
-        this.ctx.stroke();
+        drawCtx.lineWidth = this.getSizeValue(this.property.outCircle.lineWidth, 'draw');
+        drawCtx.stroke();
 
         if (node.isHide) {
-            this.ctx.fillStyle = 'transparent';
+            drawCtx.fillStyle = 'transparent';
         } else if (node.status === 3) {
-            this.ctx.fillStyle = '#72757B';
+            drawCtx.fillStyle = '#72757B';
         } else if (node.status === 2) {
-            this.ctx.fillStyle = this.property.outCircle.criticalFill;
+            drawCtx.fillStyle = this.property.outCircle.criticalFill;
         } else if (node.status === 1) {
-            this.ctx.fillStyle = this.property.outCircle.warningFill;
+            drawCtx.fillStyle = this.property.outCircle.warningFill;
         } else {
-            this.ctx.fillStyle = this.property.outCircle.fillStyle;
+            drawCtx.fillStyle = this.property.outCircle.fillStyle;
         }
 
-        this.ctx.fill();
+        drawCtx.fill();
 
-        this.ctx.beginPath();
-        this.ctx.arc(
+        drawCtx.beginPath();
+        drawCtx.arc(
             node.x,
             node.y,
-            this.property.inCircle.radius * 2,
+            this.getSizeValue(this.property.inCircle.radius * 2, 'draw'),
             0,
             2 * Math.PI
         );
-        this.ctx.closePath();
+        drawCtx.closePath();
 
-        this.ctx.strokeStyle = 'transparent';
-        this.ctx.stroke();
+        drawCtx.strokeStyle = 'transparent';
+        drawCtx.stroke();
 
         if (node.isHide) {
-            this.ctx.fillStyle = 'transparent';
+            drawCtx.fillStyle = 'transparent';
         } else if (node.status === 3) {
-            this.ctx.fillStyle = '#72757B';
+            drawCtx.fillStyle = '#72757B';
         } else if (node.status === 2) {
-            this.ctx.fillStyle = this.property.inCircle.criticalFill;
+            drawCtx.fillStyle = this.property.inCircle.criticalFill;
         } else if (node.status === 1) {
-            this.ctx.fillStyle = this.property.inCircle.warningFill;
+            drawCtx.fillStyle = this.property.inCircle.warningFill;
         } else {
-            this.ctx.fillStyle = this.property.inCircle.fillStyle;
+            drawCtx.fillStyle = this.property.inCircle.fillStyle;
         }
 
-        this.ctx.fill();
+        drawCtx.fill();
 
         // 노드 중앙에 표시되는 액티브 트랜잭션 건수 그리기 -----------------------------------
-        this.ctx.fillStyle = (node.isHide)? 'transparent' : '#FFF';
-        this.ctx.font      = 'normal 20px "Droid Sans"';
-        this.ctx.textAlign = 'center';
+        drawCtx.fillStyle = (node.isHide) ? 'transparent' : '#FFF';
+        drawCtx.font = 'normal ' + this.getSizeValue(20, 'font') + 'px "Droid Sans"';
+        drawCtx.textAlign = 'center';
 
-        var activeCnt = this.getActiveCountByNodeId(node);
+        activeCnt = this.getActiveCountByNodeId(node);
 
-        this.ctx.fillText(activeCnt, node.x, node.y + 7);
+        drawCtx.fillText(activeCnt, node.x, node.y + this.getSizeValue(7, 'draw'));
 
-//        if (node.isGroupMode) {
-//            // 서버가 Down, Disconnected 상태일 때는 건수를 0으로 표시
-//            if (node.status === 3) {
-//                this.ctx.fillText(0, node.x, node.y + 7);
-//
-//            } else {
-//                var activeCount = 0;
-//                var childNode, childNodeId;
-//
-//                // 그룹에 포함된 에이전트의 트랜잭션 건수를 합계하여 표시
-//                for (ix = 0, ixLen = node.childIdAllList.length; ix < ixLen; ix++) {
-//                    childNodeId = node.childIdAllList[ix];
-//                    childNode = this.getNodeById(childNodeId);
-//                    activeCount += childNode.value;
-//                }
-//                this.ctx.fillText(activeCount, node.x, node.y + 7);
-//            }
-//        } else {
-//            // 서버가 Down, Disconnected 상태일 때는 건수를 0으로 표시
-//            if (node.status === 3) {
-//                this.ctx.fillText(0, node.x, node.y + 7);
-//            } else {
-//                this.ctx.fillText(node.value, node.x, node.y + 7);
-//            }
-//        }
+        // if (node.isGroupMode) {
+        //     // 서버가 Down, Disconnected 상태일 때는 건수를 0으로 표시
+        //     if (node.status === 3) {
+        //         this.nodeCtx.fillText(0, node.x, node.y + 7);
+        //
+        //     } else {
+        //         var activeCount = 0;
+        //         var childNode, childNodeId;
+        //
+        //         // 그룹에 포함된 에이전트의 트랜잭션 건수를 합계하여 표시
+        //         for (ix = 0, ixLen = node.childIdAllList.length; ix < ixLen; ix++) {
+        //             childNodeId = node.childIdAllList[ix];
+        //             childNode = this.getNodeById(childNodeId);
+        //             activeCount += childNode.value;
+        //         }
+        //         this.nodeCtx.fillText(activeCount, node.x, node.y + 7);
+        //     }
+        // } else {
+        //     // 서버가 Down, Disconnected 상태일 때는 건수를 0으로 표시
+        //     if (node.status === 3) {
+        //         this.nodeCtx.fillText(0, node.x, node.y + 7);
+        //     } else {
+        //         this.nodeCtx.fillText(node.value, node.x, node.y + 7);
+        //     }
+        // }
 
         // 에이전트 타입명 그리기
         if (this.isDisplayAgentType) {
-            this.ctx.fillStyle = (node.isHide)? 'transparent' : '#FFF';
-            this.ctx.font      = 'normal 9px "Droid Sans"';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(node.type, node.x, node.y + 19);
+            drawCtx.fillStyle = (node.isHide) ? 'transparent' : '#FFF';
+            drawCtx.font = 'normal ' + this.getSizeValue(9, 'font') + 'px "Droid Sans"';
+            drawCtx.textAlign = 'center';
+            drawCtx.fillText(node.type, node.x, node.y + 19);
         }
 
         // 노드명 그리기
-        this.ctx.fillStyle = (node.isHide)? 'transparent' : this.fontColor || '#FFF';
-        this.ctx.font      = 'bold 15px "Droid Sans"';
-        this.ctx.textAlign = 'center';
+        drawCtx.fillStyle = (node.isHide) ? 'transparent' : this.fontColor || '#FFF';
+        drawCtx.font = 'bold ' + this.getSizeValue(15, 'font') + 'px "Droid Sans"';
+        drawCtx.textAlign = 'center';
 
-        var lines = this.getWordWrap(this.ctx, node.alias);
+        lines = this.getWordWrap(drawCtx, node.alias);
         for (ix = 0, ixLen = lines.length; ix < ixLen; ix++) {
-            this.ctx.fillText(lines[ix], node.x, node.y + 54 + (14 * ix));
+            drawCtx.fillText(lines[ix], node.x, node.y + this.getSizeValue(54 + (14 * ix), 'draw'));
+        }
+
+        if (node.ctrlSelected && !node.isHide) {
+            drawCtx.beginPath();
+            drawCtx.strokeStyle = this.relPtColor;
+            drawCtx.lineWidth = this.getSizeValue(this.property.ctrlCircle.lineWidth, 'draw');
+            drawCtx.setLineDash([5]);
+            drawCtx.arc(
+                node.x,
+                node.y,
+                this.getSizeValue(this.property.ctrlCircle.radius * 2, 'draw'),
+                0,
+                2 * Math.PI
+            );
+            drawCtx.stroke();
+            drawCtx.closePath();
+            drawCtx.setLineDash([]);
+            drawCtx.closePath();
         }
 
         this.nodeNameBoxList[this.nodeNameBoxList.length] =
             new this.nodeClass.nodeNameBox(
                 node.id,
                 node.x,
-                node.y + 54,
+                node.y + this.getSizeValue(54, 'draw'),
                 node.alias,
-                this.ctx.measureText(node.alias).width
+                drawCtx.measureText(node.alias).width
             );
 
-
-        if (this.isPressCtrlKey) {
-            this.ctx.beginPath();
-            this.ctx.strokeStyle = this.property.selectCircle.strokeStyle;
-            this.ctx.setLineDash([5]);
-            this.ctx.arc(
-                node.x,
-                node.y,
-                this.property.selectCircle.radius * 2,
-                0,
-                2 * Math.PI
-            );
-            this.ctx.stroke();
-            this.ctx.closePath();
-            this.ctx.setLineDash([]);
-        }
-
+        drawCtx.globalAlpha = 1;
     },
-
 
     /**
      * Draw Server Node (ex. TUXEDO, TMAX, SAP)
      */
-    drawServer: function(node) {
+    drawServer: function(node, drawCtx) {
+        var iconPt;
+
         if (node.isHide) {
             return;
         }
-        var iconPt = this.getImagePoint(node.type.toLowerCase());
-        this.ctx.drawImage(
+        if (drawCtx === undefined) {
+            drawCtx = this.nodeCtx;
+        }
+
+        iconPt = this.getImagePoint(node.type.toLowerCase());
+
+        drawCtx.globalAlpha = node.isDeleted ? 0.3 : 1;
+        drawCtx.drawImage(
             this.iconImg, iconPt.x, iconPt.y, iconPt.w, iconPt.h,
-            node.x - 64 / 2,
-            node.y - 55 / 2,
-            iconPt.w,
-            iconPt.h
+            node.x - this.getSizeValue(64 / 2, 'draw'),
+            node.y - this.getSizeValue(55 / 2, 'draw'),
+            this.getSizeValue(iconPt.w, 'draw'),
+            this.getSizeValue(iconPt.h, 'draw')
         );
 
         // Node Label
-        this.ctx.fillStyle = this.fontColor || '#FFFFFF';
-        this.ctx.font      = 'bold 13px "Droid Sans"';
-        this.ctx.textAlign = 'center';
+        drawCtx.fillStyle = this.fontColor || '#FFFFFF';
+        drawCtx.font = 'bold ' + this.getSizeValue(13, 'font') + 'px "Droid Sans"';
+        drawCtx.textAlign = 'center';
 
         if (node.isGroupMode) {
-            this.ctx.fillText(node.alias, node.x + 37, node.y + 80);
+            drawCtx.fillText(node.alias,
+                node.x + this.getSizeValue(37, 'draw'),
+                node.y + this.getSizeValue(80, 'draw'));
         } else {
-            this.ctx.fillText(node.alias, node.x + 35 - 64 / 2, node.y + 70 - 55 / 2);
+            drawCtx.fillText(node.alias,
+                node.x + this.getSizeValue(35 - 64 / 2, 'draw'),
+                node.y + this.getSizeValue(70 - 55 / 2, 'draw'));
+        }
+
+        if (node.ctrlSelected && !node.isHide) {
+            drawCtx.beginPath();
+            drawCtx.strokeStyle = this.relPtColor;
+            drawCtx.lineWidth = this.getSizeValue(this.property.ctrlCircle.lineWidth, 'draw');
+            drawCtx.setLineDash([5]);
+            drawCtx.arc(
+                node.x,
+                node.y,
+                this.getSizeValue(this.property.ctrlCircle.radius * 2, 'draw'),
+                0,
+                2 * Math.PI
+            );
+            drawCtx.stroke();
+            drawCtx.closePath();
+            drawCtx.setLineDash([]);
+            drawCtx.closePath();
         }
 
         this.nodeNameBoxList[this.nodeNameBoxList.length] =
             new this.nodeClass.nodeNameBox(
                 node.id,
-                node.x + 35 - 64 / 2,
-                node.y + 70 - 55 / 2,
+                node.x + this.getSizeValue(35 - 64 / 2, 'draw'),
+                node.y + this.getSizeValue(70 - 55 / 2, 'draw'),
                 node.alias,
-                this.ctx.measureText(node.alias).width + 20
+                drawCtx.measureText(node.alias).width + this.getSizeValue(20, 'draw')
             );
+
+        drawCtx.globalAlpha = 1;
     },
 
 
     /**
      * Draw Http, TCP Node
      */
-    drawCloud: function(node) {
+    drawCloud: function(node, drawCtx) {
+        var iconPt;
+
         if (node.isHide) {
             return;
         }
 
-        var iconPt = this.getImagePoint(node.type.toLowerCase());
-        this.ctx.drawImage(
+        if (drawCtx === undefined) {
+            drawCtx = this.nodeCtx;
+        }
+
+        iconPt = this.getImagePoint(node.type.toLowerCase());
+
+        drawCtx.globalAlpha = node.isDeleted ? 0.3 : 1;
+        drawCtx.drawImage(
             this.iconImg, iconPt.x, iconPt.y, iconPt.w, iconPt.h,
-            node.x - 91 / 2,
-            node.y - 54 / 2,
-            iconPt.w,
-            iconPt.h
+            node.x - this.getSizeValue(91 / 2, 'draw'),
+            node.y - this.getSizeValue(54 / 2, 'draw'),
+            this.getSizeValue(iconPt.w, 'draw'),
+            this.getSizeValue(iconPt.h, 'draw')
         );
 
         // Node Label
-        this.ctx.fillStyle = this.fontColor || '#FFFFFF';
-        this.ctx.font      = 'bold 13px "Droid Sans"';
-        this.ctx.textAlign = 'center';
+        drawCtx.fillStyle = this.fontColor || '#FFFFFF';
+        drawCtx.font = 'bold ' + this.getSizeValue(13, 'font') + 'px "Droid Sans"';
+        drawCtx.textAlign = 'center';
 
         if (node.isGroupMode) {
-            this.ctx.fillText(node.alias, node.x + 45, node.y + 75);
+            drawCtx.fillText(node.alias,
+                node.x + this.getSizeValue(45, 'draw'),
+                node.y + this.getSizeValue(75, 'draw'));
         } else {
-            this.ctx.fillText(node.alias, node.x + 45 - 91 / 2, node.y + 70 - 54 / 2);
+            drawCtx.fillText(node.alias,
+                node.x + this.getSizeValue(45 - 91 / 2, 'draw'),
+                node.y + this.getSizeValue(70 - 54 / 2, 'draw'));
+        }
+
+        if (node.ctrlSelected && !node.isHide) {
+            drawCtx.beginPath();
+            drawCtx.strokeStyle = this.relPtColor;
+            drawCtx.lineWidth = this.getSizeValue(this.property.ctrlCircle.lineWidth, 'draw');
+            drawCtx.setLineDash([5]);
+            drawCtx.arc(
+                node.x,
+                node.y,
+                this.getSizeValue(this.property.ctrlCircle.radius * 2, 'draw'),
+                0,
+                2 * Math.PI
+            );
+            drawCtx.stroke();
+            drawCtx.closePath();
+            drawCtx.setLineDash([]);
+            drawCtx.closePath();
         }
 
         this.nodeNameBoxList[this.nodeNameBoxList.length] =
             new this.nodeClass.nodeNameBox(
                 node.id,
-                node.x + 45 - 91 / 2,
-                node.y + 70 - 54 / 2,
+                node.x + this.getSizeValue(45 - 91 / 2, 'draw'),
+                node.y + this.getSizeValue(70 - 54 / 2, 'draw'),
                 node.alias,
-                this.ctx.measureText(node.alias).width + 20
+                drawCtx.measureText(node.alias).width + this.getSizeValue(20, 'draw')
             );
+
+        drawCtx.globalAlpha = 1;
     },
 
 
@@ -1401,12 +1574,22 @@ XMTopology.prototype = {
      * @param {object} node
      * @param {boolean} isTxnPath
      */
-    drawDatabase: function(node, isTxnPathMode) {
+    drawDatabase: function(node, isTxnPathMode, drawCtx) {
+        var imageKey;
+        var iconPt;
+        var dbId;
+        var isMonitor;
+
+        var activeSessions = 0, lockSessions = 0;
+
         if (node.isHide) {
             return;
         }
 
-        var imageKey;
+        if (drawCtx === undefined) {
+            drawCtx = this.nodeCtx;
+        }
+
         switch (node.status) {
             case this.alarmType.WARNING:
                 imageKey = 'warning_db';
@@ -1422,126 +1605,148 @@ XMTopology.prototype = {
                 break;
         }
 
-        var iconPt    = this.getImagePoint(imageKey);
-        var dbId      = this.getServerIdByNodeId(node.id);
-        var isMonitor = (Comm.dbInfoObj[dbId])? true : false;
-
-        var activeSessions = 0, lockSessions = 0;
+        iconPt = this.getImagePoint(imageKey);
+        dbId = this.getServerIdByNodeId(node.id);
+        isMonitor = (Comm.dbInfoObj[dbId]) ? true : false;
+        activeSessions = 0, lockSessions = 0;
 
         if (Repository.DBStat[dbId]) {
-            lockSessions   = Repository.DBStat[dbId].lock   || 0;
+            lockSessions = Repository.DBStat[dbId].lock || 0;
             activeSessions = Repository.DBStat[dbId].active || 0;
         }
 
         // Draw DB Icon Image
-        this.ctx.drawImage(
+        drawCtx.globalAlpha = node.isDeleted ? 0.3 : 1;
+        drawCtx.drawImage(
             this.iconImg, iconPt.x, iconPt.y, iconPt.w, iconPt.h,
-            node.x - 59 / 2,
-            node.y - 64 / 2,
-            iconPt.w,
-            iconPt.h
+            node.x - this.getSizeValue(59 / 2, 'draw'),
+            node.y - this.getSizeValue(64 / 2, 'draw'),
+            this.getSizeValue(iconPt.w, 'draw'),
+            this.getSizeValue(iconPt.h, 'draw')
         );
 
-        this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font      = 'normal 14px "Droid Sans"';
-        this.ctx.textAlign = 'center';
+        drawCtx.fillStyle = '#FFFFFF';
+        drawCtx.font = 'normal ' + this.getSizeValue(14, 'font') + 'px "Droid Sans"';
+        drawCtx.textAlign = 'center';
 
         // DB Active Sessions Value
         // 스펙: 모니터링 대상이 아닌 DB 인 경우 액티브 세션 정보를 보여주지 않는다.
         if (isMonitor) {
-            this.ctx.fillText(
+            drawCtx.fillText(
                 activeSessions,
-                node.x + 30 - 59/2,
-                node.y + 38 - 65/2
+                node.x + this.getSizeValue(30 - 59 / 2, 'draw'),
+                node.y + this.getSizeValue(38 - 65 / 2, 'draw')
             );
         }
 
         // DB Lock Sessions Value
         // 스펙: 모니터링 대상이 아닌 DB 인 경우 락 세션 정보를 보여주지 않는다.
         if (lockSessions > 0 && isMonitor) {
-            this.ctx.beginPath();
-            this.ctx.arc(
-                node.x + 20,
-                node.y - 20,
-                11,
+            drawCtx.beginPath();
+            drawCtx.arc(
+                node.x + this.getSizeValue(20, 'draw'),
+                node.y - this.getSizeValue(20, 'draw'),
+                this.getSizeValue(11, 'draw'),
                 0,
                 2 * Math.PI
             );
-            this.ctx.closePath();
-            this.ctx.fillStyle = 'rgba('+this.getHexToRgb(this.property.inCircle.criticalFill) +','+ 0.8 + ')';
-            this.ctx.fill();
+            drawCtx.closePath();
+            drawCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.property.inCircle.criticalFill) + ',' + 0.8 + ')';
+            drawCtx.fill();
 
-            this.ctx.fillStyle = '#FFFFFF';
-            this.ctx.fillText(
+            drawCtx.fillStyle = '#FFFFFF';
+            drawCtx.fillText(
                 lockSessions,
-                node.x + 20,
-                node.y - 15
+                node.x + this.getSizeValue(20, 'draw'),
+                node.y - this.getSizeValue(15, 'draw')
             );
         }
 
         // DB Type Label
-        this.ctx.font = 'normal 10px "Droid Sans"';
+        drawCtx.font = 'normal ' + this.getSizeValue(10, 'font') + 'px "Droid Sans"';
 
-        this.ctx.fillText(
+        drawCtx.fillText(
             node.type.toUpperCase(),
-            node.x + 30 - 59/2,
-            node.y + 52 - 65/2
+            node.x + this.getSizeValue(30 - 59 / 2, 'draw'),
+            node.y + (52 - 65 / 2) * this.getSizeValue(14, 'font', 'rate')
         );
 
         // Node Label
-        this.ctx.fillStyle = this.fontColor || '#FFFFFF';
-        this.ctx.font = 'bold 13px "Droid Sans"';
-        //this.ctx.textAlign = 'center';
+        drawCtx.fillStyle = this.fontColor || '#FFFFFF';
+        drawCtx.font = 'bold ' + this.getSizeValue(13, 'font') + 'px "Droid Sans"';
+        //drawCtx.textAlign = 'center';
 
         if (node.isGroupMode) {
-            this.ctx.fillText(node.alias, node.x + 37, node.y + 85);
+            drawCtx.fillText(node.alias,
+                node.x + this.getSizeValue(37, 'draw'),
+                node.y + this.getSizeValue(85, 'draw'));
         } else {
-            this.ctx.fillText(node.alias, node.x + 30 - 59/2, node.y + 80 - 65/2);
+            drawCtx.fillText(node.alias,
+                node.x + this.getSizeValue(30 - 59 / 2, 'draw'),
+                node.y + this.getSizeValue(80 - 65 / 2, 'draw'));
+        }
+
+        if (node.ctrlSelected && !node.isHide) {
+            drawCtx.beginPath();
+            drawCtx.strokeStyle = this.relPtColor;
+            drawCtx.lineWidth = this.getSizeValue(this.property.ctrlCircle.lineWidth, 'draw');
+            drawCtx.setLineDash([5]);
+            drawCtx.arc(
+                node.x,
+                node.y,
+                this.getSizeValue(this.property.ctrlCircle.radius * 2, 'draw'),
+                0,
+                2 * Math.PI
+            );
+            drawCtx.stroke();
+            drawCtx.closePath();
+            drawCtx.setLineDash([]);
+            drawCtx.closePath();
         }
 
         this.nodeNameBoxList[this.nodeNameBoxList.length] =
             new this.nodeClass.nodeNameBox(
                 node.id,
-                node.x + 30 - 59 / 2,
-                node.y + 80 - 65 / 2,
+                node.x + this.getSizeValue(30 - 59 / 2, 'draw'),
+                node.y + this.getSizeValue(80 - 65 / 2, 'draw'),
                 node.alias,
-                this.ctx.measureText(node.alias).width + 20
+                drawCtx.measureText(node.alias).width + this.getSizeValue(20, 'draw')
             );
 
         // Transaction Path Mode
         if (isTxnPathMode) {
             // SQL
-            this.ctx.beginPath();
-            this.ctx.arc(
+            drawCtx.beginPath();
+            drawCtx.arc(
                 node.x + this.imagePoint.down_tuxedo_group.w / 2 - 10,
                 node.y - 17,
                 20,
                 0,
                 2 * Math.PI
             );
-            this.ctx.closePath();
+            drawCtx.closePath();
 
-            this.ctx.fillStyle = 'rgba('+this.getHexToRgb(this.backgroundColor) +','+ 0.5 + ')';
-            this.ctx.fill();
+            drawCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.backgroundColor) + ',' + 0.5 + ')';
+            drawCtx.fill();
 
-            this.ctx.beginPath();
-            this.ctx.arc(
+            drawCtx.beginPath();
+            drawCtx.arc(
                 node.x + this.imagePoint.down_tuxedo_group.w / 2 - 10,
                 node.y - 17,
                 18,
                 0,
                 2 * Math.PI
             );
-            this.ctx.closePath();
+            drawCtx.closePath();
 
-            this.ctx.fillStyle = '#1D95F4';
-            this.ctx.fill();
+            drawCtx.fillStyle = '#1D95F4';
+            drawCtx.fill();
 
-            this.ctx.fillStyle = this.fontColor || '#FFFFFF';
-            this.ctx.textAlign = 'center';
-            this.ctx.font = 'normal 12px "Droid Sans"';
+            drawCtx.fillStyle = this.fontColor || '#FFFFFF';
+            drawCtx.textAlign = 'center';
+            drawCtx.font = 'normal ' + this.getSizeValue(12, 'font') + 'px "Droid Sans"';
 
-            this.ctx.fillText(
+            drawCtx.fillText(
                 'SQL',
                 node.x + this.imagePoint.down_tuxedo_group.w / 2 - 10,
                 node.y - 12
@@ -1557,121 +1762,165 @@ XMTopology.prototype = {
                 );
 
             // Txn Path Info
-            this.ctx.fillStyle = 'rgba('+this.getHexToRgb(this.backgroundColor) +','+ 0.7 + ')';
-            this.ctx.fillRect(
+            drawCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.backgroundColor) + ',' + 0.7 + ')';
+            drawCtx.fillRect(
                 node.x + this.imagePoint.down_tuxedo_group.w,
                 node.y - 17,
                 60,
                 12
             );
 
-            this.ctx.fillStyle = this.fontColor || '#FFFFFF';
-            this.ctx.textAlign = 'left';
+            drawCtx.fillStyle = this.fontColor || '#FFFFFF';
+            drawCtx.textAlign = 'left';
 
-            this.ctx.font = 'normal 12px "Droid Sans"';
-            this.ctx.fillText(
+            drawCtx.font = 'normal ' + this.getSizeValue(12, 'font') + 'px "Droid Sans"';
+            drawCtx.fillText(
                 'Elapse:',
                 node.x + this.imagePoint.down_tuxedo_group.w - 18,
                 node.y - 18
             );
-            this.ctx.fillText(
+            drawCtx.fillText(
                 'Exec   :',
                 node.x + this.imagePoint.down_tuxedo_group.w - 18,
                 node.y - 6
             );
-
         }
+
+        drawCtx.globalAlpha = 1;
     },
 
 
     /**
      * Draw Complex Node
      */
-    drawComplexGroup: function(node) {
+    drawComplexGroup: function(node, drawCtx) {
+        var iconPt;
+
         if (node.isHide) {
             return;
         }
-        var iconPt = this.getImagePoint(node.type.toLowerCase());
-        this.ctx.drawImage(
+
+        if (drawCtx === undefined) {
+            drawCtx = this.nodeCtx;
+        }
+
+        drawCtx.globalAlpha = node.isDeleted ? 0.3 : 1;
+
+        iconPt = this.getImagePoint(node.type.toLowerCase());
+        drawCtx.drawImage(
             this.iconImg, iconPt.x, iconPt.y, iconPt.w, iconPt.h,
-            node.x - 76 / 2,
-            node.y - 71 / 2,
-            iconPt.w,
-            iconPt.h
+            node.x - this.getSizeValue(76 / 2, 'draw'),
+            node.y - this.getSizeValue(71 / 2, 'draw'),
+            this.getSizeValue(iconPt.w, 'draw'),
+            this.getSizeValue(iconPt.h, 'draw')
         );
 
         // Node Label
-        this.ctx.fillStyle = this.fontColor || '#FFFFFF';
-        this.ctx.font      = 'bold 13px "Droid Sans"';
-        this.ctx.textAlign = 'center';
+        drawCtx.fillStyle = this.fontColor || '#FFFFFF';
+        drawCtx.font = 'bold ' + this.getSizeValue(13, 'font') + 'px "Droid Sans"';
+        drawCtx.textAlign = 'center';
 
-        this.ctx.fillText(node.alias, node.x + 37 - 76/2, node.y + 85 - 71/2);
+        drawCtx.fillText(node.alias,
+            node.x + this.getSizeValue(37 - 76 / 2, 'draw'),
+            node.y + this.getSizeValue(85 - 71 / 2, 'draw'));
+
+        if (node.ctrlSelected && !node.isHide) {
+            drawCtx.beginPath();
+            drawCtx.strokeStyle = this.relPtColor;
+            drawCtx.lineWidth = this.getSizeValue(this.property.ctrlCircle.lineWidth, 'draw');
+            drawCtx.setLineDash([5]);
+            drawCtx.arc(
+                node.x,
+                node.y,
+                this.getSizeValue(this.property.ctrlCircle.radius * 2, 'draw'),
+                0,
+                2 * Math.PI
+            );
+            drawCtx.stroke();
+            drawCtx.closePath();
+            drawCtx.setLineDash([]);
+            drawCtx.closePath();
+        }
 
         this.nodeNameBoxList[this.nodeNameBoxList.length] =
             new this.nodeClass.nodeNameBox(
                 node.id,
-                node.x + 37 - 76 / 2,
-                node.y + 85 - 71 / 2,
+                node.x + this.getSizeValue(37 - 76 / 2, 'draw'),
+                node.y + this.getSizeValue(85 - 71 / 2, 'draw'),
                 node.alias,
-                this.ctx.measureText(node.alias).width + 20
+                drawCtx.measureText(node.alias).width + 20
             );
-    },
 
+        drawCtx.globalAlpha = 1;
+    },
 
     /**
      * Draw Alarm Animation Effect
      */
     drawAlarmEffect: function(radius, zoomOut) {
-        if (this.isAlarmAnimate !== true || !this.nodeList) {
-            return;
-        }
-
-        // Check Animation Frame Performance
-        //window.cancelAnimationFrame(this.alarmAnimateHandle);
-
-        radius = (radius === undefined)? this.property.outCircle.radius + 24 : radius;
-        zoomOut = (zoomOut === undefined)? false : zoomOut;
-
         var ix, ixLen;
         var nodeObj;
         var x, y;
         var alarmColor;
+
+        if (!this.isAlarmAnimate || !this.nodeList) {
+            this.isAlarmDrawing = false;
+            this.clearAlarmLayout();
+            return;
+        }
+
+        this.isAlarmDrawing = true;
+
+        // Check Animation Frame Performance
+        //window.cancelAnimationFrame(this.alarmAnimateHandle);
+
+        radius = (radius === undefined) ? this.getSizeValue(this.property.outCircle.radius + 24, 'draw') : radius;
+        zoomOut = (zoomOut === undefined) ? false : zoomOut;
+
         this.fpsNow = Date.now();
         this.delta = this.fpsNow - this.fpsThen;
 
         if (this.delta > this.fpsInterval && this.isDrawFrame) {
             this.clearAlarmLayout();
 
-            if (zoomOut === true) {
-                if (radius < this.property.outCircle.radius + 40) {
-                    radius += 1.4; // Alarm Effect Speed
+            if (zoomOut) {
+                if (radius < this.getSizeValue(this.property.outCircle.radius + 40, 'draw')) {
+                    radius += this.getSizeValue(1.4, 'draw'); // Alarm Effect Speed
                 } else {
                     zoomOut = false;
                 }
             } else {
-                if (radius > this.property.inCircle.radius + 24) {
-                    radius = this.property.inCircle.radius + 24;
+                if (radius > this.getSizeValue(this.property.inCircle.radius + 24, 'draw')) {
+                    radius = this.getSizeValue(this.property.inCircle.radius + 24, 'draw');
                 } else {
                     zoomOut = true;
                 }
             }
 
-            for (ix = 0, ixLen =  this.nodeList.length; ix < ixLen ; ix++) {
+            for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++) {
                 nodeObj = this.nodeList[ix];
 
-                if (nodeObj.level !== 0 || (+nodeObj.status !== 1 && +nodeObj.status !== 2) ) {
+                if (nodeObj.level !== 0 || (+nodeObj.status !== 1 && +nodeObj.status !== 2)) {
+                    continue;
+                }
+
+                if (nodeObj.isDeleted) {
                     continue;
                 }
 
                 x = nodeObj.x;
                 y = nodeObj.y;
 
-                alarmColor = (nodeObj.status === 2)? '#DB121A' : '#FF9803';
-                this.alarmGradient = this.groupCtx.createRadialGradient(x, y, this.property.outCircle.radius + 24, x, y, this.property.outCircle.radius + 40);
-                this.alarmGradient.addColorStop(0, 'rgba('+this.getHexToRgb(alarmColor) +','+ 0.7 + ')');
-                this.alarmGradient.addColorStop(0.2, 'rgba('+this.getHexToRgb(alarmColor) +','+ 0.5 + ')');
-                this.alarmGradient.addColorStop(0.4, 'rgba('+this.getHexToRgb(alarmColor) +','+ 0.3 + ')');
-                this.alarmGradient.addColorStop(0.8, 'rgba('+this.getHexToRgb(alarmColor) +','+ 0.1 + ')');
+                alarmColor = (nodeObj.status === 2) ? '#DB121A' : '#FF9803';
+                this.alarmGradient =
+                    this.groupCtx.createRadialGradient(x, y,
+                        this.getSizeValue(this.property.outCircle.radius + 24, 'draw'),
+                        x, y,
+                        this.getSizeValue(this.property.outCircle.radius + 40, 'draw'));
+                this.alarmGradient.addColorStop(0, 'rgba(' + this.getHexToRgb(alarmColor) + ',' + 0.7 + ')');
+                this.alarmGradient.addColorStop(0.2, 'rgba(' + this.getHexToRgb(alarmColor) + ',' + 0.5 + ')');
+                this.alarmGradient.addColorStop(0.4, 'rgba(' + this.getHexToRgb(alarmColor) + ',' + 0.3 + ')');
+                this.alarmGradient.addColorStop(0.8, 'rgba(' + this.getHexToRgb(alarmColor) + ',' + 0.1 + ')');
                 this.alarmGradient.addColorStop(1, 'transparent');
 
                 // draw the circle
@@ -1680,14 +1929,14 @@ XMTopology.prototype = {
                 this.alarmCtx.closePath();
 
                 this.alarmCtx.strokeStyle = this.alarmGradient;
-                this.alarmCtx.lineWidth = 6;
+                this.alarmCtx.lineWidth = this.getSizeValue(6, 'draw');
                 this.alarmCtx.stroke();
 
-                this.fpsThen = this.fpsNow - ( this.delta % this.fpsInterval);
+                this.fpsThen = this.fpsNow - (this.delta % this.fpsInterval);
             }
         }
 
-        if (radius >= this.property.outCircle.radius + 40) {
+        if (radius >= this.getSizeValue(this.property.outCircle.radius + 40, 'draw')) {
             this.clearAlarmLayout();
             setTimeout(function(radius, zoomOut) {
                 this.alarmAnimateHandle = window.requestAnimationFrame(this.drawAlarmEffect.bind(this, radius, zoomOut));
@@ -1695,9 +1944,7 @@ XMTopology.prototype = {
         } else {
             this.alarmAnimateHandle = window.requestAnimationFrame(this.drawAlarmEffect.bind(this, radius, zoomOut));
         }
-
     },
-
 
     /**
      */
@@ -1708,14 +1955,15 @@ XMTopology.prototype = {
         var ix, ixLen;
         var nodeObj;
         var x, y;
+        var radius;
 
-        angle = (angle === undefined)? 0 : angle;
-        var radius = 28 * Math.abs(Math.cos(angle));
+        angle = (angle === undefined) ? 0 : angle;
+        radius = 28 * Math.abs(Math.cos(angle));
 
-        for (ix = 0, ixLen =  this.nodeList.length; ix < ixLen ; ix++) {
+        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++) {
             nodeObj = this.nodeList[ix];
 
-            if (nodeObj.isGroupMode !== true || nodeObj.status !== 3) {
+            if (!nodeObj.isGroupMode || nodeObj.status !== 3) {
                 continue;
             }
 
@@ -1732,25 +1980,25 @@ XMTopology.prototype = {
                 false
             );
             this.alarmCtx.closePath();
-    //        this.ctx.strokeStyle = this.property.inCircle.strokeStyle;
-    //        this.ctx.lineWidth = this.property.inCircle.lineWidth;
-    //        this.ctx.stroke();
+            //        this.nodeCtx.strokeStyle = this.property.inCircle.strokeStyle;
+            //        this.nodeCtx.lineWidth = this.property.inCircle.lineWidth;
+            //        this.nodeCtx.stroke();
             this.alarmCtx.fillStyle = '#72757B';
             this.alarmCtx.fill();
 
             angle += Math.PI / 64;
 
-    //        mainContext.arc(225, 225, radius, 0, Math.PI * 2, false);
-    //        mainContext.closePath();
+            //        mainContext.arc(225, 225, radius, 0, Math.PI * 2, false);
+            //        mainContext.closePath();
 
-    //        // color in the circle
-    //        mainContext.fillStyle = "#006699";
-    //        mainContext.fill();
+            //        // color in the circle
+            //        mainContext.fillStyle = "#006699";
+            //        mainContext.fill();
 
-    //        angle += Math.PI / 64;
+            //        angle += Math.PI / 64;
 
             this.alarmCtx.fillStyle = '#FFF';
-            this.alarmCtx.font      = 'bold 6px "Droid Sans"';
+            this.alarmCtx.font = 'bold ' + this.getSizeValue(6, 'font') + 'px "Droid Sans"';
             this.alarmCtx.textAlign = 'center';
             this.alarmCtx.fillText('DOWN', x, y);
         }
@@ -1763,6 +2011,7 @@ XMTopology.prototype = {
      * 그룹 노드 만드는 것을 취소
      */
     cancelGroupFolder: function() {
+        var ix, ixLen, jx, jxLen;
         this.folderImgCnt = 0;
 
         this.displayCanvas.style.cursor = '';
@@ -1776,9 +2025,14 @@ XMTopology.prototype = {
         // 텍스트 필드값을 초기화
         this.groupNameInputBox.value = '';
 
-        if (this.selectNodeObj) {
-            this.selectNodeObj.x = this.firstClickPoint.x;
-            this.selectNodeObj.y = this.firstClickPoint.y;
+        if (this.multiSelectedNode.length > 1) {
+            for (ix = 0, ixLen = this.multiSelectedNode.length; ix < ixLen; ix++) {
+                this.multiSelectedNode[ix].x = this.multiSelectedNode[ix].orginX;
+                this.multiSelectedNode[ix].y = this.multiSelectedNode[ix].orginY;
+            }
+        } else if (this.selectNodeObj) {
+            this.selectNodeObj.x = this.selectNodeObj.orginX;
+            this.selectNodeObj.y = this.selectNodeObj.orginY;
             this.selectNodeObj = null;
         }
 
@@ -1787,7 +2041,7 @@ XMTopology.prototype = {
         }
 
         if (this.mergeAgentList) {
-            for (var jx = 0, jxLen = this.mergeAgentList.length; jx < jxLen; jx++) {
+            for (jx = 0, jxLen = this.mergeAgentList.length; jx < jxLen; jx++) {
                 this.mergeAgentList[jx].isHide = false;
             }
         }
@@ -1804,6 +2058,8 @@ XMTopology.prototype = {
     /**
      */
     drawFolderClose: function() {
+        var iconPt, marginX, marginY;
+
         if (this.folderImgCnt === null) {
             this.folderImgCnt = 4;
         }
@@ -1843,13 +2099,9 @@ XMTopology.prototype = {
             return;
         }
 
-        var iconPt = this.getImagePoint('folder0' + this.folderImgCnt);
-        var marginX = 36;
-        var marginY = 32;
-
-        if (this.mergeTargetNode.clazz && this.mergeTargetNode.clazz !== 'AGENT') {
-            marginY = -10;
-        }
+        iconPt = this.getImagePoint('folder0' + this.folderImgCnt);
+        marginX = this.getSizeValue(36, 'draw');
+        marginY = this.getSizeValue(32, 'draw');
 
         this.displayGroupViewStep = 0;
 
@@ -1859,8 +2111,8 @@ XMTopology.prototype = {
             iconPt.x, iconPt.y, iconPt.w, iconPt.h,
             this.mergeTargetNode.x - marginX,
             this.mergeTargetNode.y - marginY,
-            iconPt.w,
-            iconPt.h
+            this.getSizeValue(iconPt.w, 'draw'),
+            this.getSizeValue(iconPt.h, 'draw')
         );
         this.folderImgCnt--;
 
@@ -1874,11 +2126,13 @@ XMTopology.prototype = {
      * @param {function} callback
      */
     drawFolderOpen: function(callback) {
+        var iconPt, marginX, marginY;
+
         this.isDrawingFolder = true;
         if (this.folderImgCnt === null) {
             this.folderImgCnt = 0;
 
-        } else if (this.folderImgCnt > 4 ) {
+        } else if (this.folderImgCnt > 4) {
             clearTimeout(this.openFolderAnimateId);
 
             this.folderImgCnt = 4;
@@ -1895,13 +2149,13 @@ XMTopology.prototype = {
             return;
         }
 
-        var iconPt = this.getImagePoint('folder0' + this.folderImgCnt);
-        var marginX = 36;
-        var marginY = 32;
+        iconPt = this.getImagePoint('folder0' + this.folderImgCnt);
+        marginX = this.getSizeValue(36, 'draw');
+        marginY = this.getSizeValue(32, 'draw');
 
-        if (this.mergeTargetNode.clazz && this.mergeTargetNode.clazz !== 'AGENT') {
-            marginY = -10;
-        }
+        // if (this.mergeTargetNode.clazz && this.mergeTargetNode.clazz !== 'AGENT') {
+        //     marginY = -10;
+        // }
 
         this.displayGroupViewStep = 0;
 
@@ -1912,8 +2166,8 @@ XMTopology.prototype = {
             iconPt.x, iconPt.y, iconPt.w, iconPt.h,
             this.mergeTargetNode.x - marginX,
             this.mergeTargetNode.y - marginY,
-            iconPt.w,
-            iconPt.h
+            this.getSizeValue(iconPt.w, 'draw'),
+            this.getSizeValue(iconPt.h, 'draw')
         );
         this.folderImgCnt++;
 
@@ -1928,7 +2182,8 @@ XMTopology.prototype = {
      * @param {number} radius - 반지름
      */
     drawGroupSplitX: function(node, radius) {
-        var angle = (radius > 60)? 300 : 290;
+        var iconPt;
+        var angle = (radius > 60) ? 300 : 290;
         var x = (radius * 2) * Math.cos(angle * Math.PI / 180);
         var y = (radius * 2) * Math.sin(angle * Math.PI / 180);
 
@@ -1944,31 +2199,20 @@ XMTopology.prototype = {
             ctx = this.groupChildCtx;
         }
 
-        ctx.beginPath();
-        ctx.arc(
-            cx + x,
-            cy + y,
-            8,
-            0,
-            2 * Math.PI
+        iconPt = this.isSplitHover ? this.getImagePoint('group_split_over') : this.getImagePoint('group_split');
+        ctx.drawImage(
+            this.iconImg,
+            iconPt.x, iconPt.y, iconPt.w, iconPt.h,
+            cx + x - iconPt.w / 2,
+            cy + y - iconPt.h / 2,
+            iconPt.w,
+            iconPt.h
         );
-        ctx.closePath();
-        ctx.strokeStyle = 'gray';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.strokeStyle = this.isSplitHover? '#30A0F8':'#C7C7C7';
-        ctx.lineWidth = 2;
-        ctx.moveTo(cx + x - 4, cy + y);
-        ctx.lineTo(cx + x + 4, cy + y);
-        ctx.stroke();
-        ctx.closePath();
-
-        this.groupSplitIconPt = {x: cx + x, y: cy + y, r: 4};
+        this.groupSplitIconPt = {
+            x: cx + x,
+            y: cy + y,
+            r: iconPt.w / 2
+        };
     },
 
 
@@ -1979,6 +2223,7 @@ XMTopology.prototype = {
      * @param {number} radius
      */
     drawGroupCloseX: function(node, radius) {
+        var iconPt;
         var x = (radius * 2) * Math.cos(310 * Math.PI / 180);
         var y = (radius * 2) * Math.sin(310 * Math.PI / 180);
 
@@ -1994,33 +2239,20 @@ XMTopology.prototype = {
             ctx = this.groupChildCtx;
         }
 
-        ctx.beginPath();
-        ctx.arc(
-            cx + x,
-            cy + y,
-            8,
-            0,
-            2 * Math.PI
+        iconPt = this.isCloseHover ? this.getImagePoint('group_close_over') : this.getImagePoint('group_close');
+        ctx.drawImage(
+            this.iconImg,
+            iconPt.x, iconPt.y, iconPt.w, iconPt.h,
+            cx + x - iconPt.w / 2,
+            cy + y - iconPt.h / 2,
+            iconPt.w,
+            iconPt.h
         );
-        ctx.closePath();
-        ctx.strokeStyle = 'gray';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.strokeStyle = this.isCloseHover? '#30A0F8':'#C7C7C7';
-        ctx.lineWidth = 2;
-        ctx.moveTo(cx + x - 4, cy + y - 4);
-        ctx.lineTo(cx + x + 4, cy + y + 4);
-        ctx.moveTo(cx + x + 4, cy + y - 4);
-        ctx.lineTo(cx + x - 4, cy + y + 4);
-        ctx.stroke();
-        ctx.closePath();
-
-        this.groupCloseIconPt = {x: cx + x, y: cy + y, r: 4};
+        this.groupCloseIconPt = {
+            x: cx + x,
+            y: cy + y,
+            r: iconPt.w / 2
+        };
     },
 
 
@@ -2030,21 +2262,29 @@ XMTopology.prototype = {
      * @param {object} node
      */
     drawGroupChild: function(node) {
-        if (node.childList.length > 0) {
+        var ix, ixLen, x, y;
+        var radius;
+        var angle;
+        var childNode, iconPt, activeSessions, lockSessions, imageKey, dbId, isMonitor;
+        var activeCnt, childCount;
+        var cx, cy;
+        var pointSeq = 0;
+        var deletedNodeCnt = 0;
+        var drawNode;
+
+        var ctx;
+        var step;
+
+        drawNode = (this.isClickWebNode) ? node.webList : node.childList;
+
+        if (drawNode.length > 0) {
 
             this.groupChildPt = [];
 
-            var radius = this.property.outCircle.radius * 3 + 2;
-            var x, y;
-            var angle;
-            var childNode, iconPt,
-                activeSessions, lockSessions, imageKey, dbId, isMonitor;
-
-            var cx = this.detailNodePos.x;
-            var cy = this.detailNodePos.y
-
-            var ctx;
-            var step = this.displayGroupViewStep;
+            radius = this.property.outCircle.radius * 3 + 2;
+            cx = this.detailNodePos.x;
+            cy = this.detailNodePos.y;
+            step = this.displayGroupViewStep;
 
             if (step > 1) {
                 ctx = this.getGroupChildContext(step);
@@ -2052,40 +2292,55 @@ XMTopology.prototype = {
                 ctx = this.groupChildCtx;
             }
 
-            var childCount = node.childList.length;
+            for (ix = 0, ixLen = drawNode.length; ix < ixLen; ix++) {
+                childNode = drawNode[ix];
 
-            for (var ix = 1; ix <= childCount; ix++) {
-                if (childCount < 8) {
-                    angle = Math.trunc(360 / childCount);
-                    x = (radius * 1 + 18) * Math.cos(angle * ix * Math.PI / 180);
-                    y = (radius * 1 + 18) * Math.sin(angle * ix * Math.PI / 180);
-                } else if (ix >= 0 && ix <= 8) {
-                    angle = Math.trunc(360 / 8);
-                    x = (radius * 1 + 18) * Math.cos(angle * ix * Math.PI / 180);
-                    y = (radius * 1 + 18) * Math.sin(angle * ix * Math.PI / 180);
+                if (!this.isShowAllNode && childNode.isDeleted) {
+                    deletedNodeCnt++;
+                }
+            }
 
-                } else if (ix > 8 && ix <= 23) {
-                    angle = Math.trunc(360 / 15);
-                    x = (radius * 2 + 18) * Math.cos(angle * ix * Math.PI / 180);
-                    y = (radius * 2 + 18) * Math.sin(angle * ix * Math.PI / 180);
+            childCount = drawNode.length - deletedNodeCnt;
 
-                } else if (ix > 23 && ix <= 43) {
-                    angle = Math.trunc(360 / 20);
-                    x = (radius * 3 + 18) * Math.cos(angle * ix * Math.PI / 180);
-                    y = (radius * 3 + 18) * Math.sin(angle * ix * Math.PI / 180);
+            for (ix = 0, ixLen = drawNode.length; ix < ixLen; ix++) {
+                childNode = drawNode[ix];
 
-                } else if (ix > 43 && ix <= 73) {
-                    angle = Math.trunc(360 / 28);
-                    x = (radius * 4 + 18) * Math.cos(angle * ix * Math.PI / 180);
-                    y = (radius * 4 + 18) * Math.sin(angle * ix * Math.PI / 180);
-
-                } else if (ix > 73 && ix <= 102) {
-                    angle = Math.trunc(360 / 30);
-                    x = (radius * 5 + 18) * Math.cos(angle * ix * Math.PI / 180);
-                    y = (radius * 5 + 18) * Math.sin(angle * ix * Math.PI / 180);
+                if (!this.isShowAllNode && childNode.isDeleted) {
+                    continue;
                 }
 
-                childNode = node.childList[ix - 1];
+                pointSeq++;
+
+                if (childCount < 8) {
+                    angle = Math.trunc(360 / childCount);
+                    x = (radius * 1 + 18) * Math.cos(angle * pointSeq * Math.PI / 180);
+                    y = (radius * 1 + 18) * Math.sin(angle * pointSeq * Math.PI / 180);
+                } else if (pointSeq >= 0 && pointSeq <= 8) {
+                    angle = Math.trunc(360 / 8);
+                    x = (radius * 1 + 18) * Math.cos(angle * pointSeq * Math.PI / 180);
+                    y = (radius * 1 + 18) * Math.sin(angle * pointSeq * Math.PI / 180);
+
+                } else if (pointSeq > 8 && pointSeq <= 23) {
+                    angle = Math.trunc(360 / 15);
+                    x = (radius * 2 + 18) * Math.cos(angle * pointSeq * Math.PI / 180);
+                    y = (radius * 2 + 18) * Math.sin(angle * pointSeq * Math.PI / 180);
+
+                } else if (pointSeq > 23 && pointSeq <= 43) {
+                    angle = Math.trunc(360 / 20);
+                    x = (radius * 3 + 18) * Math.cos(angle * pointSeq * Math.PI / 180);
+                    y = (radius * 3 + 18) * Math.sin(angle * pointSeq * Math.PI / 180);
+
+                } else if (pointSeq > 43 && pointSeq <= 73) {
+                    angle = Math.trunc(360 / 28);
+                    x = (radius * 4 + 18) * Math.cos(angle * pointSeq * Math.PI / 180);
+                    y = (radius * 4 + 18) * Math.sin(angle * pointSeq * Math.PI / 180);
+
+                } else if (pointSeq > 73 && pointSeq <= 102) {
+                    angle = Math.trunc(360 / 30);
+                    x = (radius * 5 + 18) * Math.cos(angle * pointSeq * Math.PI / 180);
+                    y = (radius * 5 + 18) * Math.sin(angle * pointSeq * Math.PI / 180);
+                }
+
                 this.groupChildPt[this.groupChildPt.length] = {
                     id: childNode.id,
                     x: cx + x,
@@ -2147,18 +2402,18 @@ XMTopology.prototype = {
                     }
                     ctx.fill();
 
-                    var activeCnt = this.getActiveCountByNodeId(childNode);
+                    activeCnt = (this.isClickWebNode) ? 'WEB' : this.getActiveCountByNodeId(childNode);
 
                     // Text - Node Value (Active Count)
                     ctx.fillStyle = '#FFF';
-                    ctx.font      = 'bold 11px "Droid Sans"';
+                    ctx.font = 'bold 11px "Droid Sans"';
                     ctx.textAlign = 'center';
                     ctx.fillText(activeCnt, cx + x, cy + y + 4);
                     //ctx.fillText(childNode.value, cx + x, cy + y + 4);
 
                     //Text - Node Name
                     ctx.fillStyle = '#FFF';
-                    ctx.font      = 'bold 6px "Droid Sans"';
+                    ctx.font = 'bold 6px "Droid Sans"';
                     ctx.textAlign = 'center';
                     ctx.fillText(childNode.alias, cx + x, cy + y + 31);
 
@@ -2177,9 +2432,9 @@ XMTopology.prototype = {
                             imageKey = 'db';
                             break;
                     }
-                    iconPt    = this.getImagePoint(imageKey);
-                    dbId      = this.getServerIdByNodeId(childNode.id);
-                    isMonitor = (Comm.dbInfoObj[dbId])? true : false;
+                    iconPt = this.getImagePoint(imageKey);
+                    dbId = this.getServerIdByNodeId(childNode.id);
+                    isMonitor = (Comm.dbInfoObj[dbId]) ? true : false;
 
                     ctx.drawImage(
                         this.iconImg, iconPt.x, iconPt.y, iconPt.w, iconPt.h,
@@ -2192,12 +2447,12 @@ XMTopology.prototype = {
                     activeSessions = 0, lockSessions = 0;
 
                     if (Repository.DBStat[dbId]) {
-                        lockSessions   = Repository.DBStat[dbId].lock   || 0;
+                        lockSessions = Repository.DBStat[dbId].lock || 0;
                         activeSessions = Repository.DBStat[dbId].active || 0;
                     }
 
                     ctx.fillStyle = '#FFFFFF';
-                    ctx.font      = 'normal 6px "Droid Sans"';
+                    ctx.font = 'normal 6px "Droid Sans"';
                     ctx.textAlign = 'center';
 
                     // DB Active Sessions Value
@@ -2220,7 +2475,7 @@ XMTopology.prototype = {
                             2 * Math.PI
                         );
                         ctx.closePath();
-                        ctx.fillStyle = 'rgba('+this.getHexToRgb(this.property.inCircle.criticalFill) +','+ 0.8 + ')';
+                        ctx.fillStyle = 'rgba(' + this.getHexToRgb(this.property.inCircle.criticalFill) + ',' + 0.8 + ')';
                         ctx.fill();
 
                         ctx.fillStyle = this.fontColor || '#FFFFFF';
@@ -2241,7 +2496,7 @@ XMTopology.prototype = {
                         cy + y + 56 - Math.trunc(iconPt.h / 1.5 / 2)
                     );
 
-                } else  {
+                } else {
                     iconPt = this.getImagePoint(childNode.type.toLowerCase());
                     ctx.drawImage(
                         this.iconImg, iconPt.x, iconPt.y, iconPt.w, iconPt.h,
@@ -2253,7 +2508,7 @@ XMTopology.prototype = {
 
                     // Node Label
                     ctx.fillStyle = this.fontColor || '#FFFFFF';
-                    ctx.font      = 'bold 6px "Droid Sans"';
+                    ctx.font = 'bold 6px "Droid Sans"';
                     ctx.textAlign = 'center';
 
                     if (childNode.clazz === 'DB') {
@@ -2304,7 +2559,7 @@ XMTopology.prototype = {
 
         this.getDetailNodePos(node.x, node.y);
 
-        oCtx    = this.overCtx;
+        oCtx = this.overCtx;
         oCanvas = this.overCanvas;
 
         if (step > 0) {
@@ -2333,7 +2588,7 @@ XMTopology.prototype = {
         ctx.shadowBlur = 0;
         ctx.shadowColor = 'transparent';
 
-        ctx.fillStyle = 'rgba('+this.getHexToRgb('#212227') +','+ 0.8 + ')';
+        ctx.fillStyle = 'rgba(' + this.getHexToRgb('#212227') + ',' + 0.8 + ')';
         ctx.fill();
 
         if (this.groupCircleRadius * 2 !== radius) {
@@ -2370,17 +2625,17 @@ XMTopology.prototype = {
                     ctx.stroke();
                     ctx.shadowBlur = 0;
                     ctx.shadowColor = 'transparent';
-                    ctx.fillStyle = 'rgba('+this.getHexToRgb('#212227') +','+ 0.8 + ')';
+                    ctx.fillStyle = 'rgba(' + this.getHexToRgb('#212227') + ',' + 0.8 + ')';
                     ctx.fill();
                 }
 
-                this.nodeInfoCanvas.style.zIndex = 3;
+                // this.nodeInfoCanvas.style.zIndex = 3;
 
                 oCanvas.width = this.componentWidth;
                 oCanvas.height = this.componentHeight;
 
                 oCtx.save();
-                oCtx.fillStyle = 'rgba('+this.getHexToRgb('#212227') +','+ 0.6 + ')';
+                oCtx.fillStyle = 'rgba(' + this.getHexToRgb('#212227') + ',' + 0.6 + ')';
                 oCtx.fillRect(0, 0, this.dragCanvas.width, this.dragCanvas.height);
                 oCtx.restore();
 
@@ -2413,7 +2668,7 @@ XMTopology.prototype = {
 
         this.getDetailNodePos(node.x, node.y);
 
-        oCtx    = this.overCtx;
+        oCtx = this.overCtx;
         oCanvas = this.overCanvas;
 
         if (step > 0) {
@@ -2442,7 +2697,7 @@ XMTopology.prototype = {
         ctx.shadowBlur = 0;
         ctx.shadowColor = 'transparent';
 
-        ctx.fillStyle = 'rgba('+this.getHexToRgb('#212227') +','+ 0.8 + ')';
+        ctx.fillStyle = 'rgba(' + this.getHexToRgb('#212227') + ',' + 0.8 + ')';
         ctx.fill();
 
         if (this.groupCircleRadius * 2 !== radius) {
@@ -2479,17 +2734,17 @@ XMTopology.prototype = {
                     ctx.stroke();
                     ctx.shadowBlur = 0;
                     ctx.shadowColor = 'transparent';
-                    ctx.fillStyle = 'rgba('+this.getHexToRgb('#212227') +','+ 0.8 + ')';
+                    ctx.fillStyle = 'rgba(' + this.getHexToRgb('#212227') + ',' + 0.8 + ')';
                     ctx.fill();
                 }
 
-                this.nodeInfoCanvas.style.zIndex = 3;
+                // this.nodeInfoCanvas.style.zIndex = 3;
 
                 oCanvas.width = this.componentWidth;
                 oCanvas.height = this.componentHeight;
 
                 oCtx.save();
-                oCtx.fillStyle = 'rgba('+this.getHexToRgb('#212227') +','+ 0.6 + ')';
+                oCtx.fillStyle = 'rgba(' + this.getHexToRgb('#212227') + ',' + 0.6 + ')';
                 oCtx.fillRect(0, 0, this.dragCanvas.width, this.dragCanvas.height);
                 oCtx.restore();
 
@@ -2513,18 +2768,17 @@ XMTopology.prototype = {
      * @param {boolean} isDisableAnimate - 애니메이션 표현 여부
      */
     drawGroupLayout: function(nodeId, isDisableAnimate) {
+        var node = this.getNodeById(nodeId);
+        var drawStartRadius;
 
         if (!nodeId) {
             return;
         }
 
-        var node = this.getNodeById(nodeId);
-
         this.groupCircleRadius = this.property.outCircle.radius * 3.5;
-
         this.selectedGroupCircle = node;
 
-        var drawStartRadius = (isDisableAnimate)? this.groupCircleRadius * 2 : 2;
+        drawStartRadius = (isDisableAnimate) ? this.groupCircleRadius * 2 : 2;
 
         if (this.drawGroupAnimateId) {
             window.cancelAnimationFrame(this.drawGroupAnimateId);
@@ -2533,7 +2787,7 @@ XMTopology.prototype = {
         this.isDrawingLayout = true;
 
         // 연결된 웹 서버가 포함되어 있는 경우
-        if (this.selectedGroupCircle.isWebContain) {
+        if (this.selectedGroupCircle.isWebContain && this.isClickWebNode) {
             this.drawWebGroupCircle(node, drawStartRadius);
         } else {
             this.drawGroupCircle(node, drawStartRadius);
@@ -2548,18 +2802,18 @@ XMTopology.prototype = {
      * @param {boolean} isDisableAnimate - 애니메이션 표현 여부
      */
     drawWebGroupLayout: function(nodeId, isDisableAnimate) {
+        var node = this.getNodeById(nodeId);
+        var drawStartRadius;
 
         if (!nodeId) {
             return;
         }
 
-        var node = this.getNodeById(nodeId);
-
         this.groupCircleRadius = this.property.outCircle.radius * 3.5;
 
         this.selectedGroupCircle = node;
 
-        var drawStartRadius = (isDisableAnimate)? this.groupCircleRadius * 2 : 2;
+        drawStartRadius = (isDisableAnimate) ? this.groupCircleRadius * 2 : 2;
 
         if (this.drawGroupAnimateId) {
             window.cancelAnimationFrame(this.drawGroupAnimateId);
@@ -2575,15 +2829,13 @@ XMTopology.prototype = {
      * Draw Node Navigate Menu (2 Menu)
      */
     drawNavigateCircle: function(node) {
-
         var gradient, iconPt;
-
         var cx = this.detailNodePos.x;
         var cy = this.detailNodePos.y;
 
-        //================================================================================
+        // ================================================================================
         // Draw Icon Background
-        //================================================================================
+        // ================================================================================
         // Navigate Icon Background - Zoom
         gradient = this.naviCtx.createRadialGradient(
             cx + 1,
@@ -2696,24 +2948,27 @@ XMTopology.prototype = {
     drawNavigateMultiAgent: function(menuX, menuY, node, radius, isChild) {
         var gradient, iconPt;
         var outRadius;
+        var menuZoomRate = 1;
 
         var cx = menuX;
         var cy = menuY;
 
         var iconX, iconY;
+        var x, y;
+        var isAgentType = node.clazz === 'AGENT';
 
-        radius = radius || this.property.inCircle.radius;
+        menuZoomRate = isChild ? 1 : this.zoomRate;
+        radius = radius || this.property.inCircle.radius * menuZoomRate;
 
         if (isChild) {
             outRadius = this.property.childOutCircle.radius + 3.8;
         } else {
-            outRadius = this.property.outCircle.radius; 
+            outRadius = this.property.outCircle.radius * menuZoomRate;
         }
 
-        var isAgentType = node.clazz === 'AGENT';
 
         if (!this.isDisplayGroupMode) {
-            this.nodeInfoCanvas.style.zIndex = 14;
+            // this.nodeInfoCanvas.style.zIndex = 14;
         }
 
         // Navigate Icon Background - Zoom -----------------------------------------------
@@ -2795,21 +3050,21 @@ XMTopology.prototype = {
         this.naviCtx.strokeStyle = this.backgroundColor;
         this.naviCtx.beginPath();
         this.naviCtx.moveTo(cx, cy);
-        this.naviCtx.lineTo(cx, cy - outRadius * 2 + 8);
+        this.naviCtx.lineTo(cx, cy - outRadius * 2 + (8 * menuZoomRate));
         this.naviCtx.closePath();
         this.naviCtx.stroke();
 
         this.naviCtx.beginPath();
-        var x = (outRadius * 2 - 8) * Math.cos(35 * Math.PI / 180);
-        var y = (outRadius * 2 - 8) * Math.sin(35 * Math.PI / 180);
+        x = (outRadius * 2 - (8 * menuZoomRate)) * Math.cos(35 * Math.PI / 180);
+        y = (outRadius * 2 - (8 * menuZoomRate)) * Math.sin(35 * Math.PI / 180);
         this.naviCtx.moveTo(cx, cy);
         this.naviCtx.lineTo(cx + x, cy + y);
         this.naviCtx.closePath();
         this.naviCtx.stroke();
 
         this.naviCtx.beginPath();
-        x = (outRadius * 2 - 8) * Math.cos(145 * Math.PI / 180);
-        y = (outRadius * 2 - 8) * Math.sin(145 * Math.PI / 180);
+        x = (outRadius * 2 - (8 * menuZoomRate)) * Math.cos(145 * Math.PI / 180);
+        y = (outRadius * 2 - (8 * menuZoomRate)) * Math.sin(145 * Math.PI / 180);
         this.naviCtx.moveTo(cx, cy);
         this.naviCtx.lineTo(cx + x, cy + y);
         this.naviCtx.closePath();
@@ -2821,65 +3076,65 @@ XMTopology.prototype = {
 
         // 메뉴 아이콘 이미지 - Xview (트랜잭션 모니터 ) -------------------------------------
         iconPt = this.getImagePoint('xview');
-        iconX = cx - 20 + (isAgentType? (isChild? 4 : 0) : 25);
-        iconY = cy - iconPt.h / 2 - 7 + (isAgentType? (isChild? 2 : 0) : 25);
+        iconX = cx + ((-20 + (isAgentType ? (isChild ? 4 : 0) : 25)) * menuZoomRate);
+        iconY = cy + ((-iconPt.h / 2 - 7 + (isAgentType ? (isChild ? 2 : 0) : 25)) * menuZoomRate);
 
         this.naviCtx.drawImage(
             this.iconImg,
             iconPt.x, iconPt.y, iconPt.w, iconPt.h,
             iconX,
             iconY,
-            iconPt.w,
-            iconPt.h
+            iconPt.w * menuZoomRate,
+            iconPt.h * menuZoomRate
         );
         this.xviewIconPt = {
             x1: iconX,
             y1: iconY,
-            x2: iconX + iconPt.w,
-            y2: iconY + iconPt.h
+            x2: iconX + iconPt.w * menuZoomRate,
+            y2: iconY + iconPt.h * menuZoomRate
         };
 
         // 메뉴 아이콘 이미지 - Zoom (액티브 트랜잭션 목록) ----------------------------------
         iconPt = this.getImagePoint('zoom');
-        iconX = cx + 8 + (isAgentType? (isChild? -6 : 0) : 25);
-        iconY = cy - iconPt.h / 2 - 6 + (isAgentType? (isChild? 1 : 0) : 25);
+        iconX = cx + ((8 + (isAgentType ? (isChild ? -6 : 0) : 25)) * menuZoomRate);
+        iconY = cy + ((-iconPt.h / 2 - 6 + (isAgentType ? (isChild ? 1 : 0) : 25)) * menuZoomRate);
 
         this.naviCtx.drawImage(
             this.iconImg,
             iconPt.x, iconPt.y, iconPt.w, iconPt.h,
             iconX,
             iconY,
-            iconPt.w,
-            iconPt.h
+            iconPt.w * menuZoomRate,
+            iconPt.h * menuZoomRate
         );
         this.zoomIconPt = {
             x1: iconX,
             y1: iconY,
-            x2: iconX + iconPt.w,
-            y2: iconY + iconPt.h
+            x2: iconX + iconPt.w * menuZoomRate,
+            y2: iconY + iconPt.h * menuZoomRate
         };
 
         // 메뉴 아이콘 이미지 - Group (그룹 노드 뷰) ----------------------------------------
         iconPt = this.getImagePoint('group');
-        iconX = cx - iconPt.w / 2 + (isAgentType? 0 : 25);
-        iconY = cy + radius - 4   + (isAgentType? (isChild? -1 : 0) : 25);
+        iconPt = this.getImagePoint('group');
+        iconX = cx + ((-iconPt.w / 2 + (isAgentType ? 0 : 25)) * menuZoomRate);
+        iconY = cy + radius + ((-4 + (isAgentType ? (isChild ? -1 : 0) : 25)) * menuZoomRate);
 
         this.naviCtx.drawImage(
             this.iconImg,
             iconPt.x, iconPt.y, iconPt.w, iconPt.h,
             iconX,
             iconY,
-            iconPt.w,
-            iconPt.h
+            iconPt.w * menuZoomRate,
+            iconPt.h * menuZoomRate
         );
         this.groupIconPt = {
             x1: iconX,
             y1: iconY,
-            x2: iconX + iconPt.w,
-            y2: iconY + iconPt.h
+            x2: iconX + iconPt.w * menuZoomRate,
+            y2: iconY + iconPt.h * menuZoomRate
         };
     },
-
 
     /**
      *  그룹 노드가 아닌 에이전트 노드에 마우스가 위치하였을 때 보여지는 메뉴 구성.
@@ -2895,20 +3150,23 @@ XMTopology.prototype = {
      */
     drawNavigateSingleAgent: function(menuX, menuY, node, radius, isChild) {
         var gradient;
-
-        if (!this.isDisplayGroupMode) {
-            this.nodeInfoCanvas.style.zIndex = 14;
-        }
-
+        var menuZoomRate = 1;
         var cx = menuX;
         var cy = menuY;
+        var iconPt;
+        var xPoint, yPoint;
 
-        radius = radius || this.property.inCircle.radius;
-        isChild = (!isChild)? false : isChild;
+        if (!this.isDisplayGroupMode) {
+            // this.nodeInfoCanvas.style.zIndex = 14;
+        }
 
-        //================================================================================
+        isChild = (!isChild) ? false : isChild;
+        menuZoomRate = isChild ? 1 : this.zoomRate;
+        radius = radius || this.property.inCircle.radius * menuZoomRate;
+
+        // ================================================================================
         // Draw Icon Background - Gradient Color
-        //================================================================================
+        // ================================================================================
         // Navigate Icon Background - Zoom
         gradient = this.naviCtx.createRadialGradient(
             cx + 1,
@@ -2968,56 +3226,113 @@ XMTopology.prototype = {
         //================================================================================
 
         // 메뉴 아이콘 이미지 - Xview (트랜잭션 모니터 ) -------------------------------------
-        var iconPt = this.getImagePoint('xview');
+        iconPt = this.getImagePoint('xview');
+        xPoint = cx + ((-18 + (isChild ? 2 : 0)) * menuZoomRate);
+        yPoint = cy + ((-iconPt.h / 2 - 1 + (isChild ? 2 : 0)) * menuZoomRate);
         this.naviCtx.drawImage(
             this.iconImg,
             iconPt.x, iconPt.y, iconPt.w, iconPt.h,
-            cx - 18 + (isChild? 2 : 0),
-            cy - iconPt.h / 2 - 1 + (isChild? 2 : 0),
-            iconPt.w,
-            iconPt.h
+            xPoint,
+            yPoint,
+            iconPt.w * menuZoomRate,
+            iconPt.h * menuZoomRate
         );
         this.xviewIconPt = {
-            x1: cx - 18 + (isChild? 2 : 0),
-            y1: cy - iconPt.h / 2 - 1 + (isChild? 2 : 0),
-            x2: cx - 18 + iconPt.w + (isChild? 2 : 0),
-            y2: cy - iconPt.h / 2 - 1 + iconPt.h + (isChild? 2 : 0)
+            x1: xPoint,
+            y1: yPoint,
+            x2: xPoint + iconPt.w * menuZoomRate,
+            y2: yPoint + iconPt.h * menuZoomRate
         };
 
         // 메뉴 아이콘 이미지 - Zoom (액티브 트랜잭션 목록) ----------------------------------
         iconPt = this.getImagePoint('zoom');
+        xPoint = cx + ((7 + (isChild ? -4 : 0)) * menuZoomRate);
+        yPoint = cy + ((-iconPt.h / 2 - 1 + (isChild ? 2 : 0)) * menuZoomRate);
         this.naviCtx.drawImage(
             this.iconImg,
             iconPt.x, iconPt.y, iconPt.w, iconPt.h,
-            cx + 7 + (isChild? -4 : 0),
-            cy - iconPt.h / 2 - 1 + (isChild? 2 : 0),
-            iconPt.w,
-            iconPt.h
+            xPoint,
+            yPoint,
+            iconPt.w * menuZoomRate,
+            iconPt.h * menuZoomRate
         );
         this.zoomIconPt = {
-            x1: cx + 5,
-            y1: cy - iconPt.h / 2 - 1,
-            x2: cx + 7 + iconPt.w,
-            y2: cy - iconPt.h / 2 - 1 + iconPt.h
+            x1: xPoint,
+            y1: yPoint,
+            x2: xPoint + iconPt.w * menuZoomRate,
+            y2: yPoint + iconPt.h * menuZoomRate
         };
     },
 
+    drawNavigateDelete: function(nodeX, nodeY, node, isChild) {
+        /* 삭제 버튼 생성 */
+        var cx = nodeX;
+        var cy = nodeY;
+        var iconWidth, iconHeigth;
+
+        var x = isChild ? 16 : this.getSizeValue(24, 'draw');
+        var y = isChild ? -13 : this.getSizeValue(-24, 'draw');
+
+        if (node.status === 3) {
+            iconPt = this.getImagePoint('node_down_close' + (this.isFocusDeleteIcon ? '_over' : ''));
+        } else if (node.status === 2) {
+            iconPt = this.getImagePoint('node_crit_close' + (this.isFocusDeleteIcon ? '_over' : ''));
+        } else if (node.status === 1) {
+            iconPt = this.getImagePoint('node_warn_close' + (this.isFocusDeleteIcon ? '_over' : ''));
+        } else {
+            if (node.clazz !== 'AGENT') {
+                iconPt = this.getImagePoint('group_close' + (this.isFocusDeleteIcon ? '_over' : ''));
+            } else {
+                iconPt = this.getImagePoint('node_close' + (this.isFocusDeleteIcon ? '_over' : ''));
+            }
+        }
+
+        this.naviCtx.globalAlpha = node.isDeleted ? 0.7 : 1;
+
+        iconWidth = isChild ? iconPt.w * 0.8 : this.getSizeValue(iconPt.w, 'draw');
+        iconHeigth = isChild ? iconPt.h * 0.8 : this.getSizeValue(iconPt.h, 'draw');
+
+        // this.naviCtx.fillRect(cx + x - iconWidth / 2,
+        //     cy + y - iconHeigth / 2,
+        //     iconWidth,
+        //     iconHeigth);
+
+        this.naviCtx.drawImage(
+            this.iconImg,
+            iconPt.x, iconPt.y, iconPt.w, iconPt.h,
+            cx + x - iconWidth / 2,
+            cy + y - iconHeigth / 2,
+            iconWidth,
+            iconHeigth
+        );
+
+        this.deleteIconPt = {
+            x1: cx + x - iconWidth / 2,
+            y1: cy + y - iconHeigth / 2,
+            x2: cx + x + iconWidth / 2,
+            y2: cy + y + iconHeigth / 2
+        };
+
+        this.naviCtx.globalAlpha = 1;
+    },
 
     /**
-     * 
+     *
      * @param {object} node
      * @param {object} gradient
      * @param {boolean} isFocus
      */
     setNaviMenuGradient: function(node, gradient, isFocus) {
+        var status = (!this.isClickWebNode) ? node.status : node.webStatus;
+
         if (isFocus) {
-            if (node.status === 3) {
+            if (status === 3) {
                 gradient.addColorStop(0, '#56585C');
                 gradient.addColorStop(1, '#56585C');
-            } else if (node.status === 2) {
+            } else if (status === 2) {
                 gradient.addColorStop(0, '#99070A');
                 gradient.addColorStop(1, '#99070A');
-            } else if (node.status === 1) {
+            } else if (status === 1) {
                 gradient.addColorStop(0, '#BF7202');
                 gradient.addColorStop(1, '#BF7202');
             } else {
@@ -3025,13 +3340,13 @@ XMTopology.prototype = {
                 gradient.addColorStop(1, '#3B7D05');
             }
         } else {
-            if (node.status === 3) {
+            if (status === 3) {
                 gradient.addColorStop(0, '#72757B');
                 gradient.addColorStop(1, '#72757B');
-            } else if (node.status === 2) {
+            } else if (status === 2) {
                 gradient.addColorStop(0, '#E22E37');
                 gradient.addColorStop(1, '#DC1319');
-            } else if (node.status === 1) {
+            } else if (status === 1) {
                 gradient.addColorStop(0, '#FFD300');
                 gradient.addColorStop(1, '#FF9803');
             } else {
@@ -3039,43 +3354,57 @@ XMTopology.prototype = {
                 gradient.addColorStop(1, '#65B40D');
             }
         }
+
+        status = null;
     },
 
 
     /**
      * Draw an arrow that appears at the end of the relationship line.
      */
-    drawArrow: function(arrow, ptArrow, endPt, status) {
+    drawArrow: function(arrow, ptArrow, endPt, status, fromId, toId, drawCtx) {
         var angleInDegrees = this.getAngleBetweenPoints(ptArrow, endPt);
 
+        var fromNode = this.getNodeById(fromId);
+        var toNode = this.getNodeById(toId);
+
+        var arrowSize = {};
+        arrowSize.w = this.getSizeValue(arrow.w, 'draw');
+        arrowSize.h = this.getSizeValue(arrow.h, 'draw');
+
+        if (fromNode.isDeleted || toNode.isDeleted) {
+            drawCtx.globalAlpha = 0.7;
+        }
+
         // first save the untranslated/unrotated context
-        this.lineCtx.save();
+        drawCtx.save();
 
         // move the rotation point to the center of the rect
-        this.lineCtx.translate(ptArrow.x, ptArrow.y);
+        drawCtx.translate(ptArrow.x, ptArrow.y);
         // rotate the rect
-        this.lineCtx.rotate(angleInDegrees * Math.PI/180);
+        drawCtx.rotate(angleInDegrees * Math.PI / 180);
 
-        this.lineCtx.beginPath();
-        this.lineCtx.moveTo(0,0);
-        this.lineCtx.lineTo( 0, -arrow.h);
-        this.lineCtx.lineTo( arrow.w, 0);
-        this.lineCtx.lineTo( 0, +arrow.h);
-        this.lineCtx.closePath();
+        drawCtx.beginPath();
+        drawCtx.moveTo(0, 0);
+        drawCtx.lineTo(0, -arrowSize.h);
+        drawCtx.lineTo(arrowSize.w, 0);
+        drawCtx.lineTo(0, +arrowSize.h);
+        drawCtx.closePath();
 
         if (status === 3) {
-            this.lineCtx.fillStyle = '#72757B';
+            drawCtx.fillStyle = '#72757B';
         } else if (status === 2) {
-            this.lineCtx.fillStyle = this.property.relationLine.criticalFill;
+            drawCtx.fillStyle = this.property.relationLine.criticalFill;
         } else if (status === 1) {
-            this.lineCtx.fillStyle = this.property.relationLine.warningFill;
+            drawCtx.fillStyle = this.property.relationLine.warningFill;
         } else {
-            this.lineCtx.fillStyle = 'rgba('+this.getHexToRgb(this.property.relationLineArrow.fillStyle) +','+ 0.8 + ')';
+            drawCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.property.relationLineArrow.fillStyle) + ',' + 0.8 + ')';
         }
-        this.lineCtx.fill();
+        drawCtx.fill();
 
         // restore the context to its untranslated/unrotated state
-        this.lineCtx.restore();
+        drawCtx.restore();
+        drawCtx.globalAlpha = 1;
     },
 
 
@@ -3086,33 +3415,33 @@ XMTopology.prototype = {
         var angleInDegrees = this.getAngleBetweenPoints(ptArrow, endPt);
 
         // first save the untranslated/unrotated context
-        this.lineCtx.save();
+        this.nodeCtx.save();
 
         // move the rotation point to the center of the rect
-        this.lineCtx.translate(ptArrow.x, ptArrow.y);
+        this.nodeCtx.translate(ptArrow.x, ptArrow.y);
         // rotate the rect
-        this.lineCtx.rotate(angleInDegrees * Math.PI/180);
+        this.nodeCtx.rotate(angleInDegrees * Math.PI / 180);
 
-        this.lineCtx.beginPath();
-        this.lineCtx.moveTo(0,0);
-        this.lineCtx.lineTo( 0, -arrow.h);
-        this.lineCtx.lineTo( arrow.w, 0);
-        this.lineCtx.lineTo( 0, +arrow.h);
-        this.lineCtx.closePath();
+        this.nodeCtx.beginPath();
+        this.nodeCtx.moveTo(0, 0);
+        this.nodeCtx.lineTo(0, -arrow.h);
+        this.nodeCtx.lineTo(arrow.w, 0);
+        this.nodeCtx.lineTo(0, +arrow.h);
+        this.nodeCtx.closePath();
 
         if (status === 3) {
-            this.lineCtx.fillStyle = '#72757B';
+            this.nodeCtx.fillStyle = '#72757B';
         } else if (status === 2) {
-            this.lineCtx.fillStyle = this.property.relationLine.criticalFill;
+            this.nodeCtx.fillStyle = this.property.relationLine.criticalFill;
         } else if (status === 1) {
-            this.lineCtx.fillStyle = this.property.relationLine.warningFill;
+            this.nodeCtx.fillStyle = this.property.relationLine.warningFill;
         } else {
-            this.lineCtx.fillStyle = 'rgba('+this.getHexToRgb(this.property.relationLineArrow.fillStyle) +','+ 0.8 + ')';
+            this.nodeCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.property.relationLineArrow.fillStyle) + ',' + 0.8 + ')';
         }
-        this.lineCtx.fill();
+        this.nodeCtx.fill();
 
         // restore the context to its untranslated/unrotated state
-        this.lineCtx.restore();
+        this.nodeCtx.restore();
     },
 
 
@@ -3124,6 +3453,9 @@ XMTopology.prototype = {
      * @param {number} index - depth
      */
     getNodePathToArray: function(pathList, result, index) {
+        var ix;
+        var nextNode;
+
         if (!pathList) {
             return;
         }
@@ -3137,8 +3469,7 @@ XMTopology.prototype = {
             result[index] = [];
         }
 
-        var nextNode;
-        for (var ix = 0, ixLen = pathList.length; ix < ixLen; ix++) {
+        for (ix = 0, ixLen = pathList.length; ix < ixLen; ix++) {
             result[index].push(pathList[ix]);
             nextNode = this.nodePath[pathList[ix].id];
 
@@ -3157,6 +3488,9 @@ XMTopology.prototype = {
      * @param {number} index - depth
      */
     getLinePathToArray: function(pathList, result, index) {
+        var ix, ixLen;
+        var nextNode;
+
         if (pathList == null) {
             return;
         }
@@ -3170,9 +3504,7 @@ XMTopology.prototype = {
             result[index] = [];
         }
 
-        var nextNode;
-
-        for (var ix = 0, ixLen = pathList.length; ix < ixLen; ix++) {
+        for (ix = 0, ixLen = pathList.length; ix < ixLen; ix++) {
             result[index].push(pathList[ix]);
             nextNode = this.linePath[pathList[ix].to];
 
@@ -3186,7 +3518,9 @@ XMTopology.prototype = {
     /**
      */
     getLineNode: function(from, to) {
-        for (var ix = 0, ixLen = this.lineList.length; ix < ixLen; ix++) {
+        var ix, ixLen;
+
+        for (ix = 0, ixLen = this.lineList.length; ix < ixLen; ix++) {
             if (this.lineList[ix].from === from && this.lineList[ix].to === to) {
                 return this.lineList[ix];
             }
@@ -3213,13 +3547,13 @@ XMTopology.prototype = {
             } else {
                 // 그룹에 포함된 에이전트의 트랜잭션 건수를 합계하여 표시
                 for (ix = 0, ixLen = node.childIdAllList.length; ix < ixLen; ix++) {
-                    childNodeId  = node.childIdAllList[ix];
-                    childNode    = this.getNodeById(childNodeId);
+                    childNodeId = node.childIdAllList[ix];
+                    childNode = this.getNodeById(childNodeId);
                     activeCount += childNode.value;
                 }
             }
 
-        // 노드가 단일 노드인 경우
+            // 노드가 단일 노드인 경우
         } else {
             // 서버가 Down, Disconnected 상태일 때는 건수를 0 으로 표시
             if (node.status === 3) {
@@ -3273,6 +3607,7 @@ XMTopology.prototype = {
      * @return {string} ',' 로 구분된 서버 ID 목록
      */
     getWasIdArrByNodeId: function(nodeId) {
+        var ix, ixLen;
         var wasIds;
         var childNodeId, serverId;
         var nodeObj;
@@ -3288,11 +3623,11 @@ XMTopology.prototype = {
             if (nodeObj && nodeObj.childIdAllList.length > 0) {
                 wasIds = '';
 
-                for (var ix = 0, ixLen = nodeObj.childIdAllList.length; ix < ixLen; ix++) {
+                for (ix = 0, ixLen = nodeObj.childIdAllList.length; ix < ixLen; ix++) {
                     childNodeId = nodeObj.childIdAllList[ix];
                     serverId = this.getServerIdByNodeId(childNodeId);
 
-                    wasIds += ((ix === 0)? '' : ',');
+                    wasIds += ((ix === 0) ? '' : ',');
                     wasIds += serverId;
                 }
             }
@@ -3306,86 +3641,63 @@ XMTopology.prototype = {
      * 노드와 노드 사이에 연결되는 선 그리기
      */
     drawRelationLine: function() {
-        var startPt  = arguments[0];
-        var endPt    = arguments[1];
+        var startPt = arguments[0];
+        var endPt = arguments[1];
         var rStartPt = arguments[2];
-        var rEndPt   = arguments[3];
-        var status   = arguments[4];
-        var from     = arguments[5];
-        var to       = arguments[6];
-        var type     = arguments[7];
+        var rEndPt = arguments[3];
+        var status = arguments[4];
+        var from = arguments[5];
+        var to = arguments[6];
+        var type = arguments[7];
+        var isCurveLine = arguments[8];
+        var drawCtx = arguments[9];
 
         var ix, jx, ixLen, jxLen;
+        var changePosY, angle;
+        var fromChildNode, fromChildNodeId, toChildNodeId;
 
         var fromNode = this.getNodeById(from);
-        var toNode   = this.getNodeById(to);
+        var toNode = this.getNodeById(to);
 
-        this.lineCtx.lineWidth = this.property.relationLine.lineWidth;
+        drawCtx.lineWidth = this.property.relationLine.lineWidth;
+        drawCtx.lineWidth = (drawCtx === this.moveCtx) ? drawCtx.lineWidth += 1 : drawCtx.lineWidth;
 
         this.lineRemoteCount = 0;
 
+        drawCtx.setLineDash([0]);
+        drawCtx.globalAlpha = 1;
+        if (fromNode.isDeleted || toNode.isDeleted) {
+            drawCtx.setLineDash([5]);
+            drawCtx.globalAlpha = 0.7;
+        }
+
         if (fromNode.status === 3 || toNode.status === 3) {
-            this.lineCtx.strokeStyle = '#72757B';
-            this.lineCtx.fillStyle   = '#72757B';
+            drawCtx.strokeStyle = '#72757B';
+            drawCtx.fillStyle = '#72757B';
         } else if (status === 2) {
-            this.lineCtx.strokeStyle = this.property.relationLine.criticalStroke;
-            this.lineCtx.fillStyle = this.property.relationLine.criticalFill;
+            drawCtx.strokeStyle = this.property.relationLine.criticalStroke;
+            drawCtx.fillStyle = this.property.relationLine.criticalFill;
         } else if (status === 1) {
-            this.lineCtx.strokeStyle = this.property.relationLine.warningStroke;
-            this.lineCtx.fillStyle = this.property.relationLine.warningFill;
+            drawCtx.strokeStyle = this.property.relationLine.warningStroke;
+            drawCtx.fillStyle = this.property.relationLine.warningFill;
         } else {
-            this.lineCtx.strokeStyle = this.property.relationLine.strokeStyle;
-            this.lineCtx.fillStyle = this.property.relationLine.fillStyle;
+            drawCtx.strokeStyle = this.property.relationLine.strokeStyle;
+            drawCtx.fillStyle = this.property.relationLine.fillStyle;
         }
 
-        // Draw relation line
-        var isCurveLine = false;
-        if (this.relationLinePoint.indexOf((startPt.x +':'+ startPt.y) +'-'+ (endPt.x  + ':' + endPt.y)) === -1) {
-            if (this.relationLinePoint.indexOf((endPt.x  + ':' + endPt.y) +'-'+ (startPt.x +':'+ startPt.y)) === -1) {
-                isCurveLine = false;
-                this.relationLinePoint.push((startPt.x +':'+ startPt.y) +'-'+ (endPt.x  + ':' + endPt.y));
-            } else {
-                isCurveLine = true;
-            }
-        }
-
-        this.lineCtx.beginPath();
-        this.lineCtx.moveTo(startPt.x, startPt.y);
+        drawCtx.beginPath();
+        drawCtx.moveTo(startPt.x, startPt.y);
 
         if (isCurveLine) {
-            this.lineCtx.quadraticCurveTo(startPt.x + (endPt.x - startPt.x) / 2, endPt.y - 20 - (endPt.y - startPt.y) / 2 - 20, endPt.x, endPt.y);
-
+            drawCtx.quadraticCurveTo(startPt.x + (endPt.x - startPt.x) / 2, endPt.y - 20 - (endPt.y - startPt.y) / 2 - 20, endPt.x, endPt.y);
         } else {
-            this.lineCtx.lineTo(endPt.x, endPt.y);
+            drawCtx.lineTo(endPt.x, endPt.y);
         }
-        this.lineCtx.stroke();
-
-        var line = this.lineList[this.lineList.length];
-        if (line) {
-            line.sx = rStartPt.x;
-            line.sy = rStartPt.y;
-            line.ex = rEndPt.x;
-            line.ey = rEndPt.y;
-            line.from = from;
-            line.to = to;
-            line.status = status;
-            line.isCurve = isCurveLine;
-        } else {
-            this.lineList[this.lineList.length] = {
-                sx: rStartPt.x,
-                sy: rStartPt.y,
-                ex: rEndPt.x,
-                ey: rEndPt.y,
-                from: from,
-                to: to,
-                status: status,
-                isCurve: isCurveLine
-            };
-        }
+        drawCtx.stroke();
 
         // Draw relation line point
-        this.lineCtx.beginPath();
-        this.lineCtx.arc(
+        drawCtx.beginPath();
+        drawCtx.arc(
             rStartPt.x,
             rStartPt.y,
             this.property.relationPoint.radius * 2,
@@ -3393,28 +3705,28 @@ XMTopology.prototype = {
             2 * Math.PI
         );
 
-        this.lineCtx.arc(
+        drawCtx.arc(
             rEndPt.x,
             rEndPt.y,
             this.property.relationPoint.radius * 2,
             0,
             2 * Math.PI
         );
-        this.lineCtx.closePath();
-        this.lineCtx.fillStyle = 'transparent';
-        this.lineCtx.fill();
+        drawCtx.closePath();
+        drawCtx.fillStyle = 'transparent';
+        drawCtx.fill();
 
-        this.lineCtx.fillStyle = '#FFFFFF';
-        this.lineCtx.font      = 'normal 13px "Droid Sans"';
-        this.lineCtx.save();
-        this.lineCtx.textAlign = 'center';
+        drawCtx.fillStyle = '#FFFFFF';
+        drawCtx.font = 'normal ' + this.getSizeValue(13, 'font') + 'px "Droid Sans"';
+        drawCtx.save();
+        drawCtx.textAlign = 'center';
 
-//        var diffSec = Ext.Date.diff(fromNode.remoteCountTimer, new Date(), Ext.Date.SECOND);
-//        if (diffSec > 3) {
-//            fromNode.remoteCount = 0;
-//        }
+        // var diffSec = Ext.Date.diff(fromNode.remoteCountTimer, new Date(), Ext.Date.SECOND);
+        // if (diffSec > 3) {
+        //    fromNode.remoteCount = 0;
+        // }
 
-        var changePosY = 0;
+        changePosY = 0;
         if (isCurveLine) {
             changePosY = 26;
         }
@@ -3423,15 +3735,15 @@ XMTopology.prototype = {
 
         // 정보가 연결선 각도와 동일하게 회전되어 표시
         if (this.isRemoteInfoTextRotate) {
-            var angle = this.getAngleBetweenPoints(startPt, endPt);
+            angle = this.getAngleBetweenPoints(startPt, endPt);
             if ((angle >= -180 && angle <= -90) || (angle >= 90 && angle <= 180)) {
                 angle = angle + 180;
             }
-            this.lineCtx.translate(startPt.x + (endPt.x - startPt.x) / 2, endPt.y - (endPt.y - startPt.y) / 2);
-            this.lineCtx.rotate(angle * Math.PI / 180);
+            drawCtx.translate(startPt.x + (endPt.x - startPt.x) / 2, endPt.y - (endPt.y - startPt.y) / 2);
+            drawCtx.rotate(angle * Math.PI / 180);
 
             if (this.isDisplayRemoteActiveCount) {
-                this.lineCtx.fillText(type, 0, -10);
+                drawCtx.fillText(type, 0, -10);
 
                 if (fromNode.status === 3 || toNode.status === 3) {
                     this.lineRemoteCount = 0;
@@ -3443,7 +3755,7 @@ XMTopology.prototype = {
                     }
 
                     this.lineRemoteCount = 0;
-                    if (toNode.id && toNode.id.indexOf('GROUP-') === 0) {
+                    if (toNode.id && toNode.id.startsWith('GROUP-')) {
                         for (ix = 0, ixLen = toNode.childList.length; ix < ixLen; ix++) {
                             this.lineRemoteCount += fromNode.remoteCount[toNode.childList[ix].id];
                         }
@@ -3453,10 +3765,10 @@ XMTopology.prototype = {
                     }
 
                 }
-                this.lineCtx.fillText(this.lineRemoteCount + ' calls', 0, 4 - changePosY);
+                drawCtx.fillText(this.lineRemoteCount + ' calls', 0, 4 - changePosY);
             } else {
-                this.lineCtx.fillStyle = this.lineCtx.strokeStyle || '#FFFFFF';
-                this.lineCtx.fillText(type, 0, -2 - changePosY);
+                drawCtx.fillStyle = drawCtx.strokeStyle || '#FFFFFF';
+                drawCtx.fillText(type, 0, -2 - changePosY);
             }
 
             this.remoteInfoBoxList[this.remoteInfoBoxList.length] =
@@ -3468,24 +3780,24 @@ XMTopology.prototype = {
                     26
                 );
 
-            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].dest         = fromNode.activeDest[toNode.id] || [];
-            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].destKey      = fromNode.id + '-' + toNode.id;
+            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].dest = fromNode.activeDest[toNode.id] || [];
+            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].destKey = fromNode.id + '-' + toNode.id;
             this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].fromServerId = this.getWasIdArrByNodeId(fromNode.id);
-            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].toServerId   = this.getWasIdArrByNodeId(toNode.id);
+            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].toServerId = this.getWasIdArrByNodeId(toNode.id);
             this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].toServerType = toNode.clazz;
-            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].fromName     = fromNode.alias;
-            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].toName       = toNode.alias;
+            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].fromName = fromNode.alias;
+            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].toName = toNode.alias;
 
         } else {
             // 연결선 정보가 항상 수평으로 표시
             if (this.backgroundColor) {
-                this.lineCtx.fillStyle = 'rgba('+this.getHexToRgb(this.backgroundColor) +','+ 0.7 + ')';
-                this.lineCtx.fillRect(startPt.x + (endPt.x - startPt.x) / 2 - 20, endPt.y - (endPt.y - startPt.y) / 2 - 11 - changePosY, 40, 13);
-                this.lineCtx.fillRect(startPt.x + (endPt.x - startPt.x) / 2 - 18, endPt.y - (endPt.y - startPt.y) / 2 + 2 - changePosY, 36, 12);
+                drawCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.backgroundColor) + ',' + 0.7 + ')';
+                drawCtx.fillRect(startPt.x + (endPt.x - startPt.x) / 2 - 20, endPt.y - (endPt.y - startPt.y) / 2 - 11 - changePosY, 40, 13);
+                drawCtx.fillRect(startPt.x + (endPt.x - startPt.x) / 2 - 18, endPt.y - (endPt.y - startPt.y) / 2 + 2 - changePosY, 36, 12);
             }
 
-            this.lineCtx.fillStyle = this.lineCtx.strokeStyle || '#FFFFFF';
-            this.lineCtx.fillText(type, startPt.x + (endPt.x - startPt.x) / 2, endPt.y - (endPt.y - startPt.y) / 2 + 12 - changePosY);
+            drawCtx.fillStyle = drawCtx.strokeStyle || '#FFFFFF';
+            drawCtx.fillText(type, startPt.x + (endPt.x - startPt.x) / 2, endPt.y - (endPt.y - startPt.y) / 2 + 12 - changePosY);
 
             // 연결선에 리모트 건수를 표시하는 경우
             if (this.isDisplayRemoteActiveCount) {
@@ -3503,10 +3815,8 @@ XMTopology.prototype = {
 
                     this.lineRemoteCount = 0;
 
-                    var fromChildNode, fromChildNodeId, toChildNodeId;
-
                     // 시작 노드가 그룹 노드인 경우
-                    if (fromNode.id && fromNode.id.indexOf('GROUP-') === 0) {
+                    if (fromNode.id && fromNode.id.startsWith('GROUP-')) {
 
                         for (ix = 0, ixLen = fromNode.childIdAllList.length; ix < ixLen; ix++) {
 
@@ -3517,7 +3827,7 @@ XMTopology.prototype = {
                                 continue;
                             }
 
-                            if (toNode.id && toNode.id.indexOf('GROUP-') === 0) {
+                            if (toNode.id && toNode.id.startsWith('GROUP-')) {
                                 for (jx = 0, jxLen = toNode.childIdAllList.length; jx < jxLen; jx++) {
                                     toChildNodeId = toNode.childIdAllList[jx];
                                     this.lineRemoteCount += (fromChildNode.remoteCount[toChildNodeId] || 0);
@@ -3539,7 +3849,7 @@ XMTopology.prototype = {
                         }
 
                     } else {
-                        if (toNode.id && toNode.id.indexOf('GROUP-') === 0) {
+                        if (toNode.id && toNode.id.startsWith('GROUP-')) {
                             for (jx = 0, jxLen = toNode.childIdAllList.length; jx < jxLen; jx++) {
                                 toChildNodeId = toNode.childIdAllList[jx];
                                 this.lineRemoteCount += (fromNode.remoteCount[toChildNodeId] || 0);
@@ -3551,10 +3861,10 @@ XMTopology.prototype = {
                     }
 
                 }
-                this.lineCtx.fillText(
+                drawCtx.fillText(
                     this.lineRemoteCount + ' calls',
                     startPt.x + (endPt.x - startPt.x) / 2,
-                    endPt.y   - (endPt.y - startPt.y) / 2 - changePosY
+                    endPt.y - (endPt.y - startPt.y) / 2 - changePosY
                 );
             }
 
@@ -3566,16 +3876,18 @@ XMTopology.prototype = {
                     40, 26
                 );
 
-            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].dest         = fromNode.activeDest[toNode.id] || [];
-            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].destKey      = fromNode.id + '-' + toNode.id;
+            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].dest = fromNode.activeDest[toNode.id] || [];
+            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].destKey = fromNode.id + '-' + toNode.id;
             this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].fromServerId = this.getWasIdArrByNodeId(fromNode.id);
-            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].toServerId   = this.getWasIdArrByNodeId(toNode.id);
+            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].toServerId = this.getWasIdArrByNodeId(toNode.id);
             this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].toServerType = toNode.clazz;
-            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].fromName     = fromNode.alias;
-            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].toName       = toNode.alias;
+            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].fromName = fromNode.alias;
+            this.remoteInfoBoxList[this.remoteInfoBoxList.length - 1].toName = toNode.alias;
         }
 
-        this.lineCtx.restore();
+        drawCtx.restore();
+        drawCtx.setLineDash([0]);
+        drawCtx.globalAlpha = 1;
     },
 
 
@@ -3583,56 +3895,57 @@ XMTopology.prototype = {
      * Draw the line between Rect nodes relationship.
      */
     drawRelationLineOfRect: function() {
-        var startPt  = arguments[0];
-        var endPt    = arguments[1];
+        var startPt = arguments[0];
+        var endPt = arguments[1];
         var rStartPt = arguments[2];
-        var rEndPt   = arguments[3];
-        var status   = arguments[4];
-        var from     = arguments[5];
-        var to       = arguments[6];
-        var type     = arguments[7];
+        var rEndPt = arguments[3];
+        var status = arguments[4];
+        var from = arguments[5];
+        var to = arguments[6];
+        var type = arguments[7];
 
         var fromNode = this.getNodeById(from);
-        var toNode   = this.getNodeById(to);
+        var toNode = this.getNodeById(to);
+        var line;
+        var isCurveLine = false;
 
-        this.lineCtx.lineWidth = this.property.relationLine.lineWidth;
+        this.nodeCtx.lineWidth = this.property.relationLine.lineWidth;
 
         if (fromNode.status === 3 || toNode.status === 3) {
-            this.lineCtx.strokeStyle = '#72757B';
-            this.lineCtx.fillStyle = '#72757B';
+            this.nodeCtx.strokeStyle = '#72757B';
+            this.nodeCtx.fillStyle = '#72757B';
         } else if (status === 2) {
-            this.lineCtx.strokeStyle = this.property.relationLine.criticalStroke;
-            this.lineCtx.fillStyle = this.property.relationLine.criticalFill;
+            this.nodeCtx.strokeStyle = this.property.relationLine.criticalStroke;
+            this.nodeCtx.fillStyle = this.property.relationLine.criticalFill;
         } else if (status === 1) {
-            this.lineCtx.strokeStyle = this.property.relationLine.warningStroke;
-            this.lineCtx.fillStyle = this.property.relationLine.warningFill;
+            this.nodeCtx.strokeStyle = this.property.relationLine.warningStroke;
+            this.nodeCtx.fillStyle = this.property.relationLine.warningFill;
         } else {
-            this.lineCtx.strokeStyle = this.property.relationLine.strokeStyle;
-            this.lineCtx.fillStyle = this.property.relationLine.fillStyle;
+            this.nodeCtx.strokeStyle = this.property.relationLine.strokeStyle;
+            this.nodeCtx.fillStyle = this.property.relationLine.fillStyle;
         }
 
         // Draw relation line
-        var isCurveLine = false;
-        if (this.relationLinePoint.indexOf((startPt.x +':'+ startPt.y) +'-'+ (endPt.x  + ':' + endPt.y)) === -1) {
-            if (this.relationLinePoint.indexOf((endPt.x  + ':' + endPt.y) +'-'+ (startPt.x +':'+ startPt.y)) === -1) {
+        if (this.relationLinePoint.indexOf((startPt.x + ':' + startPt.y) + '-' + (endPt.x + ':' + endPt.y)) === -1) {
+            if (this.relationLinePoint.indexOf((endPt.x + ':' + endPt.y) + '-' + (startPt.x + ':' + startPt.y)) === -1) {
                 isCurveLine = false;
-                this.relationLinePoint.push((startPt.x +':'+ startPt.y) +'-'+ (endPt.x  + ':' + endPt.y));
+                this.relationLinePoint.push((startPt.x + ':' + startPt.y) + '-' + (endPt.x + ':' + endPt.y));
             } else {
                 isCurveLine = true;
             }
         }
 
-        this.lineCtx.beginPath();
-        this.lineCtx.moveTo(startPt.x, startPt.y);
+        this.nodeCtx.beginPath();
+        this.nodeCtx.moveTo(startPt.x, startPt.y);
         if (isCurveLine) {
-            this.lineCtx.quadraticCurveTo(startPt.x + (endPt.x - startPt.x) / 2, endPt.y - 20 - (endPt.y - startPt.y) / 2 - 20, endPt.x, endPt.y);
+            this.nodeCtx.quadraticCurveTo(startPt.x + (endPt.x - startPt.x) / 2, endPt.y - 20 - (endPt.y - startPt.y) / 2 - 20, endPt.x, endPt.y);
 
         } else {
-            this.lineCtx.lineTo(endPt.x, endPt.y);
+            this.nodeCtx.lineTo(endPt.x, endPt.y);
         }
-        this.lineCtx.stroke();
+        this.nodeCtx.stroke();
 
-        var line = this.lineList[this.lineList.length];
+        line = this.lineList[this.lineList.length];
         if (line) {
             line.sx = rStartPt.x;
             line.sy = rStartPt.y;
@@ -3656,8 +3969,8 @@ XMTopology.prototype = {
         }
 
         // Draw relation line point
-        this.lineCtx.beginPath();
-        this.lineCtx.arc(
+        this.nodeCtx.beginPath();
+        this.nodeCtx.arc(
             rStartPt.x,
             rStartPt.y,
             this.property.relationPoint.radius * 2,
@@ -3665,43 +3978,45 @@ XMTopology.prototype = {
             2 * Math.PI
         );
 
-        this.lineCtx.arc(
+        this.nodeCtx.arc(
             rEndPt.x,
             rEndPt.y,
             this.property.relationPoint.radius * 2,
             0,
             2 * Math.PI
         );
-        this.lineCtx.closePath();
-        this.lineCtx.fillStyle = 'transparent';
-        this.lineCtx.fill();
+        this.nodeCtx.closePath();
+        this.nodeCtx.fillStyle = 'transparent';
+        this.nodeCtx.fill();
 
         if (type) {
-            this.lineCtx.fillStyle = '#FFFFFF';
-            this.lineCtx.font      = 'normal 13px "Droid Sans"';
-            this.lineCtx.save();
-            this.lineCtx.textAlign = 'center';
+            this.nodeCtx.fillStyle = '#FFFFFF';
+            this.nodeCtx.font = 'normal 13px "Droid Sans"';
+            this.nodeCtx.save();
+            this.nodeCtx.textAlign = 'center';
 
             if (this.backgroundColor) {
-                this.lineCtx.fillStyle = 'rgba('+this.getHexToRgb(this.backgroundColor) +','+ 0.7 + ')';
-                this.lineCtx.fillRect(startPt.x + (endPt.x - startPt.x) / 2 - 20, endPt.y - (endPt.y - startPt.y) / 2 - 11, 40, 13);
-                this.lineCtx.fillRect(startPt.x + (endPt.x - startPt.x) / 2 - 18, endPt.y - (endPt.y - startPt.y) / 2 + 2, 36, 12);
+                this.nodeCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.backgroundColor) + ',' + 0.7 + ')';
+                this.nodeCtx.fillRect(startPt.x + (endPt.x - startPt.x) / 2 - 20, endPt.y - (endPt.y - startPt.y) / 2 - 11, 40, 13);
+                this.nodeCtx.fillRect(startPt.x + (endPt.x - startPt.x) / 2 - 18, endPt.y - (endPt.y - startPt.y) / 2 + 2, 36, 12);
             }
 
-            this.lineCtx.fillStyle = this.lineCtx.strokeStyle || '#FFFFFF';
-            this.lineCtx.textAlign = 'center';
-            this.lineCtx.fillText(type, startPt.x + (endPt.x - startPt.x) / 2, endPt.y - (endPt.y - startPt.y) / 2 + 12);
+            this.nodeCtx.fillStyle = this.nodeCtx.strokeStyle || '#FFFFFF';
+            this.nodeCtx.textAlign = 'center';
+            this.nodeCtx.fillText(type, startPt.x + (endPt.x - startPt.x) / 2, endPt.y - (endPt.y - startPt.y) / 2 + 12);
         }
 
-        this.lineCtx.restore();
+        this.nodeCtx.restore();
     },
 
 
     /**
      * Draw a layout nodes.
      */
-    drawNodeLayout: function() {
-        var nodeObj, ix, ixLen;
+    drawNodeLayout: function(drawCtx) {
+        var nodeObj;
+        var ix, ixLen, jx, jxLen;
+        var drawNodeList = [];
 
         this.nodeNameBoxList = [];
         this.isResizeCanvas = false;
@@ -3709,12 +4024,39 @@ XMTopology.prototype = {
         this.marginHeight = 70;
         this.marginWidth = 70;
 
-        for (ix = 0, ixLen =  this.nodeList.length; ix < ixLen ; ix++) {
-        //for (ix = 0, ixLen =  this.displayNodeList.length; ix < ixLen ; ix++) {
-            nodeObj = this.nodeList[ix];
-            //nodeObj = this.displayNodeList[ix];
+        if (drawCtx === this.nodeCtx) {
+            drawNodeList = this.nodeList;
+        } else if (drawCtx === this.moveCtx) {
+            drawNodeList = this.selectedRelationObj;
+        }
+
+        // console.error('nodeCount: ', drawNodeList.length);
+        for (ix = 0, ixLen = drawNodeList.length; ix < ixLen; ix++) {
+            nodeObj = drawNodeList[ix];
+            nodeObj.ctrlSelected = false;
+
+            for (jx = 0, jxLen = this.multiSelectedNode.length; jx < jxLen; jx++) {
+                if (this.multiSelectedNode[jx] === nodeObj) {
+                    nodeObj.ctrlSelected = true;
+                    break;
+                }
+            }
 
             if (this.displayNodeLevel !== +nodeObj.level) {
+                continue;
+            }
+
+            if (!this.isShowAllNode && nodeObj.isDeleted) {
+                continue;
+            }
+
+            // ctrl 노드선택 움직일 시 백그라운드 그리기에서 제외
+            // ctrl 멀티 선택 + ctrl 멀티 선택 시 제외되는 버그 해결
+            if (this.mouseisMoving && nodeObj.ctrlSelected && drawCtx === this.nodeCtx && this.selectedDrawObj) {
+                continue;
+                // 단일노드선택 음식일 시 백그라운드 그리기에서 제외
+                // ctrl 선택 후 다른 Node 선택하여 drag 시 안그려지는 버그 해결
+            } else if (this.selectedDrawObj === nodeObj && drawCtx === this.nodeCtx && this.multiSelectedNode <= 0) {
                 continue;
             }
 
@@ -3722,29 +4064,34 @@ XMTopology.prototype = {
                 this.drawFolderOpen(this.drawGroupInput(nodeObj.x, nodeObj.y).bind(this));
 
             } else if (nodeObj.clazz === 'AGENT') {
-                this.drawCircle(nodeObj);
-                this.drawNodeInfo(nodeObj);
+                this.drawCircle(nodeObj, drawCtx);
 
-                // TODO Web Node Draw
-                if (nodeObj.isWebContain) {
-                    //nodeObj.isWebContain = true;
-                    //this.drawNodeWebInfo(nodeObj);
+                if (!nodeObj.isDeleted) {
+                    if (this.nodeMenuTarget !== nodeObj) {
+                        this.drawNodeInfo(nodeObj, drawCtx);
+
+                        // TODO Web Node Draw
+                        if (nodeObj.isWebContain) {
+                            nodeObj.isWebContain = true;
+                            this.drawNodeWebInfo(nodeObj, drawCtx);
+                        }
+                    }
                 }
 
-                this.drawGroupDownAlarm(nodeObj);
-                this.drawNodeData(nodeObj);
+                this.drawGroupDownAlarm(nodeObj, drawCtx);
+                this.drawNodeData(nodeObj, drawCtx);
 
             } else if (nodeObj.clazz === 'DB') {
-                this.drawDatabase(nodeObj);
+                this.drawDatabase(nodeObj, false, drawCtx);
 
             } else if (nodeObj.clazz === 'SERVER') {
-                this.drawServer(nodeObj);
+                this.drawServer(nodeObj, drawCtx);
 
             } else if (nodeObj.clazz === 'CLOUD') {
-                this.drawCloud(nodeObj);
+                this.drawCloud(nodeObj, drawCtx);
 
             } else if (nodeObj.clazz === 'GROUP') {
-                this.drawComplexGroup(nodeObj);
+                this.drawComplexGroup(nodeObj, drawCtx);
             }
 
             if (this.componentHeight < nodeObj.y) {
@@ -3755,17 +4102,18 @@ XMTopology.prototype = {
                 this.maxNodePosX = nodeObj.x + this.marginWidth;
                 this.isResizeCanvas = true;
             }
-
         }
 
-        this.displayCtx.drawImage(this.canvas, 0 , 0);
-
+        if (drawCtx === this.nodeCtx) {
+            this.displayCtx.drawImage(this.nodeCanvas, 0, 0);
+        }
         if (this.isResizeCanvas) {
             this.isResizeCanvas = false;
             this.resize(this.maxNodePosY, this.maxNodePosX);
         }
     },
 
+    //drawSelectedNodeLayout
 
     /**
      * Draw a layout rect nodes.
@@ -3775,7 +4123,7 @@ XMTopology.prototype = {
 
         this.callTreeIconList = [];
 
-        for (ix = 0, ixLen =  this.nodeList.length; ix < ixLen ; ix++) {
+        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++) {
             nodeObj = this.nodeList[ix];
 
             if (nodeObj.clazz === 'AGENT') {
@@ -3792,7 +4140,7 @@ XMTopology.prototype = {
             }
         }
 
-        this.displayCtx.drawImage(this.canvas, 0 , 0);
+        this.displayCtx.drawImage(this.nodeCanvas, 0, 0);
 
         if (this.isResizeCanvas) {
             this.isResizeCanvas = false;
@@ -3810,23 +4158,23 @@ XMTopology.prototype = {
     drawGroupInput: function(x, y) {
         this.textInputMode = this.inputMode.GROUP_NAME;
 
-        this.nodeInfoCanvas.style.zIndex = 3;
+        // this.nodeInfoCanvas.style.zIndex = 3;
 
-        this.overCanvas.width  = this.componentWidth;
+        this.overCanvas.width = this.componentWidth;
         this.overCanvas.height = this.componentHeight;
 
         this.overCtx.save();
-        this.overCtx.fillStyle = 'rgba('+this.getHexToRgb('#212227') +','+ 0.6 + ')';
+        this.overCtx.fillStyle = 'rgba(' + this.getHexToRgb('#212227') + ',' + 0.6 + ')';
         this.overCtx.fillRect(0, 0, this.dragCanvas.width, this.dragCanvas.height);
         this.overCtx.restore();
 
         this.groupNameInputBox.style.display = '';
 
         this.groupNameInputBox.focus();
-        this.groupNameInputBox.style.top     = y + 'px';
-        this.groupNameInputBox.style.left    = x - 90 + 'px';
+        this.groupNameInputBox.style.top = y + 'px';
+        this.groupNameInputBox.style.left = x - 90 + 'px';
         this.groupNameInputBox.style.opacity = 0.9;
-        this.groupNameInputBox.style.width   = '180px';
+        this.groupNameInputBox.style.width = '180px';
     },
 
 
@@ -3873,9 +4221,9 @@ XMTopology.prototype = {
 
             this.closeGroupView();
 
-        // 부모 노드가 없으면 분리하여 표시 --------------------------------------------------
+            // 부모 노드가 없으면 분리하여 표시 --------------------------------------------------
         } else {
-            for (ix = 0; ix < groupNode.childList.length; ) {
+            for (ix = 0; ix < groupNode.childList.length;) {
                 node = groupNode.childList[ix];
 
                 baseNode = this.getNodeById(node.id);
@@ -3886,14 +4234,14 @@ XMTopology.prototype = {
                 //node.parentId = '';
                 //node.isHide = false;
 
-                baseNode.level    = 0;
+                baseNode.level = 0;
                 baseNode.parentId = '';
-                baseNode.isHide   = false;
+                baseNode.isHide = false;
 
                 // 기존에 설정되었던 노드 위치를 설정
                 savePot = this.getSaveNodePosition(node.id);
-                node.x = (savePot.x === 0)? groupNode.x + (50 * ix) : savePot.x;
-                node.y = (savePot.y === 0)? groupNode.y + (70 * ix) : savePot.y;
+                node.x = (savePot.x === 0) ? groupNode.x + (50 * ix) : savePot.x;
+                node.y = (savePot.y === 0) ? groupNode.y + (70 * ix) : savePot.y;
 
                 baseNode.x = node.x;
                 baseNode.y = node.y;
@@ -3916,9 +4264,9 @@ XMTopology.prototype = {
                     //node.parentId = '';
                     //node.isHide = false;
 
-                    baseNode.level    = 0;
+                    baseNode.level = 0;
                     baseNode.parentId = '';
-                    baseNode.isHide   = false;
+                    baseNode.isHide = false;
 
                     this.deleteRelationData(node.id, groupNode.id);
 
@@ -3935,8 +4283,8 @@ XMTopology.prototype = {
             this.refreshData();
 
             this.selectGroupIdArr.length = 0;
-            this.isDisplayGroupMode      = false;
-            this.isSplitHover            = false;
+            this.isDisplayGroupMode = false;
+            this.isSplitHover = false;
         }
 
         this.saveCurrentNodeStruct();
@@ -3947,25 +4295,27 @@ XMTopology.prototype = {
      * 그룹 노드에서 표시한 그룹 뷰 닫기
      */
     closeGroupView: function() {
+        var nodeId;
 
         if (this.displayGroupViewStep > 1) {
-            this.groupContextList[this.displayGroupViewStep - 1].clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.groupChildCtxtList[this.displayGroupViewStep - 1].clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.groupContextList[this.displayGroupViewStep - 1].clearRect(0, 0, this.nodeCanvas.width, this.nodeCanvas.height);
+            this.groupChildCtxtList[this.displayGroupViewStep - 1].clearRect(0, 0, this.nodeCanvas.width, this.nodeCanvas.height);
             this.selectGroupIdArr.length = this.displayGroupViewStep - 1;
 
         } else {
-            this.groupCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.groupChildCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.groupCtx.clearRect(0, 0, this.nodeCanvas.width, this.nodeCanvas.height);
+            this.groupChildCtx.clearRect(0, 0, this.nodeCanvas.width, this.nodeCanvas.height);
             this.selectGroupIdArr.length = 0;
         }
 
-        this.naviCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // this.naviCtx.clearRect(0, 0, this.nodeCanvas.width, this.nodeCanvas.height);
+        this.clearNaviLayout();
 
         // 열린 그룹 뷰가 있는 경우 해당 그룹 뷰를 보여주게 처리
         if (this.selectGroupIdArr.length > 0) {
             this.displayGroupViewStep--;
 
-            var nodeId = this.selectGroupIdArr[this.selectGroupIdArr.length - 1];
+            nodeId = this.selectGroupIdArr[this.selectGroupIdArr.length - 1];
             this.drawGroupLayout(nodeId, true);
 
         } else {
@@ -3973,7 +4323,6 @@ XMTopology.prototype = {
             this.isDisplayGroupMode = false;
         }
     },
-
 
 
     /**
@@ -3988,17 +4337,11 @@ XMTopology.prototype = {
         var ix, ixLen;
         var node, baseNode;
         var isChange = false;
+        var uniqWebList;
 
-        for (ix = 0, ixLen = groupNode.childList.length; ix < ixLen; ) {
+        for (ix = 0, ixLen = groupNode.childList.length; ix < ixLen;) {
             if (groupNode.childList[ix].id === selectNode.id) {
                 node = groupNode.childList[ix];
-
-                // TODO baseNode 사용에 문제가 없으면 아래 노드 설정 코드를 삭제
-                //node.level = 0;
-                //node.parentId = '';
-                //node.isHide = false;
-                //node.x = x;
-                //node.y = y;
 
                 baseNode = this.getNodeById(node.id);
                 baseNode.level = 0;
@@ -4009,8 +4352,8 @@ XMTopology.prototype = {
 
                 // 그룹노드에서 하위 노드 갯수 빼기
                 groupNode.childList.splice(ix, 1);
-                groupNode.childNodeAllCount -= (node.childNodeAllCount > 0)? node.childNodeAllCount : 1;
-                groupNode.webNodeAllCount   -= (node.webNodeAllCount > 0)?   node.webNodeAllCount   : 1;
+                groupNode.childNodeAllCount -= (node.childNodeAllCount > 0) ? node.childNodeAllCount : 1;
+                groupNode.childIdAllList.splice(groupNode.childIdAllList.indexOf(selectNode.id), 1);
                 ix--;
                 ixLen--;
 
@@ -4045,14 +4388,25 @@ XMTopology.prototype = {
             ix++;
         }
 
-        if (isChange === true) {
-            var groupType = this.getSelectionNodeType(groupNode.childList);
+        uniqWebList = this.getWebList(groupNode);
+
+        groupNode.webNodeAllCount = uniqWebList.length;
+        if (groupNode.webNodeAllCount) {
+            groupNode.isWebContain = true;
+            groupNode.webList = uniqWebList;
+        } else {
+            groupNode.isWebContain = false;
+            groupNode.webList = [];
+        }
+
+        if (isChange) {
+            groupType = this.getSelectionNodeType(groupNode.childList);
             groupNode.type = groupType;
 
             if (groupType === 'AGENT') {
                 groupNode.clazz = 'AGENT';
             }
-            //this.canvasDraw();
+            // this.canvasDraw();
             this.refreshData();
 
             this.saveCurrentNodeStruct();
@@ -4063,9 +4417,10 @@ XMTopology.prototype = {
     getSaveNodePosition: function(id) {
         var nodePot;
         var savePot = {x: 0, y: 0};
+        var viewGroup = this.viewGroup !== 'Basic' ? this.viewGroup : '';
 
-        if (Comm.web_env_info.topologyNodePosition) {
-            nodePot = JSON.parse(Comm.web_env_info.topologyNodePosition);
+        if (Comm.web_env_info['topologyNodePosition' + viewGroup]) {
+            nodePot = JSON.parse(Comm.web_env_info['topologyNodePosition' + viewGroup]);
         }
 
         if (nodePot && nodePot[id]) {
@@ -4094,7 +4449,7 @@ XMTopology.prototype = {
         this.dragCtx.strokeStyle = '#349BE7';
         this.dragCtx.lineWidth = 1;
         this.dragCtx.lineJoin = 'round';
-        this.dragCtx.fillStyle = 'rgba('+this.getHexToRgb('#349BE7') +','+ 0.5 + ')';
+        this.dragCtx.fillStyle = 'rgba(' + this.getHexToRgb('#349BE7') + ',' + 0.5 + ')';
 
         this.dragCtx.fillRect(x, y, w, h);
         this.dragCtx.strokeRect(x, y, w, h);
@@ -4121,7 +4476,7 @@ XMTopology.prototype = {
     mergeDragDropNode: function() {
         var type = this.getSelectionNodeType(this.mergeAgentList, this.mergeTargetNode);
 
-        switch(type) {
+        switch (type) {
             case 'SERVER_GROUP':
             case 'HTTP_GROUP':
             case 'ORACLE_GROUP':
@@ -4151,34 +4506,36 @@ XMTopology.prototype = {
     mergeDragSelectionNode: function() {
         var ix, ixLen;
         var selectNode;
+        var newGroupNode;
+        var uniqWebList;
+
+        // 그룹 노드 타입 체크
+        var type = this.getSelectionNodeType(this.dragSelectionNodeList);
+        var clazz = this.getClazzByType(type);
+
+        var nodeId = 'GROUP-' + Date.now() + this.nodeSeq++;
+        var nodeName = this.groupNameInputBox.value;
 
         this.isCheckCreateGroup = false;
         this.isDragMultiSelection = false;
-
-        // 그룹 노드 타입 체크
-        var type  = this.getSelectionNodeType(this.dragSelectionNodeList);
-        var clazz = this.getClazzByType(type);
-
-        var nodeId   = 'GROUP-' + Date.now() + this.nodeSeq++;
-        var nodeName = this.groupNameInputBox.value;
 
         // 노드명을 입력한 텍스트 창 정보를 초기화
         this.groupNameInputBox.style.display = 'none';
         this.groupNameInputBox.value = '';
 
         // 그룹 노드 생성
-        var newGroupNode = new this.nodeClass.node(clazz, nodeId, nodeName, type, this.mergeTargetNode.x, this.mergeTargetNode.y, true);
-        newGroupNode.remoteCount          = {};
+        newGroupNode = new this.nodeClass.node(clazz, nodeId, nodeName, type, this.mergeTargetNode.x, this.mergeTargetNode.y, true);
+        newGroupNode.remoteCount = {};
         newGroupNode.remoteCount.lastTime = {};
-        newGroupNode.activeDest           = {};
-        newGroupNode.activeDest.lastTime  = {};
-        newGroupNode.isSetPos             = true;
-        newGroupNode.childNodeAllCount    = 0;
-        newGroupNode.webNodeAllCount      = 0;
+        newGroupNode.activeDest = {};
+        newGroupNode.activeDest.lastTime = {};
+        newGroupNode.isSetPos = true;
+        newGroupNode.childNodeAllCount = 0;
+        newGroupNode.webNodeAllCount = 0;
 
         // 신규 생성된 그룹 노드를 노드 목록에 추가
         this.nodeList[this.nodeList.length] = newGroupNode;
-        this.nodeMap[newGroupNode.id]       = newGroupNode;
+        this.nodeMap[newGroupNode.id] = newGroupNode;
 
         // 드래그 해서 선택한 영역에 포함되는 노드를 그룹 노드의 하위노드 목록에 추가
         for (ix = 0, ixLen = this.dragSelectionNodeList.length; ix < ixLen; ix++) {
@@ -4187,8 +4544,7 @@ XMTopology.prototype = {
             selectNode.parentId = nodeId;
 
             newGroupNode.childList[newGroupNode.childList.length] = selectNode;
-            newGroupNode.childNodeAllCount += (selectNode.childList.length > 0)? selectNode.childNodeAllCount : 1;
-            newGroupNode.webNodeAllCount   += (selectNode.webList.length   > 0)? selectNode.webNodeAllCount   : 1;
+            newGroupNode.childNodeAllCount += (selectNode.childList.length > 0) ? selectNode.childNodeAllCount : 1;
 
             if (selectNode.childIdAllList.length > 0) {
                 newGroupNode.childIdAllList = Ext.Array.merge(newGroupNode.childIdAllList, selectNode.childIdAllList);
@@ -4216,7 +4572,14 @@ XMTopology.prototype = {
                     newGroupNode.status = this.alarmType.NORMAL;
                     break;
             }
+        }
 
+        uniqWebList = this.getWebList(newGroupNode);
+
+        newGroupNode.webNodeAllCount = uniqWebList.length;
+        if (newGroupNode.webNodeAllCount) {
+            newGroupNode.isWebContain = true;
+            newGroupNode.webList = uniqWebList;
         }
 
         // 노드에 포함되어 있는 리모트 카운트 정보 및 액티브 데스트 정보를 그룹 노드에 취합한다.
@@ -4248,29 +4611,34 @@ XMTopology.prototype = {
         var ix, jx, jxLen, ixLen;
         var selectNode, childNode;
         var nodeId;
+        var newNodeName = this.groupNameInputBox.value;
+        var newGroupNode;
 
         this.isCheckCreateGroup = false;
 
-        var newNodeName = this.groupNameInputBox.value;
         this.groupNameInputBox.style.display = 'none';
         this.groupNameInputBox.value = '';
 
         nodeId = 'GROUP-' + Date.now() + this.nodeSeq++;
 
-        var newGroupNode = new this.nodeClass.node('AGENT', nodeId, newNodeName, '', this.mergeTargetNode.x, this.mergeTargetNode.y, true);
-        newGroupNode.remoteCount          = {};
+        newGroupNode = new this.nodeClass.node('AGENT', nodeId, newNodeName, '', this.mergeTargetNode.x, this.mergeTargetNode.y, true);
+        newGroupNode.remoteCount = {};
         newGroupNode.remoteCount.lastTime = {};
-        newGroupNode.activeDest           = {};
-        newGroupNode.activeDest.lastTime  = {};
-        newGroupNode.isSetPos             = true;
-        newGroupNode.childNodeAllCount    = 0;
+        newGroupNode.activeDest = {};
+        newGroupNode.activeDest.lastTime = {};
+        newGroupNode.isSetPos = true;
+        newGroupNode.childNodeAllCount = 0;
 
         this.nodeList[this.nodeList.length] = newGroupNode;
-        this.nodeMap[newGroupNode.id]       = newGroupNode;
+        this.nodeMap[newGroupNode.id] = newGroupNode;
 
         // 선택한 노드 정보를 그룹 노드에 추가
         for (ix = 0, ixLen = this.mergeAgentList.length; ix < ixLen; ix++) {
             selectNode = this.mergeAgentList[ix];
+
+            if (selectNode.isDeleted) {
+                continue;
+            }
             selectNode.parentId = nodeId;
 
             this.addNodeToNewGroup(newGroupNode, selectNode);
@@ -4314,38 +4682,37 @@ XMTopology.prototype = {
     },
 
 
-
-
     /**
      * 그룹 생성
      *
-     * @param {string} groupType - 그룹 타입
+     * @param {string} viewGroup - 그룹 타입
      */
     mergeGroup: function(groupType) {
         var jx, jxLen, ix, ixLen;
         var selectNode;
         var nodeId;
+        var newNodeName = this.groupNameInputBox.value;
+        var newGroupNode;
+        var uniqWebList;
 
         this.isCheckCreateGroup = false;
-
-        var newNodeName = this.groupNameInputBox.value;
         this.groupNameInputBox.style.display = 'none';
         this.groupNameInputBox.value = '';
 
         nodeId = 'GROUP-' + Date.now() + this.nodeSeq++;
 
-        var newGroupNode = new this.nodeClass.node('GROUP', nodeId, newNodeName, groupType, this.mergeTargetNode.x, this.mergeTargetNode.y, true);
-        newGroupNode.remoteCount          = {};
+        newGroupNode = new this.nodeClass.node('GROUP', nodeId, newNodeName, groupType, this.mergeTargetNode.x, this.mergeTargetNode.y, true);
+        newGroupNode.remoteCount = {};
         newGroupNode.remoteCount.lastTime = {};
-        newGroupNode.activeDest           = {};
-        newGroupNode.activeDest.lastTime  = {};
-        newGroupNode.isSetPos             = true;
-        newGroupNode.childNodeAllCount    = 0;
-        newGroupNode.webNodeAllCount      = 0;
+        newGroupNode.activeDest = {};
+        newGroupNode.activeDest.lastTime = {};
+        newGroupNode.isSetPos = true;
+        newGroupNode.childNodeAllCount = 0;
+        newGroupNode.webNodeAllCount = 0;
 
         // 신규 생성된 그룹 노드를 노드 목록에 추가
         this.nodeList[this.nodeList.length] = newGroupNode;
-        this.nodeMap[newGroupNode.id]       = newGroupNode;
+        this.nodeMap[newGroupNode.id] = newGroupNode;
 
         for (ix = 0, ixLen = this.mergeAgentList.length; ix < ixLen; ix++) {
             selectNode = this.mergeAgentList[ix];
@@ -4353,8 +4720,7 @@ XMTopology.prototype = {
             selectNode.parentId = nodeId;
 
             newGroupNode.childList[newGroupNode.childList.length] = selectNode;
-            newGroupNode.childNodeAllCount += (selectNode.childList.length > 0)? selectNode.childNodeAllCount : 1;
-            newGroupNode.webNodeAllCount   += (selectNode.webList.length   > 0)? selectNode.webNodeAllCount   : 1;
+            newGroupNode.childNodeAllCount += (selectNode.childList.length > 0) ? selectNode.childNodeAllCount : 1;
 
             switch (selectNode.status) {
                 case this.alarmType.CRITICAL :
@@ -4371,23 +4737,33 @@ XMTopology.prototype = {
                     newGroupNode.status = this.alarmType.NORMAL;
                     break;
             }
+
+            if (this.mergeAgentList[ix].status === 3) {
+                newGroupNode.isContainDown = true;
+
+            }
+        }
+
+        uniqWebList = this.getWebList(newGroupNode);
+
+        newGroupNode.webNodeAllCount = uniqWebList.length;
+        if (newGroupNode.webNodeAllCount) {
+            newGroupNode.isWebContain = true;
+            newGroupNode.webList = uniqWebList;
         }
 
         if (this.mergeTargetNode.childList.length <= 0) {
             newGroupNode.childList[newGroupNode.childList.length] = this.mergeTargetNode;
         }
 
-        for (ix = 0, ixLen = newGroupNode.childList.length; ix < ixLen; ix++) {
-            Ext.merge(newGroupNode.remoteCount, newGroupNode.childList[ix].remoteCount);
-            Ext.merge(newGroupNode.activeDest, newGroupNode.childList[ix].activeDest);
+        for (jx = 0, jxLen = newGroupNode.childList.length; jx < jxLen; jx++) {
+            Ext.merge(newGroupNode.remoteCount, newGroupNode.childList[jx].remoteCount);
+            Ext.merge(newGroupNode.activeDest, newGroupNode.childList[jx].activeDest);
         }
 
         this.mergeTargetNode.level = 1;
 
-        if (this.mergeAgentList[ix].status === 3) {
-            newGroupNode.isContainDown = true;
-
-        } else if (this.mergeTargetNode.status === 2) {
+        if (this.mergeTargetNode.status === 2) {
             newGroupNode.status = 2;
 
         } else if (newGroupNode.status < 1 && this.mergeTargetNode.status === 1) {
@@ -4427,24 +4803,25 @@ XMTopology.prototype = {
         var jx, jxLen, ix, ixLen;
         var clazz;
         var node;
+        var newNodeName = this.groupNameInputBox.value;
+        var newGroupNode;
 
         this.isCheckCreateGroup = false;
         this.isDragMultiSelection = false;
 
-        var newNodeName = this.groupNameInputBox.value;
         this.groupNameInputBox.style.display = 'none';
         this.groupNameInputBox.value = '';
 
         clazz = this.getClazzByType(type);
 
-        var newGroupNode = new this.nodeClass.node(clazz, 'GROUP-' + Date.now() + this.nodeSeq++, newNodeName, type, this.mergeTargetNode.x, this.mergeTargetNode.y, true);
+        newGroupNode = new this.nodeClass.node(clazz, 'GROUP-' + Date.now() + this.nodeSeq++, newNodeName, type, this.mergeTargetNode.x, this.mergeTargetNode.y, true);
         newGroupNode.remoteCount = {};
         newGroupNode.remoteCount.lastTime = {};
         newGroupNode.activeDest = {};
         newGroupNode.activeDest.lastTime = {};
 
         this.nodeList[this.nodeList.length] = newGroupNode;
-        this.nodeMap[newGroupNode.id]       = newGroupNode;
+        this.nodeMap[newGroupNode.id] = newGroupNode;
 
         for (ix = 0; ix < this.mergeAgentList.length; ix++) {
             newGroupNode.childList = this.mergeTargetNode.childList.concat(this.mergeAgentList[ix].childList);
@@ -4491,8 +4868,8 @@ XMTopology.prototype = {
         this.selectNodeObj.y = this.firstClickPoint.y;
         this.selectNodeObj = null;
 
-        //this.overCanvas.width = 0;
-        //this.overCanvas.height = 0;
+        // this.overCanvas.width = 0;
+        // this.overCanvas.height = 0;
         this.clearOverLayout();
 
         this.clearGroupLayout();
@@ -4513,10 +4890,9 @@ XMTopology.prototype = {
      *
      * @param {object} wasIdGroup - ex) {name1: [1,2,5], name2: [4,7,9]}
      */
-    mergeNodeByGroupType: function(wasIdGroup) {
+    mergeNodeByGroupType: function(wasIdGroup, arrangeStnd, bgCheck) {
         var ix, jx, jxLen, ixLen;
         //var pattern;
-        var node;
         //var types = [0, 0, 0, 0]; // 0: Agent, 1: Server, 2: Cloud(http, tcp), 3: DB
         var type;
 
@@ -4527,6 +4903,7 @@ XMTopology.prototype = {
         var nodeObj;
         var startPosX = 100;
         var startPosY = 100;
+        var tierWidth = 0;
 
         var addNodeIdList = [];
 
@@ -4534,47 +4911,77 @@ XMTopology.prototype = {
 
         this.clearMergeNode();
 
-        for (jx = 0, jxLen = groupNames.length; jx < jxLen; jx++) {
-            nodeName = groupNames[jx];
-            wasIdArr = wasIdGroup[nodeName];
+        if (arrangeStnd !== 'Tier') {
+            for (jx = 0, jxLen = groupNames.length; jx < jxLen; jx++) {
+                nodeName = groupNames[jx];
+                wasIdArr = wasIdGroup[nodeName];
 
-            this.dragSelectionNodeList = [];
+                this.dragSelectionNodeList = [];
 
-            // TODO Change Point - Node List
-            for (ix = 0, ixLen = this.nodeList.length; ix < ixLen ; ix++) {
-                if (wasIdArr.indexOf(this.getWasIdByNodId(this.nodeList[ix].id)) !== -1) {
-                    this.dragSelectionNodeList[this.dragSelectionNodeList.length] = this.nodeList[ix];
-                    addNodeIdList[addNodeIdList.length] = this.nodeList[ix].id;
+                for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++) {
+                    if (wasIdArr.indexOf(this.getWasIdByNodId(this.nodeList[ix].id)) !== -1) {
+                        this.dragSelectionNodeList[this.dragSelectionNodeList.length] = this.nodeList[ix];
+                        addNodeIdList[addNodeIdList.length] = this.nodeList[ix].id;
+                    }
+                }
+
+                type = this.getSelectionNodeType(this.dragSelectionNodeList);
+                this.mergeNodeByType(type, nodeName, startPosX, startPosY);
+
+                startPosX += 150;
+                if (startPosX > this.nodeCanvas.width) {
+                    startPosY += 100;
+                    startPosX = 100;
                 }
             }
+        } else if (arrangeStnd === 'Tier') {
+            tierWidth = (this.nodeCanvas.width / groupNames.length);
 
-//            for (ix = 0; ix < this.dragSelectionNodeList.length; ix++) {
-//                node = this.dragSelectionNodeList[ix];
-//
-//                if ('AGENT' === node.clazz) {
-//                    types[0] = 1;
-//                } else if ('SERVER' === node.clazz) {
-//                    types[1] = 1;
-//                } else if ('CLOUD' === node.clazz) {
-//                    types[2] = 1;
-//                } else if ('DB' === node.clazz) {
-//                    types[3] = 1;
-//                }
-//            }
+            for (jx = 0, jxLen = groupNames.length; jx < jxLen; jx++) {
+                nodeName = groupNames[jx];
+                wasIdArr = wasIdGroup[nodeName];
 
-            //pattern = types.join('');
+                this.dragSelectionNodeList = [];
 
-            //type = this.getTypeByPattern(pattern);
+                for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++) {
+                    if (wasIdArr.indexOf(this.getWasIdByNodId(this.nodeList[ix].id)) !== -1) {
+                        this.dragSelectionNodeList[this.dragSelectionNodeList.length] = this.nodeList[ix];
+                        addNodeIdList[addNodeIdList.length] = this.nodeList[ix].id;
+                    }
+                }
 
-            type = this.getSelectionNodeType(this.dragSelectionNodeList);
-
-            this.mergeNodeByType(type, nodeName, startPosX, startPosY);
-
-            startPosX += 150;
-            if (startPosX > this.canvas.width) {
-                startPosY += 100;
-                startPosX = 100;
+                startPosX = tierWidth * (jx + 1) - (tierWidth / 2);
+                startPosY = 100;
+                type = this.getSelectionNodeType(this.dragSelectionNodeList);
+                this.mergeNodeByType(type, nodeName, startPosX, startPosY);
             }
+            /* 그룹이 아닌 개별서버로 뿌리기..
+             tierWidth = (this.nodeCanvas.width / groupNames.length);
+
+             for (jx = 0, jxLen = groupNames.length; jx < jxLen; jx++) {
+             nodeName = groupNames[jx];
+             wasIdArr = wasIdGroup[nodeName];
+
+             this.dragSelectionNodeList = [];
+
+             startPosX = tierWidth * (jx + 1) - (tierWidth / 2);
+             startPosY = 100;
+             for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++) {
+             if (wasIdArr.indexOf(this.getWasIdByNodId(this.nodeList[ix].id)) !== -1) {
+             this.nodeList[ix].x = startPosX;
+             this.nodeList[ix].y = startPosY;
+
+             startPosY += 100;
+
+             if (startPosY > this.nodeCanvas.height) {
+             startPosX += 50;
+             startPosY = 100;
+             }
+             addNodeIdList[addNodeIdList.length] = this.nodeList[ix].id;
+             }
+             }
+             }
+             */
         }
 
         // Configuration Non-group Agent Node
@@ -4584,7 +4991,7 @@ XMTopology.prototype = {
         }
 
         // TODO Change Point - Node List
-        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen ; ix++) {
+        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++) {
             nodeObj = this.nodeList[ix];
 
             if (nodeObj.clazz == 'AGENT' && nodeObj.id.indexOf('GROUP-') !== 0 && addNodeIdList.indexOf(nodeObj.id) === -1) {
@@ -4593,11 +5000,11 @@ XMTopology.prototype = {
 
                 this.drawCircle(nodeObj);
                 this.drawNodeInfo(nodeObj);
-                this.drawGroupDownAlarm(node);
+                this.drawGroupDownAlarm(nodeObj);
                 this.drawNodeData(nodeObj);
 
                 startPosX += 150;
-                if (startPosX > this.canvas.width) {
+                if (startPosX > this.nodeCanvas.width) {
                     startPosY += 100;
                     startPosX = 100;
                 }
@@ -4609,16 +5016,16 @@ XMTopology.prototype = {
         startPosX = 100;
 
         // TODO Change Point - Node List
-        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen ; ix++) {
+        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++) {
             if (this.nodeList[ix].clazz == 'DB') {
 
                 this.nodeList[ix].x = startPosX;
                 this.nodeList[ix].y = startPosY;
 
-                this.drawDatabase(this.nodeList[ix]);
+                this.drawDatabase(this.nodeList[ix], false);
 
                 startPosX += 150;
-                if (startPosX > this.canvas.width) {
+                if (startPosX > this.nodeCanvas.width) {
                     startPosY += 100;
                     startPosX = 100;
                 }
@@ -4630,7 +5037,7 @@ XMTopology.prototype = {
         startPosX = 100;
 
         // TODO Change Point - Node List
-        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen ; ix++) {
+        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++) {
             if (this.nodeList[ix].clazz == 'SERVER') {
                 this.nodeList[ix].x = startPosX;
                 this.nodeList[ix].y = startPosY;
@@ -4638,7 +5045,7 @@ XMTopology.prototype = {
                 this.drawServer(this.nodeList[ix]);
 
                 startPosX += 150;
-                if (startPosX > this.canvas.width) {
+                if (startPosX > this.nodeCanvas.width) {
                     startPosY += 100;
                     startPosX = 100;
                 }
@@ -4649,7 +5056,7 @@ XMTopology.prototype = {
         startPosY += 200;
         startPosX = 100;
 
-        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen ; ix++) {
+        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++) {
             if (this.nodeList[ix].clazz == 'CLOUD') {
 
                 this.nodeList[ix].x = startPosX;
@@ -4658,11 +5065,18 @@ XMTopology.prototype = {
                 this.drawCloud(this.nodeList[ix]);
 
                 startPosX += 150;
-                if (startPosX > this.canvas.width) {
+                if (startPosX > this.nodeCanvas.width) {
                     startPosY += 100;
                     startPosX = 100;
                 }
             }
+        }
+
+        if (arrangeStnd === 'Tier' && bgCheck) {
+            this.saveTierInfo(groupNames);
+        } else {
+            this.tierList = [];
+            this.clearTierLayout();
         }
 
         // Save Configuration Node Positoin
@@ -4678,6 +5092,46 @@ XMTopology.prototype = {
         this.refreshData();
     },
 
+    drawTierBackground: function() {
+        var jx, jxLen, backColor, tierInfo;
+
+        this.clearTierLayout();
+
+        for (jx = 0, jxLen = this.tierList.length; jx < jxLen; jx++) {
+            tierInfo = this.tierList[jx];
+
+            this.tierCtx.beginPath();
+
+            if (jx % 2) {
+                backColor   = 'rgba(' + this.getHexToRgb(this.backgroundColor) + ',' + 0.5 + ')';
+            } else {
+                backColor   = 'rgba(' + this.getHexToRgb('#535862') + ',' + 0.5 + ')';
+            }
+            this.tierCtx.fillStyle = backColor;
+            this.tierCtx.fillRect(tierInfo.x, 0, tierInfo.w, this.nodeCanvas.height);
+
+            this.tierCtx.fillStyle = 'rgba(' + this.getHexToRgb(this.fontColor) + ',' + 0.8 + ')';
+            this.tierCtx.font      = 'normal 17px "Droid Sans"';
+            this.tierCtx.textAlign = 'center';
+            this.tierCtx.fillText(tierInfo.tierName, tierInfo.x + (tierInfo.w / 2), 20);
+        }
+    },
+
+    saveTierInfo: function(groupNames) {
+        var jx, jxLen;
+        var tierWidth = (this.nodeCanvas.width / groupNames.length);
+
+        this.tierList = [];
+
+        for (jx = 0, jxLen = groupNames.length; jx < jxLen; jx++) {
+            this.tierList[this.tierList.length] = {
+                tierOrd: jx,
+                tierName: groupNames[jx],
+                x: tierWidth * jx,
+                w: tierWidth
+            };
+        }
+    },
 
     /**
      *  It merges the agent.
@@ -4692,6 +5146,8 @@ XMTopology.prototype = {
         var jx, jxLen, ix, ixLen;
         var agent;
         var isContainAsync = false;
+        var selectNode, nodeId, newGroupNode;
+        var uniqWebList;
 
         this.isCheckCreateGroup = false;
         this.isDragMultiSelection = false;
@@ -4716,9 +5172,8 @@ XMTopology.prototype = {
                 break;
         }
 
-        var selectNode;
-        var nodeId = 'GROUP-' + Date.now() + this.nodeSeq++;
-        var newGroupNode = new this.nodeClass.node(clazz, nodeId, nodeName, type, posX, posY, true);
+        nodeId = 'GROUP-' + Date.now() + this.nodeSeq++;
+        newGroupNode = new this.nodeClass.node(clazz, nodeId, nodeName, type, posX, posY, true);
         newGroupNode.remoteCount = {};
         newGroupNode.remoteCount.lastTime = {};
         newGroupNode.activeDest = {};
@@ -4730,20 +5185,38 @@ XMTopology.prototype = {
         for (ix = 0; ix < this.dragSelectionNodeList.length; ix++) {
             selectNode = this.dragSelectionNodeList[ix];
             newGroupNode.childList = newGroupNode.childList.concat(selectNode.childList);
+            newGroupNode.childNodeAllCount += (selectNode.childNodeAllCount > 0) ? selectNode.childNodeAllCount : 1;
 
             if (!selectNode.isGroupMode) {
                 newGroupNode.childList[newGroupNode.childList.length] = selectNode;
+                newGroupNode.childIdAllList[newGroupNode.childIdAllList.length] = selectNode.id;
+            }
+
+            if (selectNode.childIdAllList.length > 0) {
+                newGroupNode.childIdAllList = Ext.Array.merge(newGroupNode.childIdAllList, selectNode.childIdAllList);
+
+            } else if (newGroupNode.childIdAllList.indexOf(selectNode.id) === -1) {
+                newGroupNode.childIdAllList.push(selectNode.id);
             }
 
             selectNode.childList = [];
             selectNode.level = 1;
             selectNode.parentId = nodeId;
+            selectNode.isDeleted = false;
 
             if (selectNode.status === 2) {
                 newGroupNode.status = 2;
             } else if (newGroupNode.status < 1 && selectNode.status === 1) {
                 newGroupNode.status = 1;
             }
+        }
+
+        uniqWebList = this.getWebList(newGroupNode);
+
+        newGroupNode.webNodeAllCount = uniqWebList.length;
+        if (newGroupNode.webNodeAllCount) {
+            newGroupNode.isWebContain = true;
+            newGroupNode.webList = uniqWebList;
         }
 
         for (ix = 0, ixLen = newGroupNode.childList.length; ix < ixLen; ix++) {
@@ -4775,17 +5248,26 @@ XMTopology.prototype = {
      * @param {} selectNode
      */
     addNodeToNewGroup: function(newGroupNode, selectNode) {
+        var uniqWebList;
+
         selectNode.level = 1;
 
         newGroupNode.childList[newGroupNode.childList.length] = selectNode;
-        newGroupNode.childNodeAllCount += (selectNode.childList.length > 0)? selectNode.childNodeAllCount : 1;
-        newGroupNode.webNodeAllCount   += (selectNode.webList.length   > 0)? selectNode.webNodeAllCount   : 1;
+        newGroupNode.childNodeAllCount += (selectNode.childList.length > 0) ? selectNode.childNodeAllCount : 1;
 
         if (selectNode.childIdAllList.length > 0) {
             newGroupNode.childIdAllList = Ext.Array.merge(newGroupNode.childIdAllList, selectNode.childIdAllList);
 
         } else if (newGroupNode.childIdAllList.indexOf(selectNode.id) === -1) {
             newGroupNode.childIdAllList.push(selectNode.id);
+        }
+
+        uniqWebList = this.getWebList(newGroupNode);
+
+        newGroupNode.webNodeAllCount = uniqWebList.length;
+        if (newGroupNode.webNodeAllCount) {
+            newGroupNode.isWebContain = true;
+            newGroupNode.webList = uniqWebList;
         }
 
         // 그룹된 노드와 연결 관계 설정
@@ -4809,6 +5291,46 @@ XMTopology.prototype = {
         }
     },
 
+    getWebList: function(groupNode) {
+        var ix, jx,
+            node, nodeWeb,
+            subNode, subNodeWeb,
+            webNodeList = [], webListUniq;
+
+        for (ix = 0; ix < groupNode.childList.length; ix++) {
+            node = groupNode.childList[ix];
+            nodeWeb = this.webMap[node.id];
+
+            if (node.id.indexOf('GROUP-') !== -1) {
+                for (jx = 0; jx < node.childList.length; jx++) {
+                    subNode = node.childList[jx];
+                    subNodeWeb = this.webMap[subNode.id];
+
+                    if (subNodeWeb) {
+                        webNodeList.push(subNodeWeb);
+                    }
+                }
+            } else {
+                if (nodeWeb) {
+                    webNodeList.push(nodeWeb);
+                }
+            }
+        }
+
+        node = null;
+        nodeWeb = null;
+        subNode = null;
+        subNodeWeb = null;
+
+        webListUniq = webNodeList.reduce(function(a,b) {
+            if (a.indexOf(b) < 0) {
+                a.push(b);
+            }
+            return a;
+        },[]);
+
+        return webListUniq;
+    },
 
     /**
      * Clear Merge Node
@@ -4820,7 +5342,7 @@ XMTopology.prototype = {
         for (ix = 0, ixLen = this.nodeList.length; ix < ixLen;) {
             nodeId = this.nodeList[ix].id;
 
-            if (nodeId.indexOf('GROUP-') === 0) {
+            if (nodeId.startsWith('GROUP-')) {
                 this.nodeList.splice(ix, 1);
                 ix--;
                 ixLen--;
@@ -4899,7 +5421,7 @@ XMTopology.prototype = {
     getTypeByPattern: function(typePattern) {
         var nodeType;
 
-        switch(typePattern) {
+        switch (typePattern) {
             case '1000': // Agent
             case '1001': // Agent + etc
             case '1010':
@@ -5008,8 +5530,7 @@ XMTopology.prototype = {
 
                 // 그룹노드에서 하위 노드 갯수 빼기
                 parentNode.childList.splice(ix, 1);
-                parentNode.childNodeAllCount -= (childNode.childNodeAllCount > 0)? childNode.childNodeAllCount : 1;
-                parentNode.webNodeAllCount   -= (childNode.webNodeAllCount   > 0)? childNode.webNodeAllCount   : 1;
+                parentNode.childNodeAllCount -= (childNode.childNodeAllCount > 0) ? childNode.childNodeAllCount : 1;
                 ix--;
                 ixLen--;
 
@@ -5030,13 +5551,17 @@ XMTopology.prototype = {
      * @param {object} groupNode - 추가 대상 그룹 노드
      */
     addAgentToGroup: function(selectNode, groupNode) {
+        if (selectNode.isDeleted) {
+            return;
+        }
+
         selectNode.parentId = groupNode.id;
 
         this.addNodeToNewGroup(groupNode, selectNode);
 
         this.selectNodeObj = null;
 
-        //this.canvasDraw();
+        // this.canvasDraw();
         this.refreshData();
     },
 
@@ -5045,6 +5570,9 @@ XMTopology.prototype = {
      * Add Node to Group
      */
     addNodeToGroup: function(node, groupNode) {
+        if (node.isDeleted) {
+            return;
+        }
         groupNode.childList[groupNode.childList.length] = node;
         node.parentId = groupNode.id;
 
@@ -5121,6 +5649,7 @@ XMTopology.prototype = {
      * Draw Line path (Rect -> Rect)
      */
     drawRectNodeToRectNode: function() {
+        var ix;
         var fNode, tNode;
         var ptCircle1, ptCircle2, ptCircle3, ptCircle4;
         var ptArrow, status;
@@ -5128,7 +5657,7 @@ XMTopology.prototype = {
 
         this.relationLinePoint = [];
 
-        for (var ix = 0; ix < this.relationData.length; ix++) {
+        for (ix = 0; ix < this.relationData.length; ix++) {
             fNode = this.getTxnNodeById(this.relationData[ix].fN, this);
             tNode = this.getTxnNodeById(this.relationData[ix].tN, this);
 
@@ -5197,26 +5726,44 @@ XMTopology.prototype = {
     /**
      * Draw Line path
      */
-    drawNodeToNode: function() {
-        var fNode, tNode;
+    drawNodeToNode: function(drawCtx) {
+        var ix, ixLen, fNode, tNode;
         var ptCircle1, ptCircle2, ptCircle3, ptCircle4;
         var ptArrow, status;
         var tmpLinePath = [];
         var remoteType;
+        var isCurveLine;
+        var checkMoveLine = false;
+        var relationList, line;
 
         this.relationLinePoint = [];
         this.remoteInfoBoxList = [];
 
-        var relationList;
         if (this.isChangeDisplayRelation && this.displayRelationData.length > 0) {
             relationList = this.displayRelationData;
 
         } else {
-            relationList = this.relationData;
-            this.displayRelationData = [];
+            if (drawCtx === this.nodeCtx) {
+                relationList = this.relationData;
+                this.displayRelationData = [];
+            }
         }
 
-        for (var ix = 0, ixLen = relationList.length; ix < ixLen; ix++) {
+        if (drawCtx === this.moveCtx) {
+            relationList = this.selectedLineObj;
+            this.lineList.length = 0;   // move 시에는 move에 관련된 라인만 재갱신
+        } else if (drawCtx === this.nodeCtx) {
+            // this.selectedLineObj.length = 0;
+
+            if (!this.mouseisMoving) {
+                this.lineList.length = 0;   // move 가 아닐 시 전체라인 재갱신
+            }
+        }
+
+        // console.error('lineCount: ', relationList.length);
+
+        for (ix = 0, ixLen = relationList.length; ix < ixLen; ix++) {
+            checkMoveLine = false;
             fNode = this.getNodeById(relationList[ix].fN);
             tNode = this.getNodeById(relationList[ix].tN);
 
@@ -5235,8 +5782,8 @@ XMTopology.prototype = {
             }
 
             if (fNode.id === tNode.id) {
-            //if (fNode.uniqID === tNode.uniqID || fNode.id === tNode.id) {
-              continue;
+                //if (fNode.uniqID === tNode.uniqID || fNode.id === tNode.id) {
+                continue;
             }
 
             if (tmpLinePath.indexOf(fNode.id + tNode.id) !== -1) {
@@ -5245,30 +5792,34 @@ XMTopology.prototype = {
 
             tmpLinePath[tmpLinePath.length] = fNode.id + tNode.id;
 
-            if (this.isChangeDisplayRelation === false) {
+            if (!this.isChangeDisplayRelation) {
                 this.displayRelationData[this.displayRelationData.length] = relationList[ix];
             }
 
+            if (!this.isShowAllNode && (fNode.isDeleted || tNode.isDeleted)) {
+                continue;
+            }
+
             if ((fNode.clazz === 'AGENT' || fNode.clazz === 'GROUP') && (tNode.clazz === 'AGENT' || tNode.clazz === 'GROUP')) {
-                ptCircle1 = this.getPointOnCircle(this.property.outCircle.radius * 2 + 6, fNode, tNode);
-                ptCircle2 = this.getPointOnCircle(this.property.outCircle.radius * 2 + 6, tNode, fNode);
-                ptArrow   = this.getPointOnCircle(this.property.outCircle.radius * 2 + 6 + this.property.arrow.w , tNode, fNode);
-                ptCircle3 = this.getPointOnCircle(this.property.outCircle.radius * 2 + 3, fNode, tNode);
-                ptCircle4 = this.getPointOnCircle(this.property.outCircle.radius * 2 + 3, tNode, fNode);
+                ptCircle1 = this.getPointOnCircle(this.getSizeValue(this.property.outCircle.radius * 2 + 6, 'draw'), fNode, tNode);
+                ptCircle2 = this.getPointOnCircle(this.getSizeValue(this.property.outCircle.radius * 2 + 6, 'draw'), tNode, fNode);
+                ptArrow   = this.getPointOnCircle(this.getSizeValue(this.property.outCircle.radius * 2 + 6 + this.property.arrow.w, 'draw'), tNode, fNode);
+                ptCircle3 = this.getPointOnCircle(this.getSizeValue(this.property.outCircle.radius * 2 + 3, 'draw'), fNode, tNode);
+                ptCircle4 = this.getPointOnCircle(this.getSizeValue(this.property.outCircle.radius * 2 + 3, 'draw'), tNode, fNode);
 
             } else if (fNode.clazz === 'DB' || tNode.clazz === 'DB') {
-                ptCircle1 = this.getPointOnCircle(this.property.outCircle.radius * 2 + 6, fNode, tNode);
-                ptCircle2 = this.getPointOnCircle(45, tNode, fNode);
-                ptArrow   = this.getPointOnCircle(45 + this.property.arrow.w , tNode, fNode);
-                ptCircle3 = this.getPointOnCircle(this.property.outCircle.radius * 2 + 6, fNode, tNode);
-                ptCircle4 = this.getPointOnCircle(42, tNode, fNode);
+                ptCircle1 = this.getPointOnCircle(this.getSizeValue(this.property.outCircle.radius * 2 + 6, 'draw'), fNode, tNode);
+                ptCircle2 = this.getPointOnCircle(this.getSizeValue(45, 'draw'), tNode, fNode);
+                ptArrow   = this.getPointOnCircle(this.getSizeValue(45 + this.property.arrow.w, 'draw'), tNode, fNode);
+                ptCircle3 = this.getPointOnCircle(this.getSizeValue(this.property.outCircle.radius * 2 + 6, 'draw'), fNode, tNode);
+                ptCircle4 = this.getPointOnCircle(this.getSizeValue(42, 'draw'), tNode, fNode);
 
             } else if (fNode.clazz === 'CLOUD' || tNode.clazz === 'CLOUD' || fNode.clazz === 'SERVER' || tNode.clazz === 'SERVER') {
-                ptCircle1 = this.getPointOnCircle(this.property.outCircle.radius * 2 + 6, fNode, tNode);
-                ptCircle2 = this.getPointOnCircle(45, tNode, fNode);
-                ptArrow   = this.getPointOnCircle(45 + this.property.arrow.w , tNode, fNode);
-                ptCircle3 = this.getPointOnCircle(this.property.outCircle.radius * 2 + 3, fNode, tNode);
-                ptCircle4 = this.getPointOnCircle(42, tNode, fNode);
+                ptCircle1 = this.getPointOnCircle(this.getSizeValue(this.property.outCircle.radius * 2 + 6, 'draw'), fNode, tNode);
+                ptCircle2 = this.getPointOnCircle(this.getSizeValue(45, 'draw'), tNode, fNode);
+                ptArrow   = this.getPointOnCircle(this.getSizeValue(45 + this.property.arrow.w, 'draw'), tNode, fNode);
+                ptCircle3 = this.getPointOnCircle(this.getSizeValue(this.property.outCircle.radius * 2 + 3, 'draw'), fNode, tNode);
+                ptCircle4 = this.getPointOnCircle(this.getSizeValue(42, 'draw'), tNode, fNode);
             }
 
             if (fNode.status === 3 || tNode.status === 3) {
@@ -5281,15 +5832,60 @@ XMTopology.prototype = {
                 status = 0;
             }
 
-            //remoteType = fNode.remoteType || tNode.remoteType || '';
+            // remoteType = fNode.remoteType || tNode.remoteType || '';
 
-            this.drawArrow(this.property.arrow, ptArrow, ptCircle2, status);
+            // Draw relation line
+            isCurveLine = false;
+            if (this.relationLinePoint.indexOf((ptCircle1.x + ':' + ptCircle1.y) + '-' + (ptCircle2.x  + ':' + ptCircle2.y)) === -1) {
+                if (this.relationLinePoint.indexOf((ptCircle2.x  + ':' + ptCircle2.y) + '-' + (ptCircle1.x + ':' + ptCircle1.y)) === -1) {
+                    isCurveLine = false;
+                    this.relationLinePoint.push((ptCircle1.x + ':' + ptCircle1.y) + '-' + (ptCircle2.x  + ':' + ptCircle2.y));
+                } else {
+                    isCurveLine = true;
+                }
+            }
+
+            if (drawCtx === this.moveCtx || (drawCtx === this.nodeCtx && !this.mouseisMoving)) {
+                line = this.lineList[this.lineList.length];
+                if (line) {
+                    line.sx = ptCircle1.x;
+                    line.sy = ptCircle1.y;
+                    line.ex = ptCircle2.x;
+                    line.ey = ptCircle2.y;
+                    line.from = fNode.id;
+                    line.to = tNode.id;
+                    line.status = status;
+                    line.isCurve = isCurveLine;
+                } else {
+                    this.lineList[this.lineList.length] = {
+                        sx: ptCircle1.x,
+                        sy: ptCircle1.y,
+                        ex: ptCircle2.x,
+                        ey: ptCircle2.y,
+                        from: fNode.id,
+                        to: tNode.id,
+                        status: status,
+                        isCurve: isCurveLine
+                    };
+                }
+            }
+
+            if (drawCtx === this.nodeCtx) {
+                if (this.selectedLineObj.indexOf(relationList[ix]) >= 0) {
+                    checkMoveLine = true;
+                }
+            }
+
+            if (this.mouseisMoving && checkMoveLine) {
+                continue;
+            }
+
+            this.drawArrow(this.property.arrow, ptArrow, ptCircle2, status, fNode.id, tNode.id, drawCtx);
             this.drawRelationLine(ptCircle1, ptCircle2, ptCircle3, ptCircle4, status,
-                                  fNode.id, tNode.id,
-                                  remoteType);
+                fNode.id, tNode.id, remoteType, isCurveLine, drawCtx);
         }
 
-        if (this.isChangeDisplayRelation === false) {
+        if (!this.isChangeDisplayRelation) {
             this.isChangeDisplayRelation = true;
         }
 
@@ -5305,23 +5901,32 @@ XMTopology.prototype = {
             this.drawRectNodeToRectNode();
         }
         this.nodePathInit();
-
-        this.displayLineCtx.drawImage(this.lineCanvas, 0 , 0);
     },
 
 
     /**
      */
-    drawLineLayout: function() {
+    drawLineLayout: function(drawCtx) {
         if (this.nodeList.length > 0) {
-            this.lineList.length = 0;
-            this.drawNodeToNode();
+            //this.lineList.length = 0;
+            this.drawNodeToNode(drawCtx);
         }
         this.nodePathInit();
-
-        this.displayLineCtx.drawImage(this.lineCanvas, 0 , 0);
     },
 
+    setNodeDelInfo: function(nodeId, isDeleted) {
+        var nodeObj = this.getNodeById(this.onNodeId);
+
+        if (isDeleted) {
+            nodeObj.isDeleted = true;
+        } else {
+            nodeObj.isDeleted = false;
+        }
+
+        this.clearNaviLayout();
+        this.saveCurrentNodeStruct();
+        this.refreshData();
+    },
 
     /**
      */
@@ -5335,11 +5940,17 @@ XMTopology.prototype = {
             this.componentHeight = $(this.target).height();
             this.componentWidth = $(this.target).width();
 
-            this.canvas.width = this.componentWidth;
-            this.canvas.height = this.componentHeight;
+            this.nodeCanvas.width = this.componentWidth;
+            this.nodeCanvas.height = this.componentHeight;
+
+            this.tierCanvas.width = this.componentWidth;
+            this.tierCanvas.height = this.componentHeight;
 
             this.displayCanvas.width = this.componentWidth;
             this.displayCanvas.height = this.componentHeight;
+
+            this.moveCanvas.width = this.componentWidth;
+            this.moveCanvas.height = this.componentHeight;
 
             this.dragCanvas.width = this.componentWidth;
             this.dragCanvas.height = this.componentHeight;
@@ -5350,11 +5961,8 @@ XMTopology.prototype = {
             this.groupChildCanvas.width = this.componentWidth;
             this.groupChildCanvas.height = this.componentHeight;
 
-            this.lineCanvas.width = this.componentWidth;
-            this.lineCanvas.height = this.componentHeight;
-
-            this.displayLineCanvas.width = this.componentWidth;
-            this.displayLineCanvas.height = this.componentHeight;
+            this.nodeCanvas.width = this.componentWidth;
+            this.nodeCanvas.height = this.componentHeight;
 
             this.lineEffectCanvas.width = this.componentWidth;
             this.lineEffectCanvas.height = this.componentHeight;
@@ -5370,12 +5978,12 @@ XMTopology.prototype = {
             this.alarmCanvas.width = this.componentWidth;
             this.alarmCanvas.height = this.componentHeight;
 
-            //this.canvasDraw();
+            // this.canvasDraw();
             this.refreshData();
         }.bind(this));
 
         // InputBox Keyevent
-        this.groupNameInputBox.addEventListener('blur', function(e) {
+        this.groupNameInputBox.addEventListener('blur', function() {
             this.clearDragLayout();
             this.isOnFocusNodeName = false;
             this.isCreateMultiGroup = false;
@@ -5386,6 +5994,10 @@ XMTopology.prototype = {
         }.bind(this), false);
 
         this.groupNameInputBox.addEventListener('keydown', function(e) {
+            var jx, jxLen;
+            var nodeObj;
+            var isExistNodeName = false;
+
             // Esc Key
             if (e.keyCode === 27) {
                 this.isCreateMultiGroup = false;
@@ -5395,7 +6007,7 @@ XMTopology.prototype = {
                 }
 
                 if (this.mergeAgentList) {
-                    for (var jx = 0, jxLen = this.mergeAgentList.length; jx < jxLen; jx++) {
+                    for (jx = 0, jxLen = this.mergeAgentList.length; jx < jxLen; jx++) {
                         this.mergeAgentList[jx].isHide = false;
                     }
                 }
@@ -5412,9 +6024,35 @@ XMTopology.prototype = {
                     this.groupNameInputBox.value = '';
                 }
 
-            // Enter Key
+                // Enter Key
             } else if (e.keyCode === 13) {
                 if (this.groupNameInputBox && this.groupNameInputBox.value.trim() !== '') {
+
+                    for (jx = 0, jxLen = this.nodeList.length; jx < jxLen; jx++) {
+                        nodeObj = this.nodeList[jx];
+
+                        if (this.groupNameInputBox.value.trim() === this.orginNodeName) {
+                            continue;
+                        }
+
+                        if (this.groupNameInputBox.value.trim() === nodeObj.alias) {
+                            isExistNodeName = true;
+                            break;
+                        }
+                    }
+
+                    if (isExistNodeName) {
+                        common.Util.showMessage(
+                            common.Util.TR('OK'),
+                            common.Util.TR('Agent name is already registered.'),
+                            Ext.MessageBox.OK,
+                            Ext.MessageBox.INFO
+                        );
+
+                        this.groupNameInputBox.focus();
+                        return;
+                    }
+
                     if (this.textInputMode === this.inputMode.GROUP_NAME) {
                         // TODO Check Unique Node Name
 
@@ -5448,27 +6086,30 @@ XMTopology.prototype = {
         this.componentWidth = $(this.target).width();
 
         if (this.componentHeight < resizeHeight) {
-            this.componentHeight = resizeHeight ;
+            this.componentHeight = resizeHeight;
         }
 
         if (this.componentWidth < resizeWidth) {
-            this.componentWidth = resizeWidth ;
+            this.componentWidth = resizeWidth;
         }
 
-        this.canvas.width = this.componentWidth;
-        this.canvas.height = this.componentHeight;
+        this.nodeCanvas.width = this.componentWidth;
+        this.nodeCanvas.height = this.componentHeight;
+
+        this.tierCanvas.width = this.componentWidth;
+        this.tierCanvas.height = this.componentHeight;
 
         this.displayCanvas.width = this.componentWidth;
         this.displayCanvas.height = this.componentHeight;
 
+        this.moveCanvas.width = this.componentWidth;
+        this.moveCanvas.height = this.componentHeight;
+
         this.dragCanvas.width = this.componentWidth;
         this.dragCanvas.height = this.componentHeight;
 
-        this.lineCanvas.width = this.componentWidth;
-        this.lineCanvas.height = this.componentHeight;
-
-        this.displayLineCanvas.width = this.componentWidth;
-        this.displayLineCanvas.height = this.componentHeight;
+        this.nodeCanvas.width = this.componentWidth;
+        this.nodeCanvas.height = this.componentHeight;
 
         this.lineEffectCanvas.width = this.componentWidth;
         this.lineEffectCanvas.height = this.componentHeight;
@@ -5491,11 +6132,12 @@ XMTopology.prototype = {
             this.navigateCanvas.width = this.componentWidth;
             this.navigateCanvas.height = this.componentHeight;
 
-            this.nodeInfoCanvas.width = this.componentWidth;
-            this.nodeInfoCanvas.height = this.componentHeight;
+            // this.nodeInfoCanvas.width = this.componentWidth;
+            // this.nodeInfoCanvas.height = this.componentHeight;
 
             //this.canvasDraw();
             this.refreshData();
+            this.drawTierBackground();
         } else {
             this.canvasTxnPathDraw();
         }
@@ -5602,7 +6244,7 @@ XMTopology.prototype = {
                 };
             }
         }
-        return tempRelationPath
+        return tempRelationPath;
     },
 
 
@@ -5612,14 +6254,18 @@ XMTopology.prototype = {
      * @param {boolean} isSave
      */
     saveCurrentNodeStruct: function(isSave) {
+        var viewGroup;
+        var ix, ixLen;
+        var nodePositon = {};
+        var saveNodeList;
+
         if (!isSave && !this.isAutoSave) {
             return;
         }
 
-        var nodePositon = {};
-        var saveNodeList = Ext.clone(this.nodeList);
+        saveNodeList = Ext.clone(this.nodeList);
 
-        for (var ix = 0, ixLen = saveNodeList.length; ix < ixLen; ix++) {
+        for (ix = 0, ixLen = saveNodeList.length; ix < ixLen; ix++) {
             nodePositon[saveNodeList[ix].id] = {
                 x: saveNodeList[ix].x,
                 y: saveNodeList[ix].y
@@ -5630,9 +6276,14 @@ XMTopology.prototype = {
             }
         }
 
-        common.WebEnv.Save('topologyNodeList', JSON.stringify(saveNodeList));
-        common.WebEnv.Save('topologyNodePosition', JSON.stringify(nodePositon));
-        common.WebEnv.Save('topologyNodeRelation', JSON.stringify(this.relationData));
+        viewGroup = this.viewGroup !== 'Basic' ? this.viewGroup : '';
+        common.WebEnv.Save('topologyNodeList' + viewGroup, JSON.stringify(saveNodeList));
+        common.WebEnv.Save('topologyNodePosition' + viewGroup, JSON.stringify(nodePositon));
+        common.WebEnv.Save('topologyNodeRelation' + viewGroup, JSON.stringify(this.relationData));
+
+        if (this.tierList.length) {
+            common.WebEnv.Save('topologyTierList' + viewGroup, JSON.stringify(this.tierList));
+        }
     },
 
 
@@ -5647,7 +6298,7 @@ XMTopology.prototype = {
      * @param {number} destCount    - dest 개수
      */
     setNode: function(id, methodType, depth, addr, type, destCount) {
-        var node, nodeName;
+        var webInfo, dbInfo, node, nodeName;
         var isContain = false;
 
         node = this.nodeMap['WAS-' + id];
@@ -5665,13 +6316,13 @@ XMTopology.prototype = {
                 node.addr[node.addr.length] = +addr;
             }
 
-            if (methodType === 'HTTP' || methodType === 'TCP' || methodType === 'TP') {
+            if (methodType === 'HTTP' || methodType === 'TCP' || methodType === 'TP' || methodType === 'TUXEDO') {
                 node.isGoCloud = (type === 80);
             } else {
                 node.isGoCloud = false;
             }
 
-            if (node.isGoCloud && methodType === 'TP') {
+            if (node.isGoCloud && (methodType === 'TP' || methodType === 'TUXEDO')) {
                 node.isGoTPServer = true;
             } else {
                 node.isGoTPServer = false;
@@ -5680,7 +6331,7 @@ XMTopology.prototype = {
             if (node.remoteType === '' && methodType !== 'DB') {
                 node.remoteType = methodType;
             } else if (methodType !== '' && node.remoteType !== methodType) {
-                node.remoteType = (methodType === 'DB')? 'JDBC' : methodType;
+                node.remoteType = (methodType === 'DB') ? 'JDBC' : methodType;
             }
 
             isContain = true;
@@ -5690,17 +6341,17 @@ XMTopology.prototype = {
         // 조건을 변경함.
         if (!isContain && this.isDisplayServer(id)) {
             nodeName = this.getNodeNameById(id) || id + '';
-            node = new this.nodeClass.node('AGENT', 'WAS-' + id, nodeName, '', 50, 50, false, (methodType === 'DB')? '' : methodType, id);
+            node = new this.nodeClass.node('AGENT', 'WAS-' + id, nodeName, '', 50, 50, false, (methodType === 'DB') ? '' : methodType, id);
             node.depth = depth;
             node.destCount = destCount;
 
-            if (methodType === 'HTTP' || methodType === 'TCP' || methodType === 'TP') {
+            if (methodType === 'HTTP' || methodType === 'TCP' || methodType === 'TP' || methodType === 'TUXEDO') {
                 node.isGoCloud = (type === 80);
             } else {
                 node.isGoCloud = false;
             }
 
-            if (node.isGoCloud && methodType === 'TP') {
+            if (node.isGoCloud && (methodType === 'TP' || methodType === 'TUXEDO')) {
                 node.isGoTPServer = true;
             } else {
                 node.isGoTPServer = false;
@@ -5734,7 +6385,7 @@ XMTopology.prototype = {
             node = this.nodeMap['WEB-' + id];
 
             if (!node) {
-                var webInfo = Comm.webServersInfo[id];
+                webInfo = Comm.webServersInfo[id];
 
                 if (webInfo) {
                     nodeName = webInfo.name || id + '';
@@ -5755,17 +6406,18 @@ XMTopology.prototype = {
                     node.activeDest = {};
                     node.activeDest.lastTime = {};
                     node.listIndex = this.nodeList.length;
-                }
+                    node.level = 1;
+                    node.serverType = 'WEB';
 
-                this.nodeList[this.nodeList.length] = node;
-                this.nodeMap[node.id] = node;
+                    this.nodeList[this.nodeList.length] = node;
+                    this.nodeMap[node.id] = node;
+                }
             }
         }
 
         // DB 정보 설정
         if (methodType === 'DB') {
-
-            var dbInfo = this.getDBInfoByHashCode(addr);
+            dbInfo = this.getDBInfoByHashCode(addr);
 
             if (!dbInfo) {
                 return;
@@ -5824,15 +6476,28 @@ XMTopology.prototype = {
 
     },
 
-
     /**
      * 실시간 트랜잭션 패스화면의 노드 정보 설정
      */
-    setRectNode: function(id, methodType, depth, addr, type, tid, txnName, elapseTime, instance, sqlId, bindList, dest) {
+    setRectNode: function() {
+        var id          = arguments[0];
+        var methodType  = arguments[1];
+        var depth       = arguments[2];
+        var addr        = arguments[3];
+        var type        = arguments[4];
+        var tid         = arguments[5];
+        var txnName     = arguments[6];
+        var elapseTime  = arguments[7];
+        var instance    = arguments[8];
+        var sqlId       = arguments[9];
+        var bindList    = arguments[10];
+        // var desc        = arguments[11];
+
         var ix, ixLen;
         var node;
         var isContain = false;
         var nodeName;
+        var dbInfo;
 
         for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
             node = this.nodeList[ix];
@@ -5846,14 +6511,14 @@ XMTopology.prototype = {
         }
 
         if (!isContain) {
-            this.rectPx = 100 + (depth * 140) ;
+            this.rectPx = 100 + (depth * 140);
             this.rectPy = (this.rectPy || 0) + 90;
 
             nodeName = this.getNodeNameById(id) || id + '';
 
             node = new this.nodeClass.node(
                 'AGENT',
-                'WAS-' + id + '-'+txnName,
+                'WAS-' + id + '-' + txnName,
                 nodeName,
                 '',
                 this.rectPx,
@@ -5871,13 +6536,13 @@ XMTopology.prototype = {
             node.isTxnPathMode = this.isTxnPathMode;
 
             // 실시간 트랜잭션 패스 화면에 노드 위치 저장
-            //if (Comm.web_env_info.topologyTxnNodePosition) {
+            // if (Comm.web_env_info.topologyTxnNodePosition) {
             //    var nodePot = JSON.parse(Comm.web_env_info.topologyTxnNodePosition);
             //    if (nodePot[node.id]) {
             //        node.x = nodePot[node.id].x || 0;
             //        node.y = nodePot[node.id].y || 0;
             //    }
-            //}
+            // }
 
             if (!node.addr) {
                 node.addr = [];
@@ -5887,7 +6552,7 @@ XMTopology.prototype = {
                 if (this.nodeList[ix].x < node.x && this.nodeList[ix].x + this.property.rect.width > node.x &&
                     this.nodeList[ix].y < node.y && this.nodeList[ix].y + this.property.rect.height >= node.y) {
                     node.x += this.property.rect.width;
-                    node.y += this.property.rect.height
+                    node.y += this.property.rect.height;
                 }
             }
 
@@ -5908,7 +6573,7 @@ XMTopology.prototype = {
             for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
                 node = this.nodeList[ix];
 
-                var dbInfo = this.getDBInfoByHashCode(addr);
+                dbInfo = this.getDBInfoByHashCode(addr);
                 if (dbInfo && node.id === 'DB-' + dbInfo.id) {
                     if (+node.depth < depth) {
                         node.depth = depth;
@@ -5922,7 +6587,7 @@ XMTopology.prototype = {
                         node.addr[node.addr.length] = +addr;
                     }
 
-                    if (methodType === 'HTTP' || methodType === 'TCP' || methodType === 'TP') {
+                    if (methodType === 'HTTP' || methodType === 'TCP' || methodType === 'TP' || methodType === 'TUXEDO') {
                         node.isGoCloud = (type === 80);
                     } else {
                         node.isGoCloud = false;
@@ -5942,7 +6607,7 @@ XMTopology.prototype = {
                 node.depth = depth;
                 node.destCount = destCount;
 
-                if (methodType === 'HTTP' || methodType === 'TCP' || methodType === 'TP') {
+                if (methodType === 'HTTP' || methodType === 'TCP' || methodType === 'TP' || methodType === 'TUXEDO') {
                     node.isGoCloud = (type === 80);
                 } else {
                     node.isGoCloud = false;
@@ -5974,12 +6639,16 @@ XMTopology.prototype = {
         var result;
 
         while (text.length) {
-            for (ix = text.length; ctx.measureText(text.substr(0,ix)).width > maxWidth; ix-- );
+            for (ix = text.length; ctx.measureText(text.substr(0,ix)).width > maxWidth; ix-- ) {
+                // dummy
+            }
 
             result = text.substr(0, ix);
 
             if (ix !== text.length) {
-                for (jx = 0; result.indexOf(" ", jx) !== -1; jx = result.indexOf(" ", jx) + 1);
+                for (jx = 0; result.indexOf(' ', jx) !== -1; jx = result.indexOf(' ', jx) + 1) {
+                    // dummy
+                }
             }
 
             textLines[textLines.length] = result.substr(0, jx || result.length);
@@ -5988,11 +6657,11 @@ XMTopology.prototype = {
         return textLines;
     },
 
-
     getGroupStatus: function(list) {
         var status = 0;
+        var ix;
 
-        for (var ix = 0; ix < list.length; ix++) {
+        for (ix = 0; ix < list.length; ix++) {
             if (+status < +list[ix].status) {
                 status = +list[ix].status;
             }
@@ -6101,11 +6770,12 @@ XMTopology.prototype = {
         return {
             x: (e.clientX - rect.left) * scaleX,   // scale mouse coordinates after they have
             y: (e.clientY - rect.top) * scaleY     // been adjusted to be relative to element
-        }
+        };
     },
 
 
     fittingString: function(c, str, maxWidth) {
+        var len;
         var width = c.measureText(str).width;
         var ellipsis = '..';
         var ellipsisWidth = c.measureText(ellipsis).width;
@@ -6113,7 +6783,7 @@ XMTopology.prototype = {
         if (width <= maxWidth || width <= ellipsisWidth) {
             return str;
         } else {
-            var len = str.length;
+            len = str.length;
             while (width >= maxWidth - ellipsisWidth && len-- > 0) {
                 str = str.substring(0, len);
                 width = c.measureText(str).width;
@@ -6134,6 +6804,21 @@ XMTopology.prototype = {
         return r + ',' + g + ',' + b;
     },
 
+    getSizeValue: function(size, type, opt) {
+        var sizeValue = 0;
+        var zoomRateVal = this.isTxnPathMode ? 1 : this.zoomRate;
+
+        if (type === 'draw' || type === undefined) {
+            sizeValue = size * zoomRateVal;
+        } else if (type === 'font') {   // canvas에 따라 font 사이즈가 10 이하 적용안되므로 최소값 10
+            sizeValue = size * zoomRateVal >= 10 ? size * zoomRateVal : 10;
+        }
+        if (opt === 'rate') {   // 값의 비율
+            return sizeValue / size;
+        } else {                // 값
+            return sizeValue;
+        }
+    },
 
     /**
      * 그룹 뷰 레이어 인덱스에 해당하는 그룹 캔버스의 컨텍스트를 반환
@@ -6178,12 +6863,12 @@ XMTopology.prototype = {
      * @param {number} index - 그룹 레이어 인덱스
      */
     checkGroupCanvas: function(index) {
+        var groupCanvas = document.createElement('canvas');
+        var childCanvas = document.createElement('canvas');
+
         if (this.groupCanvasList.length >= index) {
             return;
         }
-
-        var groupCanvas = document.createElement('canvas');
-        var childCanvas = document.createElement('canvas');
 
         groupCanvas.className = 'topology-group-canvas group-index-' + index;
         childCanvas.className = 'topology-groupchild-canvas group-index-' + index;
@@ -6223,11 +6908,12 @@ XMTopology.prototype = {
      * @return {object}
      */
     checkCrossNode: function(id, mx, my) {
-        var ix, ixLen;
+        var ix;
         var nodeObj;
 
-        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
-        //for (ix = 0, ixLen = this.displayNodeList.length; ix < ixLen; ix++ ) {
+        // for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
+        for (ix = this.nodeList.length - 1; ix >= 0; ix-- ) {
+            //for (ix = 0, ixLen = this.displayNodeList.length; ix < ixLen; ix++ ) {
             nodeObj = this.nodeList[ix];
             //nodeObj = this.displayNodeList[ix];
 
@@ -6235,21 +6921,29 @@ XMTopology.prototype = {
                 continue;
             }
 
+            if (nodeObj.isDeleted) {
+                continue;
+            }
+
+            if (this.multiSelectedNode.indexOf(nodeObj) >= 0) {
+                continue;
+            }
+
             if (nodeObj.clazz === 'AGENT' || nodeObj.clazz === 'GROUP') {
                 if (nodeObj.id !== id &&
-                    mx < nodeObj.x + 80 + this.canvas.offsetLeft && mx > nodeObj.x - 80 - this.canvas.offsetLeft &&
-                    my < nodeObj.y + 80 + this.canvas.offsetTop  && my > nodeObj.y - 80 - this.canvas.offsetTop) {
+                    mx < nodeObj.x + 80 + this.nodeCanvas.offsetLeft && mx > nodeObj.x - 80 - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + 80 + this.nodeCanvas.offsetTop  && my > nodeObj.y - 80 - this.nodeCanvas.offsetTop) {
                     return nodeObj;
                 }
             } else if (nodeObj.clazz === 'CLOUD' || nodeObj.clazz === 'SERVER') {
-                if (nodeObj.id !== id && mx < nodeObj.x + 90 + this.canvas.offsetLeft && mx > nodeObj.x - 0 - this.canvas.offsetLeft &&
-                    my < nodeObj.y + 58 + this.canvas.offsetTop  && my > nodeObj.y - 0 - this.canvas.offsetTop) {
+                if (nodeObj.id !== id && mx < nodeObj.x + 45 + this.nodeCanvas.offsetLeft && mx > nodeObj.x - 45 - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + 29 + this.nodeCanvas.offsetTop  && my > nodeObj.y - 29 - this.nodeCanvas.offsetTop) {
                     return nodeObj;
                 }
             } else if (nodeObj.clazz === 'DB') {
                 if (nodeObj.id !== id &&
-                    mx < nodeObj.x + 45 + this.canvas.offsetLeft && mx > nodeObj.x - 45 - this.canvas.offsetLeft &&
-                    my < nodeObj.y + 35 + this.canvas.offsetTop  && my > nodeObj.y - 35 - this.canvas.offsetTop) {
+                    mx < nodeObj.x + 45 + this.nodeCanvas.offsetLeft && mx > nodeObj.x - 45 - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + 35 + this.nodeCanvas.offsetTop  && my > nodeObj.y - 35 - this.nodeCanvas.offsetTop) {
                     return nodeObj;
                 }
             }
@@ -6265,7 +6959,7 @@ XMTopology.prototype = {
      * @return {boolena} true: 그룹 노드 ID, false: 다른 노드 ID
      */
     isGroupNodeByNodeId: function(nodeId) {
-        return (nodeId && nodeId.indexOf('GROUP-') === 0);
+        return (nodeId && nodeId.startsWith('GROUP-'));
     },
 
 
@@ -6273,70 +6967,131 @@ XMTopology.prototype = {
      * Node Group.
      */
     checkMergeNode: function(node) {
+        var ix, ixLen;
+        var x = node.x;
+        var y = node.y;
+        var id = node.id;
+        var nodeObj, targetObj;
+        var deletedNodeCnt = 0;
+        var marginY = 0;
+
         if (!node) {
             return;
         }
-        var x = node.x;
-        var y = node.y;
-        var id =node.id;
-        var nodeObj;
 
         this.mergeTargetNode = null;
 
-        for (var ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
-        //for (var ix = 0, ixLen = this.displayNodeList.length; ix < ixLen; ix++ ) {
+        for (ix = this.nodeList.length - 1; ix >= 0; ix-- ) {
+            // for (var ix = 0, ixLen = this.displayNodeList.length; ix < ixLen; ix++ ) {
             nodeObj = this.nodeList[ix];
-            //nodeObj = this.displayNodeList[ix];
+            // nodeObj = this.displayNodeList[ix];
 
             if (this.displayNodeLevel !== +nodeObj.level) {
                 continue;
             }
 
             if (nodeObj.id !== id) {
-                if (x < nodeObj.x + 70 + this.canvas.offsetLeft && x > nodeObj.x - 70 - this.canvas.offsetLeft &&
-                    y < nodeObj.y + 70 + this.canvas.offsetTop  && y > nodeObj.y - 70 - this.canvas.offsetTop) {
+                if (x < nodeObj.x + 70 + this.nodeCanvas.offsetLeft && x > nodeObj.x - 70 - this.nodeCanvas.offsetLeft &&
+                    y < nodeObj.y + 70 + this.nodeCanvas.offsetTop  && y > nodeObj.y - 70 - this.nodeCanvas.offsetTop) {
 
-                    node.x = nodeObj.x;
-                    node.y = nodeObj.y;
-
-                    if (node.isGroupMode) {
-                        this.isCheckCreateGroup = true;
-                        this.folderViewPt = {x: x + 58, y: y - 70};
-
-                        this.mergeTargetNode = nodeObj;
-
-                        this.mergeAgentList = [node];
-                        nodeObj.isHide = true;
-                        node.isHide = true;
-
-                        this.drawFolderOpen(this.drawGroupInput.bind(this, nodeObj.x, nodeObj.y));
-
-                    } else if (nodeObj.isGroupMode) {
-                        if (nodeObj.clazz === 'AGENT') {
-                            this.addAgentToGroup(node, nodeObj);
-                        } else {
-                            this.addNodeToGroup(node, nodeObj);
-                        }
-
-                    } else {
-                        this.isCheckCreateGroup = true;
-                        this.folderViewPt = {x: x + 58, y: y - 70};
-
-                        this.mergeTargetNode = nodeObj;
-
-                        this.mergeAgentList = [node];
-                        nodeObj.isHide = true;
-                        node.isHide = true;
-
-                        var marginY = 0;
-                        if (this.mergeTargetNode.clazz && this.mergeTargetNode.clazz !== 'AGENT') {
-                            marginY = 33;
-                        }
-                        this.drawFolderOpen(this.drawGroupInput.bind(this, nodeObj.x, nodeObj.y + marginY));
-                    }
-
+                    targetObj = nodeObj;
                     break;
                 }
+            }
+        }
+
+        if (targetObj) {
+            if (targetObj.isDeleted) {
+                return;
+            }
+
+            if (!node.isDeleted) {
+                node.x = targetObj.x;
+                node.y = targetObj.y;
+            }
+
+            if (node.isGroupMode && this.multiSelectedNode.length <= 0) {
+                if (node.isDeleted) {
+                    return;
+                }
+
+                this.isCheckCreateGroup = true;
+                this.folderViewPt = {x: x + 58, y: y - 70};
+
+                this.mergeTargetNode = targetObj;
+
+                this.mergeAgentList = [node];
+                targetObj.isHide = true;
+                node.isHide = true;
+
+                this.drawFolderOpen(this.drawGroupInput.bind(this, targetObj.x, targetObj.y));
+
+            } else if (targetObj.isGroupMode) {
+                if (targetObj.clazz === 'AGENT' && this.multiSelectedNode.length <= 1) {
+                    this.addAgentToGroup(node, targetObj);
+                } else if (targetObj.clazz !== 'AGENT' && this.multiSelectedNode.length <= 1) {
+                    this.addNodeToGroup(node, targetObj);
+                } else if (this.multiSelectedNode.length > 1) {
+                    for (ix = 0, ixLen = this.multiSelectedNode.length; ix < ixLen; ix++ ) {
+                        if (this.multiSelectedNode[ix].id === targetObj.id) {
+                            continue;
+                        }
+                        if (targetObj.clazz === 'AGENT') {
+                            this.addAgentToGroup(this.multiSelectedNode[ix], targetObj);
+                        } else {
+                            this.addNodeToGroup(this.multiSelectedNode[ix], targetObj);
+                        }
+                    }
+                }
+
+            } else if (this.multiSelectedNode.length > 0) {
+                for (ix = 0, ixLen = this.multiSelectedNode.length; ix < ixLen; ix++ ) {
+                    if (this.multiSelectedNode[ix].isDeleted) {
+                        deletedNodeCnt++;
+                        continue;
+                    }
+
+                    if (this.multiSelectedNode[ix].id === targetObj.id) {
+                        continue;
+                    }
+
+                    this.multiSelectedNode[ix].isHide = true;
+                    this.multiSelectedNode[ix].x = targetObj.x;
+                    this.multiSelectedNode[ix].y = targetObj.y;
+                }
+
+                if (this.multiSelectedNode.length === deletedNodeCnt) {
+                    return;
+                }
+
+                this.isCheckCreateGroup = true;
+                this.folderViewPt = {x: x + 58, y: y - 70};
+
+                this.mergeTargetNode = targetObj;
+                targetObj.isHide = true;
+                this.mergeAgentList = this.multiSelectedNode;
+
+                this.drawFolderOpen(this.drawGroupInput.bind(this, targetObj.x, targetObj.y));
+
+            } else {
+                if (node.isDeleted) {
+                    return;
+                }
+
+                this.isCheckCreateGroup = true;
+                this.folderViewPt = {x: x + 58, y: y - 70};
+
+                this.mergeTargetNode = targetObj;
+
+                this.mergeAgentList = [node];
+                targetObj.isHide = true;
+                node.isHide = true;
+
+                marginY = 0;
+                if (this.mergeTargetNode.clazz && this.mergeTargetNode.clazz !== 'AGENT') {
+                    marginY = 33;
+                }
+                this.drawFolderOpen(this.drawGroupInput.bind(this, targetObj.x, targetObj.y + marginY));
             }
         }
     },
@@ -6372,22 +7127,22 @@ XMTopology.prototype = {
      * @param {string} addr - dest
      * @return {boolean}
      */
-//    isDrawAnimateLine: function(id, addr) {
-//        var ix, ixLen;
-//        var dest, nodeId;
-//        var isContain = false;
-//
-//        for (ix = 0, ixLen = this.remoteWasList.length; ix < ixLen; ix++) {
-//            nodeId = this.remoteWasList[ix][0];
-//            dest = this.remoteWasList[ix][1];
-//
-//            if (nodeId === id && dest === addr) {
-//                isContain = true;
-//                break;
-//            }
-//        }
-//        return !isContain;
-//    },
+    // isDrawAnimateLine: function(id, addr) {
+    //     var ix, ixLen;
+    //     var dest, nodeId;
+    //     var isContain = false;
+    //
+    //     for (ix = 0, ixLen = this.remoteWasList.length; ix < ixLen; ix++) {
+    //         nodeId = this.remoteWasList[ix][0];
+    //         dest = this.remoteWasList[ix][1];
+    //
+    //         if (nodeId === id && dest === addr) {
+    //             isContain = true;
+    //             break;
+    //         }
+    //     }
+    //     return !isContain;
+    // },
 
 
     /**
@@ -6405,21 +7160,23 @@ XMTopology.prototype = {
         var alarmLevelTxt;
         var alarmCount = 0;
         var alarmValue;
+        var px, py, grd;
+        var toolTipHeight = this.property.alarmTipRect.height;
 
         if (!currentAlarmList || currentAlarmList.length <= 0 || node.status === 0) {
             return;
         }
 
-        var px = node.x + 20;
-        var py = node.y + 10;
+        px = node.x + 20;
+        py = node.y + 10;
 
         if (px + this.property.alarmTipRect.width > this.lineEffectCanvas.width) {
             px = px - (px + this.property.alarmTipRect.width - this.lineEffectCanvas.width);
         }
 
-        var grd = this.dragCtx.createLinearGradient(px, py ,px, py + 70);
-        grd.addColorStop(0.3, 'rgba('+this.getHexToRgb('#212227') +','+ 0.5 + ')');
-        grd.addColorStop(1, 'rgba('+this.getHexToRgb('#212227') +','+ 0.7 + ')');
+        grd = this.dragCtx.createLinearGradient(px, py ,px, py + 70);
+        grd.addColorStop(0.3, 'rgba(' + this.getHexToRgb('#212227') + ',' + 0.5 + ')');
+        grd.addColorStop(1, 'rgba(' + this.getHexToRgb('#212227') + ',' + 0.7 + ')');
 
         this.dragCtx.fillStyle = grd;
         this.dragCtx.shadowColor = '#000000';
@@ -6431,11 +7188,10 @@ XMTopology.prototype = {
             alarmObj = currentAlarmList[ix];
 
             if (+alarmObj.alarmLevel !== 0) {
-                alarmCount++
+                alarmCount++;
             }
         }
 
-        var toolTipHeight = this.property.alarmTipRect.height;
         if (alarmCount * 22 > toolTipHeight) {
             toolTipHeight = alarmCount * 22;
         }
@@ -6449,7 +7205,7 @@ XMTopology.prototype = {
             false
         );
 
-        this.dragCtx.shadowColor= 'transparent';
+        this.dragCtx.shadowColor = 'transparent';
         this.dragCtx.shadowBlur = 0;
 
         this.dragCtx.fillStyle = '#FFFFFF';
@@ -6540,16 +7296,15 @@ XMTopology.prototype = {
      * @param {object} nodeObj - selected node
      */
     getCurrentAlarmByNode: function(nodeObj) {
-
-        if (!Repository.alarmListInfo) {
-            return;
-        }
-
         var childNode;
         var ix, ixLen, jx, jxLen;
         var serverId, serverName;
         var alarmList = [];
         var logList;
+
+        if (!Repository.alarmListInfo) {
+            return;
+        }
 
         if (nodeObj.isGroupMode) {
             for (ix = 0, ixLen = nodeObj.childList.length; ix < ixLen; ix++) {
@@ -6573,10 +7328,10 @@ XMTopology.prototype = {
                         };
                     }
 
-                // 기존에 Comm.wasIdArr에 포함되는지만 체크하던 것을 필터된 서버가 있는 경우 해당 서버만 표시가 되도록
-                // 조건을 변경함.
+                    // 기존에 Comm.wasIdArr에 포함되는지만 체크하던 것을 필터된 서버가 있는 경우 해당 서버만 표시가 되도록
+                    // 조건을 변경함.
                 } else if (this.isDisplayServer(serverId) &&
-                    Repository.alarmListInfo.WAS && 
+                    Repository.alarmListInfo.WAS &&
                     Repository.alarmListInfo.WAS[serverId]) {
 
                     logList = Repository.alarmListInfo.WAS[serverId].concat();
@@ -6613,10 +7368,10 @@ XMTopology.prototype = {
                     };
                 }
 
-            // 기존에 Comm.wasIdArr에 포함되는지만 체크하던 것을 필터된 서버가 있는 경우 해당 서버만 표시가 되도록
-            // 조건을 변경함.
+                // 기존에 Comm.wasIdArr에 포함되는지만 체크하던 것을 필터된 서버가 있는 경우 해당 서버만 표시가 되도록
+                // 조건을 변경함.
             } else if (this.isDisplayServer(serverId) &&
-                Repository.alarmListInfo.WAS && 
+                Repository.alarmListInfo.WAS &&
                 Repository.alarmListInfo.WAS[serverId]) {
 
                 logList = Repository.alarmListInfo.WAS[serverId].concat();
@@ -6690,22 +7445,21 @@ XMTopology.prototype = {
      * @return {array}
      */
     getNodeArrByDest: function(addr, nodeId, serverType) {
-        var node;
+        var ix, ixLen, node;
         var nodeArr = [];
 
-//        var nodeIndex;
+        // var nodeIndex;
 
-//        if (this.nodeListByDest[addr] && this.nodeListByDest[addr].length > 0) {
-//            nodeArr = this.nodeListByDest[addr].concat();
-//            nodeIndex = nodeArr.indexOf(node.id);
-//
-//            if (nodeIndex !== -1) {
-//                nodeArr.splice(nodeIndex, 1);
-//            }
-//        }
+        // if (this.nodeListByDest[addr] && this.nodeListByDest[addr].length > 0) {
+        //     nodeArr = this.nodeListByDest[addr].concat();
+        //     nodeIndex = nodeArr.indexOf(node.id);
+        //
+        //     if (nodeIndex !== -1) {
+        //         nodeArr.splice(nodeIndex, 1);
+        //     }
+        // }
 
-
-        for (var ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
+        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
             node = this.nodeList[ix];
 
             if (serverType && serverType !== node.clazz) {
@@ -6727,7 +7481,7 @@ XMTopology.prototype = {
      * @param {string} dbNodeId - DB Node ID ex) DB-19
      * @return {boolean} - true: contain relatoin agent, false: no relation agent
      */
-    isRelationNodeByDBID: function(dbNodeId) {
+    isRelationNodeByID: function(nodeId) {
         var ix, ixLen;
         var data;
         var serverId;
@@ -6736,11 +7490,11 @@ XMTopology.prototype = {
         for (ix = 0, ixLen = this.relationData.length; ix < ixLen; ix++) {
             data = this.relationData[ix];
 
-            if (data.fN.indexOf(dbNodeId) === 0 && data.tN.indexOf('WAS-') === 0) {
+            if (data.fN.startsWith(nodeId) && data.tN.startsWith('WAS-')) {
                 serverId = this.getServerIdByNodeId(data.tN);
                 isContain = this.isDisplayServer(serverId);
 
-            } else if (data.tN.indexOf(dbNodeId) === 0  && data.fN.indexOf('WAS-') === 0) {
+            } else if (data.tN.startsWith(nodeId) && data.fN.startsWith('WAS-')) {
                 serverId = this.getServerIdByNodeId(data.fN);
                 isContain = this.isDisplayServer(serverId);
             }
@@ -6845,6 +7599,12 @@ XMTopology.prototype = {
             if (nodeObj.isSetPos) {
                 continue;
             }
+
+            // 토폴로지 뷰에 표시되는 노드를 구성하는데 화면을 변경/전환하는 경우 예외처리
+            if (!this.nodeCanvas || !this.nodeCanvas.with) {
+                return;
+            }
+
             nodeObj.isSetPos = true;
             nodePt = this.getSaveNodePosition(nodeObj.id);
 
@@ -6856,7 +7616,7 @@ XMTopology.prototype = {
                 nodeObj.y = startPosY;
                 startPosX += 150;
 
-                if (startPosX > this.canvas.width) {
+                if (startPosX > this.nodeCanvas.width) {
                     startPosY += 100;
                     startPosX = 100;
                 }
@@ -6870,9 +7630,10 @@ XMTopology.prototype = {
         var nodeObj;
         var sortList = [];
         var nodePt;
+        var posStepX = 0, posStepY;
 
         for (ix = 0; ix < maxDepth; ix++ ) {
-            sortList[ix] = []
+            sortList[ix] = [];
         }
 
         for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
@@ -6886,12 +7647,11 @@ XMTopology.prototype = {
 
         this.nodeList = [];
 
-        var posStepX = 0;
-        var posStepY;
+
 
         for (ix = 0, ixLen = sortList.length; ix < ixLen; ix++ ) {
             if (sortList[ix] !== undefined && sortList[ix] !== null) {
-                posStepY = this.canvas.height / (sortList[ix].length + 1);
+                posStepY = this.nodeCanvas.height / (sortList[ix].length + 1);
                 posStepX = posStepX + 150;
 
                 for (jx = 0, jxLen = sortList[ix].length; jx < jxLen; jx++ ) {
@@ -6928,7 +7688,7 @@ XMTopology.prototype = {
             return;
         }
 
-//        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
+        // for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
         for (ix = 0, ixLen = this.relationData.length; ix < ixLen; ix++ ) {
             data = this.relationData[ix];
 
@@ -6960,8 +7720,8 @@ XMTopology.prototype = {
      */
     getDetailNodePos: function(x, y) {
         if (this.isCenterDetailLayout) {
-            this.detailNodePos.x = this.canvas.width / 2 + (this.selectGroupIdArr.length - 1) * 10;
-            this.detailNodePos.y = this.canvas.height / 2 - (this.selectGroupIdArr.length - 1) * 10;
+            this.detailNodePos.x = this.nodeCanvas.width / 2 + (this.selectGroupIdArr.length - 1) * 10;
+            this.detailNodePos.y = this.nodeCanvas.height / 2 - (this.selectGroupIdArr.length - 1) * 10;
         } else {
             this.detailNodePos.x = x;
             this.detailNodePos.y = y;
@@ -6975,9 +7735,11 @@ XMTopology.prototype = {
     configurationSaveNode: function() {
         var saveNodeList;
         var saveRelationData;
+        var saveTierInfoList;
         var nodeObj, childNodeObj;
         var ix, ixLen, jx, jxLen;
         var serverId;
+        var viewGroup = this.viewGroup !== 'Basic' ? this.viewGroup : '';
 
         if (this.isLoadSaveNodeInfo) {
             return;
@@ -6985,26 +7747,27 @@ XMTopology.prototype = {
         this.isLoadSaveNodeInfo = true;
 
         // Check Node Relation Data & Configuration Node Relation Data
-        if (Comm.web_env_info.topologyNodeRelation) {
-            if (typeof Comm.web_env_info.topologyNodeRelation === 'string') {
-                saveRelationData = JSON.parse(Comm.web_env_info.topologyNodeRelation);
+        if (Comm.web_env_info['topologyNodeRelation' + viewGroup]) {
+            if (typeof Comm.web_env_info['topologyNodeRelation' + viewGroup] === 'string') {
+                saveRelationData = JSON.parse(Comm.web_env_info['topologyNodeRelation' + viewGroup]);
             } else {
-                saveRelationData = Comm.web_env_info.topologyNodeRelation;
+                saveRelationData = Comm.web_env_info['topologyNodeRelation' + viewGroup];
             }
             this.relationData = saveRelationData;
             saveRelationData = null;
         }
 
         // Check Save Node List & Configuration Node List
-        if (Comm.web_env_info.topologyNodeList) {
-            if (typeof Comm.web_env_info.topologyNodeList === 'string') {
-                saveNodeList = JSON.parse(Comm.web_env_info.topologyNodeList);
+        if (Comm.web_env_info['topologyNodeList' + viewGroup]) {
+            if (typeof Comm.web_env_info['topologyNodeList' + viewGroup] === 'string') {
+                saveNodeList = JSON.parse(Comm.web_env_info['topologyNodeList' + viewGroup]);
             } else {
-                saveNodeList = Ext.clone(Comm.web_env_info.topologyNodeList);
+                saveNodeList = Ext.clone(Comm.web_env_info['topologyNodeList' + viewGroup]);
             }
 
             // TODO
             this.nodeList = saveNodeList;
+
             this.saveNodeList = null;
 
             delete this.nodeMap;
@@ -7039,7 +7802,14 @@ XMTopology.prototype = {
                     }
 
                 } else if (nodeObj.clazz === 'DB') {
-                    if (!Comm.dbInfoObj[serverId] && !this.isRelationNodeByDBID(nodeObj.id) ) {
+                    if (!Comm.dbInfoObj[serverId] && !this.isRelationNodeByID(nodeObj.id) ) {
+                        nodeObj.level = 1;
+                    } else if (!nodeObj.parentId) {
+                        nodeObj.level = 0;
+                    }
+
+                } else if (nodeObj.clazz === 'SERVER' || nodeObj.clazz === 'CLOUD') {
+                    if (!this.isRelationNodeByID(nodeObj.id)) {
                         nodeObj.level = 1;
                     }
                 }
@@ -7070,7 +7840,11 @@ XMTopology.prototype = {
                         }
 
                     } else if (childNodeObj.clazz === 'DB' && (!Comm.dbInfoObj[serverId])) {
-                        if (!this.isRelationNodeByDBID(childNodeObj.id) ) {
+                        if (!this.isRelationNodeByID(childNodeObj.id)) {
+                            childNodeObj.level = 1;
+                        }
+                    } else if (childNodeObj.clazz === 'SERVER' || childNodeObj.clazz === 'CLOUD') {
+                        if (!this.isRelationNodeByID(childNodeObj.id)) {
                             childNodeObj.level = 1;
                         }
                     }
@@ -7083,6 +7857,23 @@ XMTopology.prototype = {
                 }
             }
         }
+
+        this.tierList = [];
+        if (Comm.web_env_info['topologyTierList' + viewGroup]) {
+            if (typeof Comm.web_env_info['topologyTierList' + viewGroup] === 'string') {
+                saveTierInfoList = JSON.parse(Comm.web_env_info['topologyTierList' + viewGroup]);
+            } else {
+                saveTierInfoList = Comm.web_env_info['topologyTierList' + viewGroup];
+            }
+            this.tierList = saveTierInfoList;
+            saveTierInfoList = null;
+        }
+
+        if (this.tierList.length) {
+            this.drawTierBackground();
+        } else {
+            this.clearTierLayout();
+        }
     },
 
 
@@ -7092,10 +7883,10 @@ XMTopology.prototype = {
      */
     setAllDBNode: function() {
         var dbObjKeys = Object.keys(Comm.allDBInfo);
-
         var node, dbId, dbName, dbType;
+        var ix, ixLen;
 
-        for (var ix = 0, ixLen = dbObjKeys.length; ix < ixLen; ix++) {
+        for (ix = 0, ixLen = dbObjKeys.length; ix < ixLen; ix++) {
             dbId   = dbObjKeys[ix];
             dbName = Comm.allDBInfo[dbId].instanceName;
             dbType = Comm.allDBInfo[dbId].db_type;
@@ -7140,8 +7931,9 @@ XMTopology.prototype = {
      * 13: GUID
      */
     onTxnPathData: function(data, lines, callback) {
-
         var ix, jx, ixLen, jxLen;
+        var tempLines = [];
+        var lineKeys, lineKeyId;
 
         if (!data || data.length <= 0) {
             return;
@@ -7152,7 +7944,7 @@ XMTopology.prototype = {
         this.rectPx = 0;
         this.rectPy = 0;
 
-         for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
+        for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
             this.setRectNode(
                 data[ix][0],                        // id
                 this.getTxnPathType(data[ix][6]),   // method type
@@ -7168,10 +7960,6 @@ XMTopology.prototype = {
                 data[ix][11]                        // dest
             );
         }
-
-        var tempLines = [];
-        var lineKeys, lineKeyId;
-
 
         for (jx = 0, jxLen = this.nodeList.length; jx < jxLen; jx++) {
 
@@ -7203,8 +7991,8 @@ XMTopology.prototype = {
      * 0: Was_ID
      * 1: Type (80 = P, 67 = C)
      * 2: Method
-     *      EJB = 10, RMI = 20, TCP = 40, DB = 50, HTTP = 70, TMAX = 80, TUEXDO = 90, SAP = 100, TIBCO(async) = 120, TIBCO(sync) = 121, WEB = 150
-     *      PJS_TEMP: -1 
+     *      EJB = 10, RMI = 20, TCP = 40, DB = 50, HTTP = 70, TMAX = 80, TUXEDO = 90, SAP = 100, TIBCO(async) = 120, TIBCO(sync) = 121, WEB = 110
+     *      PJS_TEMP: -1
      *      Mehtod Type 이 80 (TMAX) 인 경우에는 연결선 위에 TMAX 로 표시하지 않고 TP 로 표시한다.
      *      Mehtod Type 이 -1 이면서 Type 이 80(P) 인 경우 화면에 해당 노드를 그리지 않게 처리한다.
      * 3: Depth          {Number Type}
@@ -7219,10 +8007,6 @@ XMTopology.prototype = {
      * @param {object} data - Topology Node Configuration Data
      */
     onConfigLineData: function(data) {
-
-        // WebEnv에 저장된 Topology 데이터를 가져와서 설정
-        this.configurationSaveNode();
-
         var ix, jx, ixLen, jxLen;
         var serverId, toServerId;
         var methodId, methodType, toMethodType;
@@ -7236,6 +8020,10 @@ XMTopology.prototype = {
         var dbInfo;
         var nodeName, nodeClazz;
 
+        // WebEnv에 저장된 Topology 데이터를 가져와서 설정
+        this.configurationSaveNode();
+
+        // this.webMap = {};
         for (ix = 0, ixLen = data.rows.length; ix < ixLen; ix++) {
             if (!data.rows[ix]) {
                 continue;
@@ -7265,10 +8053,10 @@ XMTopology.prototype = {
                 dbInfo = this.getDBInfoByHashCode(addr);
 
                 if (dbInfo) {
-                    this.setRelationData('WAS-'+serverId, 'DB-'+dbInfo.id, 'JDBC');
+                    this.setRelationData('WAS-' + serverId, 'DB-' + dbInfo.id, 'JDBC');
                 }
 
-            // 웹 서버는 WAS 노드에 포함하여 보여지기 때문에 연결 관계 설정 처리를 하지 않음.
+                // 웹 서버는 WAS 노드에 포함하여 보여지기 때문에 연결 관계 설정 처리를 하지 않음.
             } else if (methodType !== 'WEB') {
                 for (jx = 0; jx < destList.length; jx++) {
                     toServerId   = destList[jx][0];
@@ -7282,16 +8070,38 @@ XMTopology.prototype = {
             // 노드 데이터를 구성.
             // -------------------------------------------------------------------------------------
             destCount = destList.length;
-            maxDepth = (maxDepth < depth)? depth : maxDepth;
+            maxDepth = (maxDepth < depth) ? depth : maxDepth;
 
             this.setNode(serverId, methodType, depth, addr, type, destCount);
 
-            for (jx = 0, jxLen = destList.length; jx < jxLen; jx++) {
-                toServerId   = destList[jx][0];
-                toMethodType = this.getMethodType(destList[jx][1]) || '';
-                subAddr      = +destList[jx][2];
+            if (destCount > 0 && methodType === 'WEB') {
+                node = this.nodeMap['WAS-' + serverId];
+                node.isWebContain = true;
+                node.webNodeAllCount = destCount;
+                node.webList = [];
 
-                this.setNode(toServerId, toMethodType, null, subAddr, type, 0);
+                for (jx = 0, jxLen = destList.length; jx < jxLen; jx++) {
+                    toServerId   = destList[jx][0];
+                    toMethodType = this.getMethodType(destList[jx][1]) || '';
+                    subAddr      = +destList[jx][2];
+
+                    this.setNode(toServerId, toMethodType, null, subAddr, type, 0);
+                    node.webList[node.webList.length] = this.nodeMap['WEB-' + toServerId];
+                    node.webStatus = 0;
+
+                    if (!this.webMap[node.id]) {
+                        this.webMap[node.id] = [];
+                    }
+                    this.webMap[node.id] = this.nodeMap['WEB-' + toServerId];
+                }
+            } else {
+                for (jx = 0, jxLen = destList.length; jx < jxLen; jx++) {
+                    toServerId   = destList[jx][0];
+                    toMethodType = this.getMethodType(destList[jx][1]) || '';
+                    subAddr      = +destList[jx][2];
+
+                    this.setNode(toServerId, toMethodType, null, subAddr, type, 0);
+                }
             }
 
             // -------------------------------------------------------------------------------------
@@ -7328,28 +8138,28 @@ XMTopology.prototype = {
                     nodeName = cloudAddr.split('/');
                     if (nodeName.length > 1) {
                         nodeName.length = 3;
-                        nodeName = nodeName.join("/").split(':')[0] +':'+ nodeName.join("/").split(':')[1];
+                        nodeName = nodeName.join('/').split(':')[0] + ':' + nodeName.join('/').split(':')[1];
                     } else {
                         nodeName = nodeName[0];
                     }
                 }
 
                 // TP 아이콘의 표시 유무 값이 false 인 경우 비표시
-                //if (this.isDisplayTmaxNode === false && nodeObj.isGoTPServer) {
+                // if (this.isDisplayTmaxNode === false && nodeObj.isGoTPServer) {
                 //    continue;
-                //}
+                // }
 
                 // TP 아이콘을 표시하는데 이름이 '(' 로 시작되는 경우 표시하지 않게 처리 (PJS 요청 사항)
-                if (nodeObj.isGoTPServer && nodeName.indexOf('(') === 0) {
+                if (nodeObj.isGoTPServer && nodeName.startsWith('(')) {
                     continue;
                 }
 
-                node = this.getNodeById('CLOUD-'+nodeName);
+                node = this.getNodeById('CLOUD-' + nodeName);
 
                 if (!node) {
-                    nodeClazz = nodeObj.isGoTPServer? 'SERVER' : 'CLOUD';
+                    nodeClazz = nodeObj.isGoTPServer ? 'SERVER' : 'CLOUD';
                     node = new this.nodeClass.node(
-                        nodeClazz, 'CLOUD-'+nodeName, nodeName, methodType.toUpperCase(), 50, 50, false, methodType
+                        nodeClazz, 'CLOUD-' + nodeName, nodeName, methodType.toUpperCase(), 50, 50, false, methodType
                     );
 
                     node.listIndex = this.nodeList.length;
@@ -7379,11 +8189,18 @@ XMTopology.prototype = {
         if (this.nodeList.length > this.limitAnimateNodeCount) {
             this.isAlarmAnimate = false;
             this.isLineAnimate = false;
+        } else {
+            this.isAlarmAnimate = true;
+            this.isLineAnimate = true;
+
+            if (!this.isAlarmDrawing) {
+                this.drawAlarmEffect();
+            }
         }
 
         this.isChangeDisplayRelation = false;
 
-        //this.canvasDraw();
+        // this.canvasDraw();
         this.refreshData();
 
         addr     = null;
@@ -7427,19 +8244,16 @@ XMTopology.prototype = {
         var destId, destRemoteCount, pcHash;
         var fromNode, fromNodeId;
 
-
         // 토폴로지 뷰 로그 출력 유무 설정
         var isPrintLog = window.isTopologyLogPrint;
-        var isFilterServer = false;
+        // var isFilterServer = false;
 
         if (isPrintLog) {
             console.debug('============================================================');
-
-            if (window.topologyFilterID && window.topologyFilterID.length > 0) {
-                isFilterServer = true;
-            }
+            // if (window.topologyFilterID && window.topologyFilterID.length > 0) {
+            //     isFilterServer = true;
+            // }
         }
-
 
         for (ix = 0, ixLen = data.rows.length; ix < ixLen; ix++) {
             countData = data.rows[ix];
@@ -7506,7 +8320,7 @@ XMTopology.prototype = {
                             continue;
                         }
 
-                        // DB Execute Count 값인지 체크 
+                        // DB Execute Count 값인지 체크
                         if (isDBExecCount) {
                             nodeIdByDest = this.getNodeArrByDest(destId, nodeObj.id, 'DB');
 
@@ -7542,7 +8356,7 @@ XMTopology.prototype = {
                                 this.remoteWasList[this.remoteWasList.length] = [nodeObj.id, fromNodeId];
                             }
 
-                            if(!nodeObj.remoteCount[fromNodeId]) {
+                            if (!nodeObj.remoteCount[fromNodeId]) {
                                 nodeObj.remoteCount[fromNodeId] = 0;
                             }
                             nodeObj.remoteCount[fromNodeId]         += destRemoteCount;
@@ -7587,7 +8401,7 @@ XMTopology.prototype = {
                                     }
                                 }
 
-                            // Set Active Dest (WAS -> Group) ----------------------------
+                                // Set Active Dest (WAS -> Group) ----------------------------
                             } else if (nodeObj.parentId) {
                                 filterKey = nodeObj.parentId + '-' + fromNodeId;
 
@@ -7595,7 +8409,7 @@ XMTopology.prototype = {
                                     this.activateDest[filterKey] = [];
                                 }
 
-                            // Set Active Dest (Group -> WAS) ----------------------------
+                                // Set Active Dest (Group -> WAS) ----------------------------
                             } else if (fromNode.parentId) {
                                 filterKey = nodeObj.id + '-' + fromNode.parentId;
 
@@ -7637,7 +8451,7 @@ XMTopology.prototype = {
 
     /**
      * 메소드 ID값에 따른 메소드 타입 반환.
-     * 
+     *
      * 메소드 타입이 80 (TMAX)인 경우에는 'TP' 로 반환한다. (17.04.12 APM팀 요청사항)
      *
      * @param {number} method type
@@ -7645,7 +8459,7 @@ XMTopology.prototype = {
      */
     getMethodType: function(type) {
         var typeName;
-        switch(type) {
+        switch (type) {
             case 10:
                 typeName = 'EJB';
                 break;
@@ -7665,7 +8479,7 @@ XMTopology.prototype = {
                 typeName = 'TP';  // TMAX
                 break;
             case 90:
-                typeName = 'TUEXDO';
+                typeName = 'TUXEDO';
                 break;
             case 100:
                 typeName = 'SAP';
@@ -7676,12 +8490,12 @@ XMTopology.prototype = {
             case 121:
                 typeName = 'TIBCO';
                 break;
-            case 150:
+            case 110:
                 typeName = 'WEB';
                 break;
-           default:
+            default:
                 typeName = 'HTTP';
-               break;
+                break;
         }
         return typeName;
     },
@@ -7695,7 +8509,7 @@ XMTopology.prototype = {
      */
     getTxnPathType: function(type) {
         var typeName;
-        switch(type) {
+        switch (type) {
             case 40:
                 typeName = 'TCP';
                 break;
@@ -7708,16 +8522,17 @@ XMTopology.prototype = {
             case 80:
                 typeName = 'TP';
                 break;
-           default:
+            default:
                 typeName = '';
-               break;
+                break;
         }
         return typeName;
     },
 
 
     getFocus: function() {
-        var isFocus = 
+        var isFocus =
+            this.isFocusDeleteIcon ||
             this.isFocusGroupIcon ||
             this.isFocusZoomIcon ||
             this.isFocusXviewIcon ||
@@ -7732,12 +8547,11 @@ XMTopology.prototype = {
      */
     checkServerStatus: function() {
         var ix, ixLen, jx, jxLen;
-        var nodeObj, childNodeObj;
-        var serverId, nodeId;
-        var status;
+        var nodeObj, childNodeObj, webNodeObj;
+        var serverId, nodeId, webNodeId;
+        var status, webStatus, webServerStatus;
         var downCount;
 
-        // TODO
         for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++) {
             nodeObj = this.nodeList[ix];
 
@@ -7745,7 +8559,7 @@ XMTopology.prototype = {
             status = this.getServerStatus(nodeObj.clazz, serverId, nodeObj.status);
 
             if (status !== 3) {
-                status = this.checkAlertByServerId(serverId, nodeObj.clazz);
+                status = this.checkAlertByServerId(serverId, nodeObj.clazz, nodeObj.remoteType);
             }
 
             if (nodeObj.isGroupMode && status < 2) {
@@ -7758,6 +8572,22 @@ XMTopology.prototype = {
                 }
             }
             nodeObj.status = status;
+
+            if (nodeObj.isWebContain) {
+                webStatus = 0;
+
+                for (jx = 0, jxLen = nodeObj.webList.length; jx < jxLen; jx++) {
+                    webNodeObj = nodeObj.webList[jx];
+                    webNodeId = this.getServerIdByNodeId(webNodeObj.id);
+                    webServerStatus = this.checkAlertByServerId(webNodeId, webNodeObj.clazz, webNodeObj.remoteType);
+
+                    if (webStatus < +webServerStatus) {
+                        webStatus = webServerStatus;
+                    }
+                }
+
+                nodeObj.webStatus = webStatus;
+            }
 
             //for (jx = 0, jxLen = nodeObj.childList.length; jx < jxLen; jx++) {
             for (jx = 0, jxLen = nodeObj.childIdAllList.length; jx < jxLen; jx++) {
@@ -7773,7 +8603,7 @@ XMTopology.prototype = {
                 status = this.getServerStatus(childNodeObj.clazz, serverId, childNodeObj.status);
 
                 if (status !== 3) {
-                    status = this.checkAlertByServerId(serverId, childNodeObj.clazz);
+                    status = this.checkAlertByServerId(serverId, childNodeObj.clazz, childNodeObj.remoteType);
                 }
                 childNodeObj.status = status;
 
@@ -7782,6 +8612,9 @@ XMTopology.prototype = {
                 }
             }
         }
+
+        nodeObj = null;
+        childNodeObj = null;
     },
 
 
@@ -7792,7 +8625,7 @@ XMTopology.prototype = {
      * @param {string} serverType - 서버 타입
      * @return {number} 마지막 알람 레벨
      */
-    checkAlertByServerId: function(serverId, serverType) {
+    checkAlertByServerId: function(serverId, serverType, remoteType) {
         var lastStatus = 0;
         var ix, ixLen;
         var wasList;
@@ -7800,6 +8633,10 @@ XMTopology.prototype = {
         if (serverType === 'DB' && Comm.dbInfoObj[serverId]) {
             if (Repository.alarmListInfo.DB) {
                 wasList = Repository.alarmListInfo.DB[serverId];
+            }
+        } else if (remoteType === 'WEB' && Comm.webServersInfo[serverId]) {
+            if (Repository.alarmListInfo.WebServer) {
+                wasList = Repository.alarmListInfo.WebServer[serverId];
             }
         } else {
             if (Repository.alarmListInfo.WAS) {
@@ -7828,7 +8665,7 @@ XMTopology.prototype = {
         serverId = this.getServerIdByNodeId(nodeObj.id);
         status = this.getServerStatus(nodeObj.clazz, serverId, nodeObj.status);
         if (status !== 3) {
-            status = this.checkAlertByServerId(serverId, nodeObj.clazz);
+            status = this.checkAlertByServerId(serverId, nodeObj.clazz, nodeObj.remoteType);
         }
 
         if (status === 3) {
@@ -7840,7 +8677,7 @@ XMTopology.prototype = {
             serverId = this.getServerIdByNodeId(childNodeObj.id);
             status = this.getServerStatus(childNodeObj.clazz, serverId, childNodeObj.status);
             if (status !== 3) {
-                status = this.checkAlertByServerId(serverId, childNodeObj.clazz);
+                status = this.checkAlertByServerId(serverId, childNodeObj.clazz, childNodeObj.remoteType);
             }
 
             if (status === 3) {
@@ -7874,7 +8711,7 @@ XMTopology.prototype = {
         if (isDown) {
             status = 3;
         } else {
-            status = (serverStatus > 0 && serverStatus < 3)? serverStatus : 0;
+            status = (serverStatus > 0 && serverStatus < 3) ? serverStatus : 0;
         }
         return status;
     },
@@ -7914,17 +8751,22 @@ XMTopology.prototype = {
      * @param {object} adata
      */
     onAlarm: function(data) {
+        var serverType;
+        var serverId;
+        var alertLevel;
+        var alertName;
+
+        var typeName;
+        var nodeObj, parentNode, childNode;
+
         if (!data) {
             return;
         }
 
-        var serverType = +data[1];
-        var serverId   = +data[2];
-        var alertLevel = +data[6];
-        var alertName  = data[4];
-
-        var typeName;
-        var nodeObj, parentNode, childNode;
+        serverType = +data[1];
+        serverId   = +data[2];
+        alertLevel = +data[6];
+        alertName  = data[4];
 
         // 서버 타입이 DB 인데 모니터링 대상이 아닌 경우 처리하지 않느다.
         if (+serverType === 2 && !Comm.dbInfoObj[serverId]) {
@@ -7936,7 +8778,7 @@ XMTopology.prototype = {
             return;
         }
 
-        switch(serverType) {
+        switch (serverType) {
             case 1 :
                 typeName = 'WAS';
                 break;
@@ -7959,7 +8801,7 @@ XMTopology.prototype = {
         nodeObj = this.nodeMap[typeName  + '-' + serverId];
 
         if (nodeObj) {
-            switch(alertName) {
+            switch (alertName) {
                 case realtime.alarms.SERVER_DOWN:
                 case realtime.alarms.DISCONNECTED:
                 case realtime.alarms.TP_DOWN:
@@ -8006,7 +8848,7 @@ XMTopology.prototype = {
 
         this.drawAlarmEffect();
 
-        //this.drawDownEffect();
+        // this.drawDownEffect();
     },
 
 
@@ -8029,20 +8871,22 @@ XMTopology.prototype = {
      * @param {Boolean} [stroke = true] Whether to stroke the rectangle.
      */
     roundRect: function(ctx, x, y, width, height, radius, fill, stroke) {
-        if (typeof stroke === 'undefined') {
+        var defaultRadius;
+
+        if (typeof stroke === undefined) {
             stroke = true;
         }
-        if (typeof radius === 'undefined') {
+        if (typeof radius === undefined) {
             radius = 5;
         }
 
         if (typeof radius === 'number') {
             radius = {tl: radius, tr: radius, br: radius, bl: radius};
         } else {
-            var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
-//            for (var side in defaultRadius) {
-//                radius[side] = radius[side] || defaultRadius[side];
-//            }
+            defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+            // for (var side in defaultRadius) {
+            //     radius[side] = radius[side] || defaultRadius[side];
+            // }
             radius.tl = radius.tl || defaultRadius.tl;
             radius.tr = radius.tr || defaultRadius.tr;
             radius.br = radius.br || defaultRadius.br;
@@ -8116,6 +8960,7 @@ XMTopology.prototype = {
         this.xviewIconPt  = null;
         this.zoomIconPt   = null;
         this.groupIconPt  = null;
+        this.deleteIconPt = null;
         this.folderViewPt = null;
         this.groupChildPt = null;
         this.closeXPt     = null;
@@ -8169,6 +9014,12 @@ XMTopology.prototype.Event = {
      * 캔버스에서 마우스 다운 이벤트 처리
      */
     mouseDown: function(e) {
+        var mouse, mx, my;
+        var nodeObj, nodePt;
+        var addNodeObj, nodeRelation;
+        var ix, ixLen, jx, jxLen;
+        var ctrlNodeCheck = -1;
+
         e.preventDefault();
         e.stopPropagation();
 
@@ -8177,17 +9028,19 @@ XMTopology.prototype.Event = {
             return;
         }
 
-        // 마우스 오른쪽 버튼 이벤트는 처리하지 않는다.
-        if (e.button === 2) {
+        // 마우스 휠 버튼, 오른쪽 버튼 이벤트는 처리하지 않는다.
+        if (e.button === 1 || e.button === 2) {
             return;
         }
 
+        this.mouseisMoving = true;
+
         // 노드를 다중선택해서 이동을 할 수 있게 하는 기능 준비
-        //if (e.ctrlKey) {
-        //    this.isPressCtrlKey = true;
-        //} else {
-        //    this.isPressCtrlKey = false;
-        //}
+        if (e.ctrlKey) {
+            this.isPressCtrlKey = true;
+        } else {
+            this.isPressCtrlKey = false;
+        }
 
         // 그룹 노드를 생성하는 중인 경우이면 그룹 노드 생성을 취소한다.
         if (this.isCheckCreateGroup) {
@@ -8195,25 +9048,35 @@ XMTopology.prototype.Event = {
         }
 
         this.selectNodeObj = null;
+        this.selectedDrawObj = null;
+        this.selectedRelationObj.length = 0;
+        this.selectedLineObj.length = 0;
         this.clikIconPt = null;
 
         // 마우스 다운 이벤트가 발생된 위치 가져오기
-        var mouse = this.getPointOnMouse(e);
-        var mx = mouse.x;
-        var my = mouse.y;
+        mouse = this.getPointOnMouse(e);
+        mx = mouse.x;
+        my = mouse.y;
 
         // 드래그 영역을 그리기 위해 마우스 이벤트가 발생된 위치값을 시작 위치로 설정.
         this.dragSelectionStartPt = {x: mx, y: my};
 
         // 마우스 다운 이벤트가 발생면서 선택된 노드의 위치값
         this.firstClickPoint = null;
+        this.isCtrlNode = false;
 
-        var nodeObj, nodePt, ix, ixLen;
+        // node 현위치 기록
+        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++) {
+            nodeObj = this.nodeList[ix];
+            nodeObj.orginX = nodeObj.x;
+            nodeObj.orginY = nodeObj.y;
+        }
 
         //================================================================================
         // 노드 위에서 마우스 다운 이벤트가 발생되었는지 체크
         //================================================================================
-        for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
+        // for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
+        for (ix = this.nodeList.length - 1; ix >= 0; ix-- ) {
             nodeObj = this.nodeList[ix];
 
             // TODO 그룹노드의 하위에 있는 그룹 노드를 처리하기 위해서는 디스플레이 레벨의 재설정이 필요
@@ -8222,49 +9085,74 @@ XMTopology.prototype.Event = {
                 continue;
             }
 
+            if (!this.isShowAllNode && nodeObj.isDeleted) {
+                continue;
+            }
+
             if (nodeObj.clazz === 'AGENT' || nodeObj.clazz === 'GROUP') {
-                if (mx < nodeObj.x + 35 + this.canvas.offsetLeft && mx > nodeObj.x - 35 - this.canvas.offsetLeft &&
-                    my < nodeObj.y + 35 + this.canvas.offsetTop  && my > nodeObj.y - 35 - this.canvas.offsetTop) {
+                // 웹 노드정보 선택 시
+                if (nodeObj.isWebContain &&
+                    mx < nodeObj.x - this.getSizeValue(16, 'draw') + this.nodeCanvas.offsetLeft &&
+                    mx > nodeObj.x - this.getSizeValue(43, 'draw') - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y - this.getSizeValue(14, 'draw') + this.nodeCanvas.offsetTop  &&
+                    my > nodeObj.y - this.getSizeValue(41, 'draw') - this.nodeCanvas.offsetTop) {
+
+                    this.selectNodeObj = nodeObj;
+
+                    break;
+
+                } else if (mx < nodeObj.x + this.getSizeValue(35, 'draw') + this.nodeCanvas.offsetLeft &&
+                    mx > nodeObj.x - this.getSizeValue(35, 'draw') - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + this.getSizeValue(35, 'draw') + this.nodeCanvas.offsetTop  &&
+                    my > nodeObj.y - this.getSizeValue(35, 'draw') - this.nodeCanvas.offsetTop) {
 
                     this.isNodeDragMove = true;
+                    this.isNodeSelected = true;
                     this.selectNodeObj = nodeObj;
+                    this.selectedDrawObj = nodeObj;
                     this.firstClickPoint = {x: nodeObj.x, y: nodeObj.y};
+
                     break;
 
-                } else if (nodeObj.isWebContain &&
-                    mx < nodeObj.x - 18 + this.canvas.offsetLeft && mx > nodeObj.x - 45 - this.canvas.offsetLeft &&
-                    my < nodeObj.y - 18 + this.canvas.offsetTop  && my > nodeObj.y - 45 - this.canvas.offsetTop) {
-
-                    this.selectNodeObj = nodeObj;
-                    break;
                 }
-
             } else if (nodeObj.clazz === 'SERVER') {
-                if (mx < nodeObj.x + 64/2 + this.canvas.offsetLeft && mx > nodeObj.x - 64/2 - this.canvas.offsetLeft &&
-                    my < nodeObj.y + 55/2 + this.canvas.offsetTop  && my > nodeObj.y - 55/2 - this.canvas.offsetTop) {
+                if (mx < nodeObj.x + this.getSizeValue(64 / 2, 'draw') + this.nodeCanvas.offsetLeft &&
+                    mx > nodeObj.x - this.getSizeValue(64 / 2, 'draw') - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + this.getSizeValue(55 / 2, 'draw') + this.nodeCanvas.offsetTop  &&
+                    my > nodeObj.y - this.getSizeValue(55 / 2, 'draw') - this.nodeCanvas.offsetTop) {
 
                     this.isNodeDragMove = true;
+                    this.isNodeSelected = true;
                     this.selectNodeObj = nodeObj;
+                    this.selectedDrawObj = nodeObj;
                     this.firstClickPoint = {x: nodeObj.x, y: nodeObj.y};
 
                     break;
                 }
             } else if (nodeObj.clazz === 'CLOUD') {
-                if (mx < nodeObj.x + 91/2 + this.canvas.offsetLeft && mx > nodeObj.x - 91/2 - this.canvas.offsetLeft &&
-                    my < nodeObj.y + 54/2 + this.canvas.offsetTop  && my > nodeObj.y - 54/2 - this.canvas.offsetTop) {
+                if (mx < nodeObj.x + this.getSizeValue(91 / 2, 'draw') + this.nodeCanvas.offsetLeft &&
+                    mx > nodeObj.x - this.getSizeValue(91 / 2, 'draw') - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + this.getSizeValue(54 / 2, 'draw') + this.nodeCanvas.offsetTop  &&
+                    my > nodeObj.y - this.getSizeValue(54 / 2, 'draw') - this.nodeCanvas.offsetTop) {
 
                     this.isNodeDragMove = true;
+                    this.isNodeSelected = true;
                     this.selectNodeObj = nodeObj;
+                    this.selectedDrawObj = nodeObj;
                     this.firstClickPoint = {x: nodeObj.x, y: nodeObj.y};
 
                     break;
                 }
             } else if (nodeObj.clazz === 'DB') {
-                if (mx < nodeObj.x + 59/2 + this.canvas.offsetLeft && mx > nodeObj.x - 59/2 - this.canvas.offsetLeft &&
-                    my < nodeObj.y + 65/2 + this.canvas.offsetTop  && my > nodeObj.y - 65/2 - this.canvas.offsetTop) {
+                if (mx < nodeObj.x + this.getSizeValue(59 / 2, 'draw') + this.nodeCanvas.offsetLeft &&
+                    mx > nodeObj.x - this.getSizeValue(59 / 2, 'draw') - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + this.getSizeValue(65 / 2, 'draw') + this.nodeCanvas.offsetTop  &&
+                    my > nodeObj.y - this.getSizeValue(65 / 2, 'draw') - this.nodeCanvas.offsetTop) {
 
                     this.isNodeDragMove = true;
+                    this.isNodeSelected = true;
                     this.selectNodeObj = nodeObj;
+                    this.selectedDrawObj = nodeObj;
                     this.firstClickPoint = {x: nodeObj.x, y: nodeObj.y};
 
                     break;
@@ -8272,9 +9160,111 @@ XMTopology.prototype.Event = {
             }
         }
 
+        // check tierInfo for resizing
+        this.selctedTierInfo = null;
+        if (this.isTierResize) {
+            this.selectedTierInfo = this.onTierInfo;
+        }
+
+        //check CtrlKey after node selection
+        if (this.isNodeSelected) {
+            nodeObj.orginX = nodeObj.x;
+            nodeObj.orginY = nodeObj.y;
+
+            ctrlNodeCheck = this.multiSelectedNode.indexOf(nodeObj);
+
+            if (this.isPressCtrlKey) {
+                if (ctrlNodeCheck >= 0) {
+                    this.multiSelectedNode.splice(ctrlNodeCheck, 1);
+                } else {
+                    this.multiSelectedNode[this.multiSelectedNode.length] = nodeObj;
+                }
+            } else {
+                this.isCtrlNode = (ctrlNodeCheck >= 0) ? true : false;
+            }
+        }
+
+        //checking ctrlKey Node and initialize
+        if (!this.isPressCtrlKey && !this.isCtrlNode) {
+            this.multiSelectedNode.length = 0;
+        }
+
         // 마우스 우클릭 이거나 트랜잭션 패스 모드인 경우에는 진행하지 않는다.
         if (e.button === 2 || this.isTxnPathMode) {
             return;
+        }
+
+        // search linked node with selected node
+        if (this.multiSelectedNode.length > 0 && this.isNodeSelected) {
+            for (ix = 0, ixLen = this.multiSelectedNode.length; ix < ixLen; ix++) {
+                nodeObj = this.multiSelectedNode[ix];
+
+                for (jx = 0, jxLen = this.relationData.length; jx < jxLen; jx++) {
+                    nodeRelation = this.relationData[jx];
+                    addNodeObj = null;
+
+                    if (nodeRelation.fN === nodeObj.id || nodeRelation.tN === nodeObj.id) {
+                        if (this.selectedLineObj.indexOf(nodeRelation) < 0) {
+                            this.selectedLineObj[this.selectedLineObj.length] = nodeRelation;
+                        }
+
+                        if (nodeRelation.fN !== nodeObj.id) {
+                            addNodeObj = this.getNodeById(nodeRelation.fN);
+                        } else if (nodeRelation.tN !== nodeObj.id) {
+                            addNodeObj = this.getNodeById(nodeRelation.tN);
+                        }
+                    }
+                    if (this.selectedRelationObj.indexOf(addNodeObj) < 0 && addNodeObj) {
+                        this.selectedRelationObj[this.selectedRelationObj.length] = addNodeObj;
+                    }
+                }
+            }
+
+            //선택된 노드를 마지막에 그리기 위해서
+            for (ix = 0, ixLen = this.multiSelectedNode.length; ix < ixLen; ix++) {
+                nodeObj = this.multiSelectedNode[ix];
+                if (this.selectedRelationObj.indexOf(nodeObj) > 0) {
+                    this.selectedRelationObj.splice(this.selectedRelationObj.indexOf(nodeObj), 1);
+                }
+                this.selectedRelationObj[this.selectedRelationObj.length] = nodeObj;
+            }
+
+        } else if (this.isNodeSelected && this.selectedDrawObj) {
+            for (jx = 0, jxLen = this.relationData.length; jx < jxLen; jx++) {
+                nodeRelation = this.relationData[jx];
+
+                if (nodeRelation.fN === this.selectedDrawObj.id || nodeRelation.tN === this.selectedDrawObj.id) {
+
+                    if (this.selectedLineObj.indexOf(nodeRelation) < 0) {
+                        this.selectedLineObj[this.selectedLineObj.length] = nodeRelation;
+                    }
+                    if (nodeRelation.fN !== this.selectedDrawObj.id) {
+                        addNodeObj = this.getNodeById(nodeRelation.fN);
+
+                        if (addNodeObj && this.selectedRelationObj.indexOf(addNodeObj) < 0) {
+                            this.selectedRelationObj[this.selectedRelationObj.length] = addNodeObj;
+                        }
+                    } else if (nodeRelation.tN !== this.selectedDrawObj.id) {
+                        addNodeObj = this.getNodeById(nodeRelation.tN);
+                        if (addNodeObj && this.selectedRelationObj.indexOf(addNodeObj) < 0) {
+                            this.selectedRelationObj[this.selectedRelationObj.length] = addNodeObj;
+                        }
+                    }
+                }
+            }
+            this.selectedRelationObj[this.selectedRelationObj.length] = this.selectedDrawObj;
+        }
+
+        if (this.selectedRelationObj.length > 0) {
+            this.moveCanvas.width = this.componentWidth;
+            this.moveCanvas.height = this.componentHeight;
+            this.moveCanvas.style.top = '0px';
+            this.moveCanvas.style.left = '0px';
+            this.moveCanvas.style.position = 'absolute';
+
+            this.canvasDraw();
+            this.isSelectedDrawing = true;  //selectedDraw 중 전체 그리기 차단
+            this.canvasSelectedDraw(false);
         }
 
         //================================================================================
@@ -8289,22 +9279,22 @@ XMTopology.prototype.Event = {
                 nodePt = this.groupChildPt[ix];
 
                 if (nodePt.clazz === 'AGENT') {
-                    if (mx < nodePt.x + nodePt.r + this.canvas.offsetLeft && mx > nodePt.x - nodePt.r - this.canvas.offsetLeft &&
-                        my < nodePt.y + nodePt.r + this.canvas.offsetTop  && my > nodePt.y - nodePt.r - this.canvas.offsetTop) {
+                    if (mx < nodePt.x + nodePt.r + this.nodeCanvas.offsetLeft && mx > nodePt.x - nodePt.r - this.nodeCanvas.offsetLeft &&
+                        my < nodePt.y + nodePt.r + this.nodeCanvas.offsetTop  && my > nodePt.y - nodePt.r - this.nodeCanvas.offsetTop) {
 
-                            //this.isChildNodeDragMove = true;
-                            this.isChildNodeSelected = true;
-                            this.selectNodeObj = nodePt;
-                            break;
+                        //this.isChildNodeDragMove = true;
+                        this.isChildNodeSelected = true;
+                        this.selectNodeObj = nodePt;
+                        break;
                     }
                 } else {
-                    if (mx < nodePt.x + 20 + nodePt.r + this.canvas.offsetLeft && mx > nodePt.x - nodePt.r - this.canvas.offsetLeft &&
-                        my < nodePt.y + 20 + nodePt.r + this.canvas.offsetTop  && my > nodePt.y - nodePt.r - this.canvas.offsetTop) {
+                    if (mx < nodePt.x + 20 + nodePt.r + this.nodeCanvas.offsetLeft && mx > nodePt.x - nodePt.r - this.nodeCanvas.offsetLeft &&
+                        my < nodePt.y + 20 + nodePt.r + this.nodeCanvas.offsetTop  && my > nodePt.y - nodePt.r - this.nodeCanvas.offsetTop) {
 
-                            //this.isChildNodeDragMove = true;
-                            this.isChildNodeSelected = true;
-                            this.selectNodeObj = nodePt;
-                            break;
+                        //this.isChildNodeDragMove = true;
+                        this.isChildNodeSelected = true;
+                        this.selectNodeObj = nodePt;
+                        break;
                     }
                 }
             }
@@ -8314,15 +9304,15 @@ XMTopology.prototype.Event = {
         //================================================================================
         // 영역을 선택하는지 노드를 이동하는지 체크
         //================================================================================
-        if (this.isNodeDragMove !== true) {
+        if (!this.isNodeDragMove) {
             this.isDragMultiSelection = true;
 
         } else {
-            // 노드를 선택해서 움직이는 경우
-            if (!this.refreshTimerId) {
-                clearTimeout(this.refreshTimerId);
-            }
-            this.renderLoop();
+            // // 노드를 선택해서 움직이는 경우
+            // if (!this.refreshTimerId) {
+            //     clearTimeout(this.refreshTimerId);
+            // }
+            // this.renderLoop();
         }
 
     },
@@ -8332,6 +9322,14 @@ XMTopology.prototype.Event = {
      * 캔버스에서 마우스 이동 이벤트 처리
      */
     mouseMove: function(e) {
+        var ix, ixLen, jx, jxLen;
+        var nodeObj, nodePt, namePt;
+        var marginWidth, marginHeight;
+        var limitCircleRadius;
+        var tierInfo, nextTierInfo;
+        var mouse, mx, my;
+        var x, y, w, h; // drag area (x, y, width, height)
+
         e.preventDefault();
         //e.stopPropagation();
 
@@ -8348,8 +9346,8 @@ XMTopology.prototype.Event = {
         //================================================================================
         // 마우스 커서 모양 초기화
         //================================================================================
-        if (this.canvas.style.cursor !== '') {
-            this.canvas.style.cursor = '';
+        if (this.nodeCanvas.style.cursor !== '') {
+            this.nodeCanvas.style.cursor = '';
         }
 
         if (this.dragCanvas.style.cursor !== '') {
@@ -8357,31 +9355,29 @@ XMTopology.prototype.Event = {
         }
 
         // 마우스 이벤트가 발생된 위치 가져오기
-        var mouse = this.getPointOnMouse(e);
-        var mx = mouse.x;
-        var my = mouse.y;
+        mouse = this.getPointOnMouse(e);
+        mx = mouse.x;
+        my = mouse.y;
 
-        var ix, ixLen;
-        var nodeObj, nodePt, namePt;
-        var marginWidth, marginHeight;
+        this.mouseX = mx;
+        this.mouseY = my;
 
-        //================================================================================
+        // ================================================================================
         // 실시간 트랜잭션 패스 뷰 모드인 경우
-        //================================================================================
+        // ================================================================================
         if (this.isTxnPathMode) {
 
             for (ix = 0, ixLen = this.callTreeIconList.length; ix < ixLen; ix++ ) {
                 nodePt = this.callTreeIconList[ix];
 
-                if (mx < nodePt.x + nodePt.radius + this.canvas.offsetLeft && mx > nodePt.x - nodePt.radius - this.canvas.offsetLeft &&
-                    my < nodePt.y + nodePt.radius + this.canvas.offsetTop  && my > nodePt.y - nodePt.radius - this.canvas.offsetTop) {
+                if (mx < nodePt.x + nodePt.radius + this.nodeCanvas.offsetLeft && mx > nodePt.x - nodePt.radius - this.nodeCanvas.offsetLeft &&
+                    my < nodePt.y + nodePt.radius + this.nodeCanvas.offsetTop  && my > nodePt.y - nodePt.radius - this.nodeCanvas.offsetTop) {
 
-                        this.canvas.style.cursor     = 'pointer';
-                        this.dragCanvas.style.cursor = 'pointer';
-                        return;
+                    this.nodeCanvas.style.cursor     = 'pointer';
+                    this.dragCanvas.style.cursor = 'pointer';
+                    return;
                 }
             }
-
 
             if (this.isNodeDragMove && this.selectNodeObj) {
                 this.onNodeId = this.selectNodeObj.id;
@@ -8392,34 +9388,24 @@ XMTopology.prototype.Event = {
             return;
         }
 
-        // 노드명을 입력하고 있는 상태일 경우, 마우스 이동 이벤트는 처리하지 않는다. 
+        // 노드명을 입력하고 있는 상태일 경우, 마우스 이동 이벤트는 처리하지 않는다.
         if (this.textInputMode && this.textInputMode !== this.inputMode.BLANK) {
             return;
         }
 
-        // 그룹을 생성하는 중일 경우, 마우스 커서를 변경하지 않으며 마우스 이동 이벤트는 처리하지 않는다. 
+        // 그룹을 생성하는 중일 경우, 마우스 커서를 변경하지 않으며 마우스 이동 이벤트는 처리하지 않는다.
         if (this.isCheckCreateGroup) {
-            this.canvas.style.cursor = '';
+            this.nodeCanvas.style.cursor = '';
             this.dragCanvas.style.cursor = '';
             return;
         }
 
         this.isOnFocusNodeName = false;
-
-        //================================================================================
-        // Hide Line Info
-        //================================================================================
-//        if (this.isDisplayRemoteActiveCount === true) {
-//            this.isDisplayRemoteActiveCount = false;
-//            this.clearLineLayout();
-//            this.drawLineLayout();
-//        }
-
         //================================================================================
         // 노드명 위에 마우스 포커스가 위치하면 텍스트 입력 포커스로 변경.
         //================================================================================
         if (!this.isDisplayGroupMode && !this.isNodeDragMove && !this.isChildNodeSelected) {
-        //if (!this.isDisplayGroupMode && !this.isNodeDragMove && !this.isChildNodeDragMove) {
+            //if (!this.isDisplayGroupMode && !this.isNodeDragMove && !this.isChildNodeDragMove) {
 
             for (ix = 0, ixLen = this.nodeNameBoxList.length; ix < ixLen; ix++ ) {
                 namePt = this.nodeNameBoxList[ix];
@@ -8431,44 +9417,22 @@ XMTopology.prototype.Event = {
                     marginWidth = 45;
                     marginHeight = 0;
                 }
-                if (mx < namePt.x + marginWidth  + this.canvas.offsetLeft && mx > namePt.x - marginWidth - this.canvas.offsetLeft &&
-                    my < namePt.y + marginHeight + this.canvas.offsetTop  && my > namePt.y - 10 - this.canvas.offsetTop) {
+
+                if (mx < namePt.x + marginWidth  + this.nodeCanvas.offsetLeft && mx > namePt.x - marginWidth - this.nodeCanvas.offsetLeft &&
+                    my < namePt.y + marginHeight + this.nodeCanvas.offsetTop  && my > namePt.y - 10 - this.nodeCanvas.offsetTop) {
 
                     this.isOnFocusNodeName       = true;
-                    this.canvas.style.cursor     = 'text';
+                    this.nodeCanvas.style.cursor     = 'text';
                     this.dragCanvas.style.cursor = 'text';
                     return;
                 }
             }
         }
 
-        //================================================================================
-        // 노드와 노드사이에 있는 리모트 정보위에 마우스 포커스가 위치하면 손가락으로 포커스 변경.
-        //================================================================================
-        if (!this.isDisplayGroupMode && !this.isNodeDragMove && !this.isChildNodeSelected) {
-        //if (!this.isDisplayGroupMode && !this.isNodeDragMove && !this.isChildNodeDragMove) {
-
-            for (ix = 0, ixLen = this.remoteInfoBoxList.length; ix < ixLen; ix++ ) {
-                namePt = this.remoteInfoBoxList[ix];
-
-                marginWidth  = 45;
-                marginHeight = 26;
-
-                if (mx < namePt.x + marginWidth  + this.canvas.offsetLeft && mx > namePt.x - this.canvas.offsetLeft &&
-                    my < namePt.y + marginHeight + this.canvas.offsetTop  && my > namePt.y - this.canvas.offsetTop) {
-
-                    this.isOnFocusRemoteInfo     = true;
-                    this.canvas.style.cursor     = 'pointer';
-                    this.dragCanvas.style.cursor = 'pointer';
-                    return;
-                }
-            }
-        }
-
-        //================================================================================
+        // ================================================================================
         // 마우스 클릭을 하였는데 드래그 이벤트가 발생하는 경우가 있어서 드래그 시점의 좌표와
         // 같은 좌표인 경우에는 마우스 이동 이벤트 처리가 실행되지 않게 체크.
-        //================================================================================
+        // ================================================================================
         if (this.dragSelectionStartPt &&
             this.dragSelectionStartPt.x === mx && this.dragSelectionStartPt.y === my) {
             return;
@@ -8479,16 +9443,43 @@ XMTopology.prototype.Event = {
             this.clearDragLayout();
         }
 
-        //================================================================================
+        // ================================================================================
+        // 화면 영역을 드래그하는 경우
+        // ================================================================================
+        this.dragArea = null;
+        if (this.isDragMultiSelection && !this.isTierResize && !this.selectedTierInfo) {
+            x = Math.min(this.dragSelectionStartPt.x, mx) + 0.5;
+            y = Math.min(this.dragSelectionStartPt.y, my) + 0.5;
+            w = Math.abs(mx - this.dragSelectionStartPt.x) - 1;
+            h = Math.abs(my - this.dragSelectionStartPt.y) - 1;
+
+            this.clearDragLayout();
+            this.dragCtx.save();
+
+            this.dragCtx.strokeStyle = '#349BE7';
+            this.dragCtx.lineWidth   = 1;
+            this.dragCtx.lineJoin    = 'round';
+            this.dragCtx.fillStyle   = 'rgba(' + this.getHexToRgb('#349BE7') + ',' + 0.5 + ')';
+
+            this.dragCtx.fillRect(x, y, w, h);
+            this.dragCtx.strokeRect(x, y, w, h);
+
+            this.dragCtx.restore();
+
+            this.dragArea = {x1: x, y1: y, x2: x + w, y2: y + h};
+
+            return;
+        }
+
+        // ================================================================================
         // 그룹 표시 모드 상태에서 마우스 이벤트 처리
-        //================================================================================
+        // ================================================================================
         this.onNodeId = '';
         if (this.isDisplayGroupMode && !this.isChildNodeSelected) {
-        //if (this.isDisplayGroupMode === true && !this.isChildNodeDragMove) {
-            this.canvas.style.cursor = '';
+            this.nodeCanvas.style.cursor = '';
             this.dragCanvas.style.cursor = '';
 
-            if (this.isCloseHover === true || this.isSplitHover === true) {
+            if (this.isCloseHover || this.isSplitHover) {
                 this.isCloseHover = false;
                 this.isSplitHover = false;
 
@@ -8503,8 +9494,8 @@ XMTopology.prototype.Event = {
                 for (ix = 0; ix < this.groupChildPt.length; ix++) {
                     nodePt = this.groupChildPt[ix];
 
-                    if (mx < nodePt.x + nodePt.r + this.canvas.offsetLeft && mx > nodePt.x - nodePt.r - this.canvas.offsetLeft &&
-                        my < nodePt.y + nodePt.r + this.canvas.offsetTop  && my > nodePt.y - nodePt.r - this.canvas.offsetTop) {
+                    if (mx < nodePt.x + nodePt.r + this.nodeCanvas.offsetLeft && mx > nodePt.x - nodePt.r - this.nodeCanvas.offsetLeft &&
+                        my < nodePt.y + nodePt.r + this.nodeCanvas.offsetTop  && my > nodePt.y - nodePt.r - this.nodeCanvas.offsetTop) {
 
                         if (!this.selectedGroupCircle) {
                             continue;
@@ -8512,7 +9503,7 @@ XMTopology.prototype.Event = {
                         nodeObj = this.getChildNodeById(this.selectedGroupCircle, nodePt.id);
 
                         if (nodeObj && nodeObj.clazz === 'AGENT' && nodeObj.status !== 3) {
-                            this.canvas.style.cursor = 'pointer';
+                            this.nodeCanvas.style.cursor = 'pointer';
                             this.dragCanvas.style.cursor = 'pointer';
 
                             this.onNodeId = nodeObj.id;
@@ -8520,11 +9511,12 @@ XMTopology.prototype.Event = {
                             this.isChildNodeFocus = true;
                             nodeObj.isDisplayNavigate = true;
 
-                            if (nodeObj.isGroupMode !== true) {
+                            if (!nodeObj.isGroupMode) {
                                 this.drawNavigateSingleAgent(nodePt.x, nodePt.y, nodeObj, this.property.childOutCircle.radius, true);
                             } else {
                                 this.drawNavigateMultiAgent(nodePt.x, nodePt.y, nodeObj, this.property.childOutCircle.radius, true);
                             }
+                            // this.drawNavigateDelete(nodePt.x, nodePt.y, nodeObj, true);
                         }
                         break;
                     }
@@ -8554,11 +9546,25 @@ XMTopology.prototype.Event = {
             this.isSplitHover = false;
             if (this.groupSplitIconPt && this.selectedGroupCircle &&
                 this.groupSplitIconPt.x - 6 <= mx && this.groupSplitIconPt.x + 6 >= mx &&
-                this.groupSplitIconPt.y - 6 <= my && this.groupSplitIconPt.y + 6 >= my ) {
+                this.groupSplitIconPt.y - 6 <= my && this.groupSplitIconPt.y + 6 >= my && !this.isClickWebNode) {
 
                 this.isSplitHover = true;
                 this.dragCanvas.style.cursor = 'pointer';
                 this.drawGroupLayout(this.selectedGroupCircle.id, true);
+            }
+
+            // Image Icon Mouse Focus - XDelete ------------------------------------------
+            this.isFocusDeleteIcon = false;
+            if (this.deleteIconPt) {
+                if (this.deleteIconPt.x1 <= mx && this.deleteIconPt.x2 >= mx &&
+                    this.deleteIconPt.y1 <= my && this.deleteIconPt.y2 >= my ) {
+                    this.isFocusDeleteIcon = true;
+                    this.isChangeColor = true;
+                    this.nodeCanvas.style.cursor = 'pointer';
+                    this.dragCanvas.style.cursor = 'pointer';
+
+                    return;
+                }
             }
 
             // Image Icon Mouse Focus - Xview --------------------------------------------
@@ -8568,7 +9574,7 @@ XMTopology.prototype.Event = {
                     this.xviewIconPt.y1 <= my && this.xviewIconPt.y2 >= my ) {
                     this.isFocusXviewIcon = true;
                     this.isChangeColor = true;
-                    this.canvas.style.cursor = 'pointer';
+                    this.nodeCanvas.style.cursor = 'pointer';
                     this.dragCanvas.style.cursor = 'pointer';
 
                     if (!this.isChildNodeFocus && this.selectedGroupCircle) {
@@ -8588,7 +9594,7 @@ XMTopology.prototype.Event = {
                     this.zoomIconPt.y1 <= my && this.zoomIconPt.y2 >= my ) {
                     this.isFocusZoomIcon = true;
                     this.isChangeColor = true;
-                    this.canvas.style.cursor = 'pointer';
+                    this.nodeCanvas.style.cursor = 'pointer';
                     this.dragCanvas.style.cursor = 'pointer';
 
                     if (!this.isChildNodeFocus && this.selectedGroupCircle) {
@@ -8608,7 +9614,7 @@ XMTopology.prototype.Event = {
                     this.groupIconPt.y1 <= my && this.groupIconPt.y2 >= my ) {
                     this.isFocusGroupIcon = true;
                     this.isChangeColor = true;
-                    this.canvas.style.cursor = 'pointer';
+                    this.nodeCanvas.style.cursor = 'pointer';
                     this.dragCanvas.style.cursor = 'pointer';
 
                     if (!this.isChildNodeFocus) {
@@ -8621,7 +9627,7 @@ XMTopology.prototype.Event = {
             }
 
             // Image Icon Mouse Blur -----------------------------------------------------
-            if (this.isChangeColor === true && this.isChildNodeFocus !== true) {
+            if (this.isChangeColor && !this.isChildNodeFocus) {
                 this.isChangeColor = false;
                 this.selectedGroupCircle.isDisplayNavigate = false;
                 this.clearNaviLayout();
@@ -8635,76 +9641,168 @@ XMTopology.prototype.Event = {
         // 메인 노드위에 마우스 오버 시 처리
         //================================================================================
         if (!this.isNodeDragMove && !this.isChildNodeSelected) {
-        //if (!this.isNodeDragMove && !this.isChildNodeDragMove) {
+            //if (!this.isNodeDragMove && !this.isChildNodeDragMove) {
             this.isNavigateDisplayInfo = false;
 
             this.isFocusWebNode = false;
 
-            for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
+            // for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
+            for (ix = this.nodeList.length - 1; ix >= 0; ix-- ) {
                 nodeObj = this.nodeList[ix];
                 nodeObj.isDisplayLineInfo = false;
 
-                if (this.displayNodeLevel !== +nodeObj.level || (nodeObj.isGroupMode !== true && nodeObj.status === 3)) {
+                if (this.displayNodeLevel !== +nodeObj.level) {
                     continue;
                 }
 
+                if (!this.isShowAllNode && nodeObj.isDeleted) {
+                    continue;
+                }
+
+                // if (!nodeObj.isGroupMode && nodeObj.status === 3) {
+                //     continue;
+                // }
+
                 if (nodeObj.clazz === 'DB' &&
-                    mx < nodeObj.x + 59/2 + this.canvas.offsetLeft && mx > nodeObj.x - 59/2 - this.canvas.offsetLeft &&
-                    my < nodeObj.y + 65/2 + this.canvas.offsetTop  && my > nodeObj.y - 65/2 - this.canvas.offsetTop) {
+                    mx < nodeObj.x + this.getSizeValue(59 / 2, 'draw') + this.nodeCanvas.offsetLeft &&
+                    mx > nodeObj.x - this.getSizeValue(59 / 2, 'draw') - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + this.getSizeValue(65 / 2, 'draw') + this.nodeCanvas.offsetTop  &&
+                    my > nodeObj.y - this.getSizeValue(65 / 2, 'draw') - this.nodeCanvas.offsetTop) {
 
                     this.onNodeId = nodeObj.id;
-                    this.canvas.style.cursor = 'move';
+                    this.nodeCanvas.style.cursor = 'move';
                     this.dragCanvas.style.cursor = 'move';
-                    return;
-                    //break;
+
+                    if (this.deleteIconPt) {
+                        if (this.deleteIconPt.x1 <= mx && this.deleteIconPt.x2 >= mx &&
+                            this.deleteIconPt.y1 <= my && this.deleteIconPt.y2 >= my ) {
+                            this.nodeCanvas.style.cursor = 'pointer';
+                            this.dragCanvas.style.cursor = 'pointer';
+                            this.onNodeId = nodeObj.id;
+                        }
+                    }
+
+                    this.isNavigateDisplayInfo = true;
+                    this.clearNaviLayout();
+                    this.drawNavigateDelete(nodeObj.x, nodeObj.y, nodeObj, false);
+                    // return;
+                    break;
 
                 } else if (nodeObj.clazz === 'SERVER' &&
-                    mx < nodeObj.x + 64/2 + this.canvas.offsetLeft && mx > nodeObj.x - 64/2 - this.canvas.offsetLeft &&
-                    my < nodeObj.y + 55/2 + this.canvas.offsetTop  && my > nodeObj.y - 55/2 - this.canvas.offsetTop) {
+                    mx < nodeObj.x + this.getSizeValue(64 / 2, 'draw') + this.nodeCanvas.offsetLeft &&
+                    mx > nodeObj.x - this.getSizeValue(64 / 2, 'draw') - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + this.getSizeValue(55 / 2, 'draw') + this.nodeCanvas.offsetTop  &&
+                    my > nodeObj.y - this.getSizeValue(55 / 2, 'draw') - this.nodeCanvas.offsetTop) {
 
                     this.onNodeId = nodeObj.id;
-                    this.canvas.style.cursor = 'move';
+                    this.nodeCanvas.style.cursor = 'move';
                     this.dragCanvas.style.cursor = 'move';
-                    return;
-                    //break;
+
+                    if (this.deleteIconPt) {
+                        if (this.deleteIconPt.x1 <= mx && this.deleteIconPt.x2 >= mx &&
+                            this.deleteIconPt.y1 <= my && this.deleteIconPt.y2 >= my ) {
+                            this.nodeCanvas.style.cursor = 'pointer';
+                            this.dragCanvas.style.cursor = 'pointer';
+                            this.onNodeId = nodeObj.id;
+                        }
+                    }
+
+                    this.isNavigateDisplayInfo = true;
+                    this.clearNaviLayout();
+                    this.drawNavigateDelete(nodeObj.x, nodeObj.y, nodeObj, false);
+                    // return;
+                    break;
 
                 } else if (nodeObj.clazz === 'CLOUD' &&
-                    mx < nodeObj.x + 91/2 + this.canvas.offsetLeft && mx > nodeObj.x - 91/2 - this.canvas.offsetLeft &&
-                    my < nodeObj.y + 54/2 + this.canvas.offsetTop  && my > nodeObj.y - 54/2 - this.canvas.offsetTop) {
+                    mx < nodeObj.x + this.getSizeValue(91 / 2, 'draw') + this.nodeCanvas.offsetLeft &&
+                    mx > nodeObj.x - this.getSizeValue(91 / 2, 'draw') - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + this.getSizeValue(54 / 2, 'draw') + this.nodeCanvas.offsetTop  &&
+                    my > nodeObj.y - this.getSizeValue(54 / 2, 'draw') - this.nodeCanvas.offsetTop) {
 
                     this.onNodeId = nodeObj.id;
-                    this.canvas.style.cursor = 'move';
+                    this.nodeCanvas.style.cursor = 'move';
                     this.dragCanvas.style.cursor = 'move';
-                    return;
-                    //break;
+
+                    if (this.deleteIconPt) {
+                        if (this.deleteIconPt.x1 <= mx && this.deleteIconPt.x2 >= mx &&
+                            this.deleteIconPt.y1 <= my && this.deleteIconPt.y2 >= my ) {
+                            this.nodeCanvas.style.cursor = 'pointer';
+                            this.dragCanvas.style.cursor = 'pointer';
+                            this.onNodeId = nodeObj.id;
+                        }
+                    }
+
+                    this.isNavigateDisplayInfo = true;
+                    this.clearNaviLayout();
+                    this.drawNavigateDelete(nodeObj.x, nodeObj.y, nodeObj, false);
+                    // return;
+                    break;
+
+                    // 웹 서버가 포함된 노드에서 웹 서버 아이콘에 마우스를 오버한 경우
+                } else if (nodeObj.clazz === 'AGENT' && nodeObj.isWebContain && !nodeObj.isDeleted &&
+                    mx < nodeObj.x - this.getSizeValue(16, 'draw') + this.nodeCanvas.offsetLeft &&
+                    mx > nodeObj.x - this.getSizeValue(43, 'draw') - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y - this.getSizeValue(14, 'draw') + this.nodeCanvas.offsetTop  &&
+                    my > nodeObj.y - this.getSizeValue(41, 'draw') - this.nodeCanvas.offsetTop) {
+
+                    this.nodeCanvas.style.cursor = 'pointer';
+                    this.dragCanvas.style.cursor = 'pointer';
+                    this.isFocusWebNode = true;
+                    break;
 
                 } else if (nodeObj.clazz === 'GROUP' &&
-                    mx < nodeObj.x + 76/2 + this.canvas.offsetLeft && mx > nodeObj.x - 76/2 - this.canvas.offsetLeft &&
-                    my < nodeObj.y + 71/2 + this.canvas.offsetTop  && my > nodeObj.y - 71/2 - this.canvas.offsetTop) {
+                    mx < nodeObj.x + this.getSizeValue(76 / 2, 'draw') + this.nodeCanvas.offsetLeft &&
+                    mx > nodeObj.x - this.getSizeValue(76 / 2, 'draw') - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + this.getSizeValue(71 / 2, 'draw') + this.nodeCanvas.offsetTop  &&
+                    my > nodeObj.y - this.getSizeValue(71 / 2, 'draw') - this.nodeCanvas.offsetTop) {
 
                     this.onNodeId = nodeObj.id;
-                    this.canvas.style.cursor = 'move';
+                    this.nodeCanvas.style.cursor = 'move';
                     this.dragCanvas.style.cursor = 'move';
-                    return;
-                    //break;
+
+                    if (this.deleteIconPt) {
+                        if (this.deleteIconPt.x1 <= mx && this.deleteIconPt.x2 >= mx &&
+                            this.deleteIconPt.y1 <= my && this.deleteIconPt.y2 >= my ) {
+                            this.nodeCanvas.style.cursor = 'pointer';
+                            this.dragCanvas.style.cursor = 'pointer';
+                            this.onNodeId = nodeObj.id;
+                        }
+                    }
+
+                    this.isNavigateDisplayInfo = true;
+                    this.clearNaviLayout();
+                    this.drawNavigateDelete(nodeObj.x, nodeObj.y, nodeObj, false);
+                    // return;
+                    break;
 
                 } else if ((nodeObj.clazz === 'AGENT') &&
-                    mx < nodeObj.x + 35 + this.canvas.offsetLeft && mx > nodeObj.x - 35 - this.canvas.offsetLeft &&
-                    my < nodeObj.y + 35 + this.canvas.offsetTop  && my > nodeObj.y - 35 - this.canvas.offsetTop) {
+                    mx < nodeObj.x + this.getSizeValue(35, 'draw') + this.nodeCanvas.offsetLeft &&
+                    mx > nodeObj.x - this.getSizeValue(35, 'draw') - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + this.getSizeValue(35, 'draw') + this.nodeCanvas.offsetTop  &&
+                    my > nodeObj.y - this.getSizeValue(35, 'draw') - this.nodeCanvas.offsetTop) {
 
-                    if (this.isEnableAlarmTooltip) {
+                    if (this.isEnableAlarmTooltip && !nodeObj.isDeleted) {
                         this.showAlarmTooltip(nodeObj);
                     }
 
                     this.onNodeId = nodeObj.id;
 
-                    this.canvas.style.cursor = 'move';
+                    this.nodeCanvas.style.cursor = 'move';
                     this.dragCanvas.style.cursor = 'move';
+
+                    if (this.deleteIconPt) {
+                        if (this.deleteIconPt.x1 <= mx && this.deleteIconPt.x2 >= mx &&
+                            this.deleteIconPt.y1 <= my && this.deleteIconPt.y2 >= my ) {
+                            this.nodeCanvas.style.cursor = 'pointer';
+                            this.dragCanvas.style.cursor = 'pointer';
+                            this.onNodeId = nodeObj.id;
+                        }
+                    }
 
                     if (this.xviewIconPt) {
                         if (this.xviewIconPt.x1 <= mx && this.xviewIconPt.x2 >= mx &&
-                            this.xviewIconPt.y1 <= my && this.xviewIconPt.y2 >= my ) {
-                            this.canvas.style.cursor = 'pointer';
+                            this.xviewIconPt.y1 <= my && this.xviewIconPt.y2 >= my) {
+                            this.nodeCanvas.style.cursor = 'pointer';
                             this.dragCanvas.style.cursor = 'pointer';
                             this.onNodeId = nodeObj.id;
                         }
@@ -8712,8 +9810,8 @@ XMTopology.prototype.Event = {
 
                     if (this.zoomIconPt) {
                         if (this.zoomIconPt.x1 <= mx && this.zoomIconPt.x2 >= mx &&
-                            this.zoomIconPt.y1 <= my && this.zoomIconPt.y2 >= my ) {
-                            this.canvas.style.cursor = 'pointer';
+                            this.zoomIconPt.y1 <= my && this.zoomIconPt.y2 >= my) {
+                            this.nodeCanvas.style.cursor = 'pointer';
                             this.dragCanvas.style.cursor = 'pointer';
                             this.onNodeId = nodeObj.id;
                         }
@@ -8721,8 +9819,8 @@ XMTopology.prototype.Event = {
 
                     if (this.groupIconPt) {
                         if (this.groupIconPt.x1 <= mx && this.groupIconPt.x2 >= mx &&
-                            this.groupIconPt.y1 <= my && this.groupIconPt.y2 >= my ) {
-                            this.canvas.style.cursor = 'pointer';
+                            this.groupIconPt.y1 <= my && this.groupIconPt.y2 >= my) {
+                            this.nodeCanvas.style.cursor = 'pointer';
                             this.dragCanvas.style.cursor = 'pointer';
                         }
                     }
@@ -8733,28 +9831,20 @@ XMTopology.prototype.Event = {
                     this.isDisplayRemoteActiveCount = true;
                     nodeObj.isDisplayLineInfo = true;
                     nodeObj.isDisplayNavigate = true;
-                    //this.clearLineLayout();
-                    //this.drawLineLayout();
 
-                    if (nodeObj.isGroupMode !== true) {
-                        this.drawNavigateSingleAgent(nodeObj.x, nodeObj.y, nodeObj);
-                    } else {
-                        this.drawNavigateMultiAgent(nodeObj.x, nodeObj.y, nodeObj);
+                    if (!nodeObj.isDeleted) {
+                        if (!nodeObj.isGroupMode) {
+                            this.drawNavigateSingleAgent(nodeObj.x, nodeObj.y, nodeObj);
+                        } else {
+                            this.drawNavigateMultiAgent(nodeObj.x, nodeObj.y, nodeObj);
+                        }
                     }
+                    this.drawNavigateDelete(nodeObj.x, nodeObj.y, nodeObj, false);
+
+                    this.refreshData();
                     break;
-
-                // 웹 서버가 포함된 노드에서 웹 서버 아이콘에 마우스를 오버한 경우
-                } else if (nodeObj.clazz === 'AGENT' && nodeObj.isWebContain &&
-                    mx < nodeObj.x - 18 + this.canvas.offsetLeft && mx > nodeObj.x - 45 - this.canvas.offsetLeft &&
-                    my < nodeObj.y - 18 + this.canvas.offsetTop  && my > nodeObj.y - 45 - this.canvas.offsetTop) {
-
-                        this.canvas.style.cursor = 'pointer';
-                        this.dragCanvas.style.cursor = 'pointer';
-                        this.isFocusWebNode = true;
-                        break;
-
                 } else {
-                    this.canvas.style.cursor = '';
+                    this.nodeCanvas.style.cursor = '';
                     this.dragCanvas.style.cursor = '';
                 }
             }
@@ -8771,6 +9861,14 @@ XMTopology.prototype.Event = {
         //================================================================================
         // 노드 메뉴 위치에 마우스가 위치했는지 여부 체크
         //================================================================================
+        this.isFocusDeleteIcon = false;
+        if (this.deleteIconPt) {
+            if (this.deleteIconPt.x1 <= mx && this.deleteIconPt.x2 >= mx &&
+                this.deleteIconPt.y1 <= my && this.deleteIconPt.y2 >= my ) {
+                this.isFocusDeleteIcon = true;
+            }
+        }
+
         // X-View Image Icon Position
         this.isFocusXviewIcon = false;
         if (this.xviewIconPt) {
@@ -8800,30 +9898,64 @@ XMTopology.prototype.Event = {
         }
 
         //================================================================================
+        // 노드와 노드사이에 있는 리모트 정보위에 마우스 포커스가 위치하면 손가락으로 포커스 변경.
+        //================================================================================
+        this.isOnFocusRemoteInfo = false;
+        if (!this.isDisplayGroupMode && !this.isNodeDragMove && !this.isChildNodeSelected) {
+            //if (!this.isDisplayGroupMode && !this.isNodeDragMove && !this.isChildNodeDragMove) {
+
+            for (ix = 0, ixLen = this.remoteInfoBoxList.length; ix < ixLen; ix++ ) {
+                namePt = this.remoteInfoBoxList[ix];
+
+                marginWidth  = 45;
+                marginHeight = 26;
+
+                if (mx < namePt.x + marginWidth  + this.nodeCanvas.offsetLeft && mx > namePt.x - this.nodeCanvas.offsetLeft &&
+                    my < namePt.y + marginHeight + this.nodeCanvas.offsetTop  && my > namePt.y - this.nodeCanvas.offsetTop) {
+
+                    this.isOnFocusRemoteInfo     = true;
+                    this.nodeCanvas.style.cursor     = 'pointer';
+                    this.dragCanvas.style.cursor = 'pointer';
+                    return;
+                }
+            }
+        }
+
+        //================================================================================
         // 그룹 뷰에서 하위 노드를 선택해서 드래그하는 경우
         //================================================================================
         if (this.isChildNodeSelected) {
-        //if (this.isChildNodeDragMove) {
+            // 다중 레벨처리시 버그발생으로 임시 기능정지 19.02.01
+            // this.selectNodeObj = null;
+            // return;
+            // 다중 레벨처리시 버그발생으로 임시 기능정지 19.02.01
+
+            // web group view mode
+            if (this.isClickWebNode) {
+                this.selectNodeObj = null;
+                return;
+            }
+
             this.clearDragLayout();
             this.dragCtx.beginPath();
             this.dragCtx.arc(
                 mx,
                 my,
-                this.property.outCircle.radius * 2,
+                this.getSizeValue(this.property.outCircle.radius * 2, 'draw'),
                 0,
                 2 * Math.PI
             );
             this.dragCtx.closePath();
-            this.dragCtx.strokeStyle = 'rgba('+this.getHexToRgb('#FFFFFF') +','+ 0.8 + ')';
+            this.dragCtx.strokeStyle = 'rgba(' + this.getHexToRgb('#FFFFFF') + ',' + 0.8 + ')';
             this.dragCtx.lineWidth = 1;
             this.dragCtx.stroke();
             this.dragCtx.fillStyle = 'transparent';
             this.dragCtx.fill();
 
-            this.dragCtx.fillStyle = 'rgba('+this.getHexToRgb('#FFFFFF') +','+ 0.8 + ')';
-            this.dragCtx.font      = 'normal 14px "Droid Sans"';
+            this.dragCtx.fillStyle = 'rgba(' + this.getHexToRgb('#FFFFFF') + ',' + 0.8 + ')';
+            this.dragCtx.font      = 'normal ' + this.getSizeValue(14, 'font') + 'px "Droid Sans"';
             this.dragCtx.textAlign = 'center';
-            this.dragCtx.fillText(this.getNodeById(this.selectNodeObj.id).name, mx, my + 54);
+            this.dragCtx.fillText(this.getNodeById(this.selectNodeObj.id).name, mx, my + this.getSizeValue(54, 'draw'));
 
             this.isChildNodeDragMove = true;
             return;
@@ -8839,43 +9971,101 @@ XMTopology.prototype.Event = {
             //this.overCanvas.height = 0;
             this.clearOverLayout();
 
-            if (this.selectNodeObj) {
-                this.onNodeId = this.selectNodeObj.id;
+            if (this.multiSelectedNode.length > 0) {
+                limitCircleRadius = this.getSizeValue(this.property.outCircle.radius * 2, 'draw');
 
-                this.selectNodeObj.x = mx;
-                this.selectNodeObj.y = my;
+                for (jx = 0, jxLen = this.multiSelectedNode.length; jx < jxLen; jx++) {
+                    nodeObj = this.multiSelectedNode[jx];
+
+                    if (nodeObj.orginX + (mx - this.firstClickPoint.x) < limitCircleRadius) {
+                        nodeObj.x = limitCircleRadius;
+                    } else if (nodeObj.orginX + (mx - this.firstClickPoint.x) > this.componentWidth - limitCircleRadius) {
+                        nodeObj.x = this.componentWidth - limitCircleRadius;
+                    } else {
+                        nodeObj.x = nodeObj.orginX + (mx - this.firstClickPoint.x);
+                    }
+
+                    if (nodeObj.orginY + (my - this.firstClickPoint.y) < limitCircleRadius) {
+                        nodeObj.y = limitCircleRadius;
+                    } else if (nodeObj.orginY + (my - this.firstClickPoint.y) > this.componentHeight - limitCircleRadius) {
+                        nodeObj.y = this.componentHeight - limitCircleRadius;
+                    } else {
+                        nodeObj.y = nodeObj.orginY + (my - this.firstClickPoint.y);
+                    }
+                }
+
+                this.onNodeId = this.selectNodeObj.id;
+            } else if (this.selectNodeObj) {
+                limitCircleRadius = this.getSizeValue(this.property.outCircle.radius * 2, 'draw');
+
+                // this.selectNodeObj.x = this.selectNodeObj.orginX + (mx - this.firstClickPoint.x);
+                // this.selectNodeObj.y = this.selectNodeObj.orginY + (my - this.firstClickPoint.y);
+
+                if (this.selectNodeObj.orginX + (mx - this.firstClickPoint.x) < limitCircleRadius) {
+                    this.selectNodeObj.x = limitCircleRadius;
+                } else if (this.selectNodeObj.orginX + (mx - this.firstClickPoint.x) > this.componentWidth - limitCircleRadius) {
+                    this.selectNodeObj.x = this.componentWidth - limitCircleRadius;
+                } else {
+                    this.selectNodeObj.x = this.selectNodeObj.orginX + (mx - this.firstClickPoint.x);
+                }
+
+                if (this.selectNodeObj.orginY + (my - this.firstClickPoint.y) < limitCircleRadius) {
+                    this.selectNodeObj.y = limitCircleRadius;
+                } else if (this.selectNodeObj.orginY + (my - this.firstClickPoint.y) > this.componentHeight - limitCircleRadius) {
+                    this.selectNodeObj.y = this.componentHeight - limitCircleRadius;
+                } else {
+                    this.selectNodeObj.y = this.selectNodeObj.orginY + (my - this.firstClickPoint.y);
+                }
+
+                this.onNodeId = this.selectNodeObj.id;
             }
-            //this.canvasDraw();
+
+            if (this.selectedDrawObj) {
+                this.canvasSelectedDraw(true);
+                //this.canvasDraw();
+            }
 
             return;
         }
 
         //================================================================================
-        // 화면 영역을 드래그하는 경우
+        // 구간정보 라인에 마우스가 있는지 체크
         //================================================================================
-        this.dragArea = null;
-        if (this.isDragMultiSelection) {
-            var x = Math.min(this.dragSelectionStartPt.x, mx) + 0.5,
-                y = Math.min(this.dragSelectionStartPt.y, my) + 0.5,
-                w = Math.abs(mx - this.dragSelectionStartPt.x) - 1,
-                h = Math.abs(my - this.dragSelectionStartPt.y) - 1;
+        this.isTierResize = false;
+        this.onTierInfo = null;
+        if (!this.isTierResize && !this.selectedTierInfo) {
+            for (ix = 0, ixLen = this.tierList.length; ix < ixLen; ix++) {
+                tierInfo = this.tierList[ix];
 
-            this.clearDragLayout();
-            this.dragCtx.save();
+                if (mx < (tierInfo.x + tierInfo.w + 3) && mx > (tierInfo.x + tierInfo.w - 3)) {
+                    this.nodeCanvas.style.cursor = 'e-resize';
+                    this.dragCanvas.style.cursor = 'e-resize';
 
-            this.dragCtx.strokeStyle = '#349BE7';
-            this.dragCtx.lineWidth   = 1;
-            this.dragCtx.lineJoin    = 'round';
-            this.dragCtx.fillStyle   = 'rgba('+this.getHexToRgb('#349BE7') +','+ 0.5 + ')';
+                    this.isTierResize = true;
+                    this.onTierInfo = tierInfo;
+                }
+            }
+        }
 
-            this.dragCtx.fillRect(x, y, w, h);
-            this.dragCtx.strokeRect(x, y, w, h);
+        //================================================================================
+        // 구간정보를 선택해서 드래그(Resize) 하는 경우
+        //================================================================================
+        if (this.selectedTierInfo) {
+            if (this.tierList[this.selectedTierInfo.tierOrd + 1]) {
+                nextTierInfo = this.tierList[this.selectedTierInfo.tierOrd + 1];
 
-            this.dragCtx.restore();
+                if ((nextTierInfo.x + nextTierInfo.w) - parseInt(mx) < 150) {
+                    // Keep Maxium Size for right Tier
+                } else if (parseInt(mx) - this.selectedTierInfo.x < 150) {
+                    // Keep Maxium Size for selected Tier
+                } else {
+                    this.selectedTierInfo.w = parseInt(mx) - this.selectedTierInfo.x;
+                    nextTierInfo.w = (nextTierInfo.x + nextTierInfo.w) - parseInt(mx);
+                    nextTierInfo.x = parseInt(mx);
+                }
+            }
 
-            this.dragArea = {x1: x, y1: y, x2: x + w, y2: y + h};
-
-            return;
+            this.drawTierBackground();
         }
     },
 
@@ -8884,8 +10074,29 @@ XMTopology.prototype.Event = {
      * 캔버스에서 마우스 업 이벤트 처리
      */
     mouseUp: function(e) {
+        var mouse, mx, my;
+        var ix, ixLen;
+        var nameBoxObj, nodeObj, crossNode;
+        var marginWidth, marginHeight;
+        var self;
+        var isNodeInDrag;
+        var titleAlias = '';
+
         e.preventDefault();
         e.stopPropagation();
+
+        this.mouseisMoving      = false;
+        this.isSelectedDrawing  = false;
+        this.isAreaDraging      = false;
+        this.selectedDrawObj    = null;
+        this.selectedRelationObj.length = 0;
+        this.selectedLineObj.length = 0;
+
+        this.moveCanvas.width = 0;
+        this.moveCanvas.height = 0;
+        this.moveCanvas.style.top = '0px';
+        this.moveCanvas.style.left = '0px';
+        this.moveCanvas.style.position = 'absolute';
 
         if (this.isDrawingFolder || this.isWorkingMergeNode || this.isDrawingLayout) {
             return;
@@ -8896,19 +10107,17 @@ XMTopology.prototype.Event = {
             return;
         }
 
-        if (e.ctrlKey && this.isPressCtrlKey) {
-            return;
+        mouse = this.getPointOnMouse(e);
+        mx = mouse.x;
+        my = mouse.y;
+
+        if (this.selectedTierInfo) {
+            this.selectedTierInfo   = null;
+
+            if (this.tierList.length) {
+                common.WebEnv.Save('topologyTierList' + this.viewGroup, JSON.stringify(this.tierList));
+            }
         }
-
-        this.isPressCtrlKey = false;
-
-        var mouse = this.getPointOnMouse(e);
-        var mx = mouse.x;
-        var my = mouse.y;
-        var ix, ixLen;
-        var nameBoxObj, nodeObj;
-
-        var marginWidth, marginHeight;
 
         //================================================================================
         // Transaction Path View Mode
@@ -8917,8 +10126,8 @@ XMTopology.prototype.Event = {
             for (ix = 0, ixLen = this.callTreeIconList.length; ix < ixLen; ix++ ) {
                 nodeObj = this.callTreeIconList[ix];
 
-                if (mx < nodeObj.x + nodeObj.radius + this.canvas.offsetLeft && mx > nodeObj.x - nodeObj.radius - this.canvas.offsetLeft &&
-                    my < nodeObj.y + nodeObj.radius + this.canvas.offsetTop  && my > nodeObj.y - nodeObj.radius - this.canvas.offsetTop) {
+                if (mx < nodeObj.x + nodeObj.radius + this.nodeCanvas.offsetLeft && mx > nodeObj.x - nodeObj.radius - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + nodeObj.radius + this.nodeCanvas.offsetTop  && my > nodeObj.y - nodeObj.radius - this.nodeCanvas.offsetTop) {
 
                     if (nodeObj.type === 'SQL') {
                         if (this.openFullSQLText) {
@@ -8943,23 +10152,22 @@ XMTopology.prototype.Event = {
             return;
         }
 
-
         this.dragSelectionNodeList = [];
 
         if (this.isCheckCreateGroup) {
-            this.canvas.style.cursor = '';
+            this.nodeCanvas.style.cursor = '';
             this.dragCanvas.style.cursor = '';
             return;
         }
 
-        if (this.isDisplayGroupMode === true) {
+        if (this.isDisplayGroupMode) {
 
-            if (this.isChildNodeDragMove === true) {
+            if (this.isChildNodeDragMove) {
 
-                if (mx < this.selectedGroupCircle.x + this.groupCircleRadius * 2 + this.canvas.offsetLeft &&
-                    mx > this.selectedGroupCircle.x - this.groupCircleRadius * 2 - this.canvas.offsetLeft &&
-                    my < this.selectedGroupCircle.y + this.groupCircleRadius * 2 + this.canvas.offsetTop  &&
-                    my > this.selectedGroupCircle.y - this.groupCircleRadius * 2 - this.canvas.offsetTop) {
+                if (mx < this.selectedGroupCircle.x + this.groupCircleRadius * 2 + this.nodeCanvas.offsetLeft &&
+                    mx > this.selectedGroupCircle.x - this.groupCircleRadius * 2 - this.nodeCanvas.offsetLeft &&
+                    my < this.selectedGroupCircle.y + this.groupCircleRadius * 2 + this.nodeCanvas.offsetTop  &&
+                    my > this.selectedGroupCircle.y - this.groupCircleRadius * 2 - this.nodeCanvas.offsetTop) {
 
                 } else {
                     this.spliceGroupNode(this.selectedGroupCircle, this.selectNodeObj, mx, my);
@@ -8981,10 +10189,11 @@ XMTopology.prototype.Event = {
                 }
             }
 
-//            if (!this.isFocusGroupIcon  || this.selectGroupIdArr.length <= 0) {
-//                this.isDisplayGroupMode = false;
-//            }
-            this.isChildNodeDragMove = false;
+            // if (!this.isFocusGroupIcon  || this.selectGroupIdArr.length <= 0) {
+            //     this.isDisplayGroupMode = false;
+            // }
+
+            // this.isChildNodeDragMove = false;
             this.isChildNodeSelected = false;
         }
 
@@ -8996,55 +10205,70 @@ XMTopology.prototype.Event = {
             this.clearAllGroupLayout();
         }
 
-
-        this.stopRenderLoop();
+        // this.stopRenderLoop();
+        this.refreshData();
 
         // Clear icon image position
+        this.deleteIconPt = null;
         this.xviewIconPt = null;
         this.zoomIconPt  = null;
         this.groupIconPt = null;
 
-        //================================================================================
+        // ================================================================================
         // Merge Selected Node (create Group Node)
-        //================================================================================
-        if (this.selectNodeObj && !this.isDisplayGroupMode) {
-            var crossNode = this.checkCrossNode(this.selectNodeObj.id, mx, my);
-
+        // ================================================================================
+        if (this.selectNodeObj && !this.isDisplayGroupMode && !this.isPressCtrlKey) {
+            crossNode = this.checkCrossNode(this.selectNodeObj.id, mx, my);
             if (crossNode) {
                 this.checkMergeNode(this.selectNodeObj);
                 this.canvasDraw();
             }
         }
 
-        //================================================================================
+        // ================================================================================
         // Merge drag selection node (Create Group Node)
-        //================================================================================
+        // ================================================================================
+        isNodeInDrag = false;
         if (this.dragArea) {
-            for (ix = 0, ixLen = this.nodeList.length; ix < ixLen ; ix++) {
+            this.isAreaDraging = true;
+            for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++) {
+                isNodeInDrag = false;
                 nodeObj = this.nodeList[ix];
 
                 if (this.displayNodeLevel !== +nodeObj.level) {
                     continue;
                 }
 
+                if (nodeObj.isDeleted) {
+                    continue;
+                }
+
                 if (nodeObj.clazz === 'AGENT' || nodeObj.clazz === 'GROUP') {
-                    if (this.dragArea.x1 < nodeObj.x + 5 + this.canvas.offsetLeft && this.dragArea.x2 > nodeObj.x - 5 - this.canvas.offsetLeft &&
-                        this.dragArea.y1 < nodeObj.y + 5 + this.canvas.offsetTop  && this.dragArea.y2 > nodeObj.y - 5 - this.canvas.offsetTop) {
-                        this.dragSelectionNodeList[this.dragSelectionNodeList.length] = nodeObj;
+                    if (this.dragArea.x1 < nodeObj.x + 15 + this.nodeCanvas.offsetLeft && this.dragArea.x2 > nodeObj.x - 15 - this.nodeCanvas.offsetLeft &&
+                        this.dragArea.y1 < nodeObj.y + 15 + this.nodeCanvas.offsetTop  && this.dragArea.y2 > nodeObj.y - 15 - this.nodeCanvas.offsetTop) {
+                        isNodeInDrag = true;
                     }
                 } else if (nodeObj.clazz === 'SERVER') {
-                    if (this.dragArea.x1 < nodeObj.x + 45 + this.canvas.offsetLeft && this.dragArea.x2 > nodeObj.x - 0 - this.canvas.offsetLeft &&
-                        this.dragArea.y1 < nodeObj.y + 25 + this.canvas.offsetTop  && this.dragArea.y2 > nodeObj.y - 0 - this.canvas.offsetTop) {
-                        this.dragSelectionNodeList[this.dragSelectionNodeList.length] = nodeObj;
+                    if (this.dragArea.x1 < nodeObj.x + 15 + this.nodeCanvas.offsetLeft && this.dragArea.x2 > nodeObj.x - 15 - this.nodeCanvas.offsetLeft &&
+                        this.dragArea.y1 < nodeObj.y + 15 + this.nodeCanvas.offsetTop  && this.dragArea.y2 > nodeObj.y - 15 - this.nodeCanvas.offsetTop) {
+                        isNodeInDrag = true;
                     }
                 } else if (nodeObj.clazz === 'CLOUD') {
-                    if (this.dragArea.x1 < nodeObj.x + 45 + this.canvas.offsetLeft && this.dragArea.x2 > nodeObj.x - 0 - this.canvas.offsetLeft &&
-                        this.dragArea.y1 < nodeObj.y + 25 + this.canvas.offsetTop  && this.dragArea.y2 > nodeObj.y - 0 - this.canvas.offsetTop) {
-                        this.dragSelectionNodeList[this.dragSelectionNodeList.length] = nodeObj;
+                    if (this.dragArea.x1 < nodeObj.x + 25 + this.nodeCanvas.offsetLeft && this.dragArea.x2 > nodeObj.x - 15 - this.nodeCanvas.offsetLeft &&
+                        this.dragArea.y1 < nodeObj.y + 20 + this.nodeCanvas.offsetTop  && this.dragArea.y2 > nodeObj.y - 15 - this.nodeCanvas.offsetTop) {
+                        isNodeInDrag = true;
                     }
                 } else if (nodeObj.clazz === 'DB') {
-                    if (this.dragArea.x1 < nodeObj.x + 45 + this.canvas.offsetLeft && this.dragArea.x2 > nodeObj.x - 0 - this.canvas.offsetLeft &&
-                        this.dragArea.y1 < nodeObj.y + 25 + this.canvas.offsetTop  && this.dragArea.y2 > nodeObj.y - 0 - this.canvas.offsetTop) {
+                    if (this.dragArea.x1 < nodeObj.x + 15 + this.nodeCanvas.offsetLeft && this.dragArea.x2 > nodeObj.x - 15 - this.nodeCanvas.offsetLeft &&
+                        this.dragArea.y1 < nodeObj.y + 15 + this.nodeCanvas.offsetTop  && this.dragArea.y2 > nodeObj.y - 15 - this.nodeCanvas.offsetTop) {
+                        isNodeInDrag = true;
+                    }
+                }
+
+                if (isNodeInDrag) {
+                    if (this.isPressCtrlKey) {
+                        this.multiSelectedNode[this.multiSelectedNode.length] = nodeObj;
+                    } else {
                         this.dragSelectionNodeList[this.dragSelectionNodeList.length] = nodeObj;
                     }
                 }
@@ -9058,6 +10282,8 @@ XMTopology.prototype.Event = {
                     this.dragArea.x2 - this.dragArea.x1,
                     this.dragArea.y2 - this.dragArea.y1
                 );
+            } else if (this.multiSelectedNode.length > 0 && this.isPressCtrlKey) {
+                this.canvasDraw();
             }
             this.dragArea = null;
         }
@@ -9066,20 +10292,155 @@ XMTopology.prototype.Event = {
         this.isNodeDragMove = false;
 
         //================================================================================
+        // 노드 메뉴에서 마우스 클릭 이벤트
+        //================================================================================
+        self = this;
+
+        // 노드 메뉴 클릭 - 노드삭제 아이콘
+        if (this.isFocusDeleteIcon && this.openTxnMonitor && !this.isPressCtrlKey) {
+            this.isFocusDeleteIcon = false;
+
+            nodeObj = this.getNodeById(this.onNodeId);
+
+            self.setNodeDelInfo(self.onNodeId, !nodeObj.isDeleted);
+            this.isNodeSelected = false;
+            return;
+        }
+
+        // 노드 메뉴 클릭 - 액티브 트랜잭션 모니터 아이콘
+        if (this.isFocusXviewIcon && this.openTxnMonitor && !this.isPressCtrlKey) {
+            this.isFocusXviewIcon = false;
+
+            nodeObj = this.getNodeById(this.onNodeId);
+            serverId = [];
+
+            if (!this.isClickWebNode) {
+                if (nodeObj && nodeObj.childList.length > 0) {
+                    for (ix = 0; ix < nodeObj.childList.length; ix++) {
+                        if (nodeObj.childList[ix].clazz === 'AGENT' && nodeObj.childList[ix].type === '') {
+                            serverId[serverId.length] = nodeObj.childList[ix].id.split('-')[1];
+                        }
+                    }
+                    this.openTxnMonitor(serverId.join(), nodeObj.alias, null);
+                } else {
+                    if (nodeObj) {
+                        this.openTxnMonitor(this.onNodeId.split('-')[1], nodeObj.alias, null);
+                    }
+                }
+            } else {
+                if (nodeObj && nodeObj.webList.length > 0) {
+                    for (ix = 0; ix < nodeObj.webList.length; ix++) {
+                        if (nodeObj.webList[ix].clazz === 'AGENT') {
+                            serverId[serverId.length] = +(nodeObj.webList[ix].id.split('-')[1]);
+                            titleAlias += (((ix === 0) ? '' : ',') + nodeObj.webList[ix].name);
+                        }
+                    }
+                    this.openTxnMonitor(serverId.join(), titleAlias, 'WEB');
+                }
+            }
+
+            this.clearAllGroupLayout();
+
+            //this.overCanvas.width = 0;
+            //this.overCanvas.height = 0;
+            this.clearOverLayout();
+
+            this.isNodeSelected = false;
+            this.isClickWebNode = false;
+            return;
+        }
+
+        // 노드 메뉴 클릭 - 액티브 트랜잭셕 목록 아이콘
+        if (this.isFocusZoomIcon && this.openTxnList && !this.isPressCtrlKey) {
+            this.isFocusZoomIcon = false;
+
+            nodeObj = this.getNodeById(this.onNodeId);
+            serverId = [];
+
+            if (!this.isClickWebNode) {
+                if (nodeObj && nodeObj.childList.length > 0) {
+                    for (ix = 0; ix < nodeObj.childList.length; ix++) {
+                        //serverId += (((ix === 0)? '':',') + nodeObj.childList[ix].id.split('-')[1]);
+                        serverId[serverId.length] = nodeObj.childList[ix].id.split('-')[1];
+                    }
+
+                    this.openTxnList(serverId.join(), null, null, null, null, nodeObj.alias, null, null);
+                } else {
+                    if (nodeObj) {
+                        this.openTxnList(+this.onNodeId.split('-')[1], null, null, null, null, nodeObj.alias, null, null);
+                    }
+                }
+            } else {
+                if (nodeObj && nodeObj.webList.length > 0) {
+                    for (ix = 0; ix < nodeObj.webList.length; ix++) {
+                        serverId[serverId.length] = nodeObj.webList[ix].id.split('-')[1];
+                    }
+
+                    this.openTxnList(serverId.join(), null, null, null, null, nodeObj.alias, null, 'WEB');
+                }
+            }
+
+            this.clearAllGroupLayout();
+
+            //this.overCanvas.width   = 0;
+            //this.overCanvas.height  = 0;
+            this.clearOverLayout();
+
+            this.isNodeSelected = false;
+            this.isClickWebNode = false;
+            return;
+        }
+
+        // 노드 메뉴 클릭 - 그룹 뷰 아이콘
+        if (this.isFocusGroupIcon && this.selectNodeObj && !this.isPressCtrlKey) {
+            if (this.isDisplayGroupMode) {
+                this.displayGroupViewStep = this.displayGroupViewStep > 0 ? this.displayGroupViewStep + 1 : 1;
+            } else {
+                this.displayGroupViewStep = 1;
+            }
+
+            this.isFocusGroupIcon = false;
+            this.isDisplayGroupMode = true;
+            this.drawGroupLayout(this.selectNodeObj.id);
+
+            this.selectGroupIdArr.push(this.selectNodeObj.id);
+
+            this.isNodeSelected = false;
+            this.isClickWebNode = false;
+            return;
+        }
+
+        // 노드 클릭 - 웹 노드 아이콘
+        if (this.isFocusWebNode && this.selectNodeObj) {
+            this.displayGroupViewStep = 1;
+
+            this.isFocusWebNode = false;
+            this.isDisplayGroupMode = true;
+            this.isClickWebNode = true;
+
+            this.drawWebGroupLayout(this.selectNodeObj.id);
+
+            this.isNodeSelected = false;
+            return;
+        }
+        this.isClickWebNode = false;
+
+        //================================================================================
         // 마우스 클릭 이벤트
         //================================================================================
-        if (this.dragSelectionStartPt && this.dragSelectionStartPt.x === mx && this.dragSelectionStartPt.y === my) {
+        if (this.dragSelectionStartPt && !this.isPressCtrlKey
+            && this.dragSelectionStartPt.x === mx && this.dragSelectionStartPt.y === my) {
 
             // Group Node (Exclude Circle Type Group)
             for (ix = 0, ixLen = this.nodeList.length; ix < ixLen; ix++ ) {
                 nodeObj = this.nodeList[ix];
 
-                if (nodeObj.clazz === 'AGENT' || nodeObj.isGroupMode !== true) {
+                if (nodeObj.clazz === 'AGENT' || !nodeObj.isGroupMode) {
                     continue;
                 }
 
-                if (mx < nodeObj.x + 76/2 + this.canvas.offsetLeft && mx > nodeObj.x - 76/2  - this.canvas.offsetLeft &&
-                    my < nodeObj.y + 71/2 + this.canvas.offsetTop  && my > nodeObj.y - 71/2 - this.canvas.offsetTop && this.selectNodeObj) {
+                if (mx < nodeObj.x + 76 / 2 + this.nodeCanvas.offsetLeft && mx > nodeObj.x - 76 / 2  - this.nodeCanvas.offsetLeft &&
+                    my < nodeObj.y + 71 / 2 + this.nodeCanvas.offsetTop  && my > nodeObj.y - 71 / 2 - this.nodeCanvas.offsetTop && this.selectNodeObj) {
 
                     this.isDisplayGroupMode = true;
                     this.drawGroupLayout(this.selectNodeObj.id);
@@ -9091,100 +10452,6 @@ XMTopology.prototype.Event = {
                     return;
                 }
             }
-        }
-
-        //================================================================================
-        // 노드 메뉴에서 마우스 클릭 이벤트
-        //================================================================================
-        var wasId;
-
-        // 노드 메뉴 클릭 - 액티브 트랜잭션 모니터 아이콘
-        if (this.isFocusXviewIcon && this.openTxnMonitor) {
-            this.isFocusXviewIcon = false;
-
-            nodeObj = this.getNodeById(this.onNodeId);
-
-            wasId = [];
-            if (nodeObj && nodeObj.childList.length > 0) {
-                for (ix = 0; ix < nodeObj.childList.length; ix++) {
-                    //wasId += (((ix === 0)? '':',') + nodeObj.childList[ix].id.split('-')[1]);
-                    if (nodeObj.childList[ix].clazz === 'AGENT' && nodeObj.childList[ix].type === ''){
-                        wasId[wasId.length] = nodeObj.childList[ix].id.split('-')[1];
-                    }
-
-                }
-                this.openTxnMonitor(wasId.join(), nodeObj.alias);
-            } else {
-                if (nodeObj) {
-                    this.openTxnMonitor(this.onNodeId.split('-')[1], nodeObj.alias);
-                }
-            }
-
-            this.clearAllGroupLayout();
-
-            //this.overCanvas.width = 0;
-            //this.overCanvas.height = 0;
-            this.clearOverLayout();
-
-            return;
-        }
-
-        // 노드 메뉴 클릭 - 액티브 트랜잭셕 목록 아이콘
-        if (this.isFocusZoomIcon && this.openTxnList) {
-            this.isFocusZoomIcon = false;
-
-            nodeObj = this.getNodeById(this.onNodeId);
-
-            wasId = [];
-            if (nodeObj && nodeObj.childList.length > 0) {
-                for (ix = 0; ix < nodeObj.childList.length; ix++) {
-                    //wasId += (((ix === 0)? '':',') + nodeObj.childList[ix].id.split('-')[1]);
-                    wasId[wasId.length] = nodeObj.childList[ix].id.split('-')[1];
-                }
-
-                this.openTxnList(wasId.join(), null, null, null, null, nodeObj.alias, null);
-            } else {
-                if (nodeObj) {
-                    this.openTxnList(+this.onNodeId.split('-')[1], null, null, null, null, nodeObj.alias, null);
-                }
-            }
-
-            this.clearAllGroupLayout();
-
-            //this.overCanvas.width   = 0;
-            //this.overCanvas.height  = 0;
-            this.clearOverLayout();
-
-            return;
-        }
-
-        // 노드 메뉴 클릭 - 그룹 뷰 아이콘
-        if (this.isFocusGroupIcon && this.selectNodeObj) {
-            if (this.isDisplayGroupMode) {
-                this.displayGroupViewStep = this.displayGroupViewStep > 0? this.displayGroupViewStep + 1 : 1;
-            } else {
-                this.displayGroupViewStep = 1;
-            }
-
-            this.isFocusGroupIcon = false;
-            this.isDisplayGroupMode = true;
-            this.drawGroupLayout(this.selectNodeObj.id);
-
-            this.selectGroupIdArr.push(this.selectNodeObj.id);
-
-            return;
-        }
-
-        // 노드 클릭 - 웹 노드 아이콘
-        if (this.isFocusWebNode && this.selectNodeObj) {
-            this.displayGroupViewStep = 1;
-
-            this.isFocusWebNode = false;
-            this.isDisplayGroupMode = true;
-
-            this.drawWebGroupLayout(this.selectNodeObj.id);
-
-            return;
         }
 
         //================================================================================
@@ -9219,10 +10486,11 @@ XMTopology.prototype.Event = {
 
         this.groupNameInputBox.style.display = 'none';
         this.groupNameInputBox.value = '';
+        this.orginNodeName = '';
 
-        if (this.isOnFocusNodeName === true && this.dragSelectionNodeList.length <= 0) {
+        if (this.isOnFocusNodeName && this.dragSelectionNodeList.length <= 0 && this.multiSelectedNode.length <= 0) {
 
-            for (ix = 0, ixLen = this.nodeNameBoxList.length; ix < ixLen; ix++ ) {
+            for (ix = 0, ixLen = this.nodeNameBoxList.length; ix < ixLen; ix++) {
                 nameBoxObj = this.nodeNameBoxList[ix];
 
                 if (nameBoxObj.width > 120) {
@@ -9233,17 +10501,16 @@ XMTopology.prototype.Event = {
                     marginHeight = 0;
                 }
 
-                if (mx < nameBoxObj.x + marginWidth + this.canvas.offsetLeft && mx > nameBoxObj.x - marginWidth - this.canvas.offsetLeft &&
-                    my < nameBoxObj.y + marginHeight + this.canvas.offsetTop  && my > nameBoxObj.y - marginHeight - 10 - this.canvas.offsetTop) {
-
+                if (mx < nameBoxObj.x + marginWidth + this.nodeCanvas.offsetLeft && mx > nameBoxObj.x - marginWidth - this.nodeCanvas.offsetLeft &&
+                    my < nameBoxObj.y + marginHeight + this.nodeCanvas.offsetTop  && my > nameBoxObj.y - marginHeight - 10 - this.nodeCanvas.offsetTop) {
                     this.textInputMode = this.inputMode.NODE_NAME;
                     this.editNameNode = this.getNodeById(nameBoxObj.parentId);
 
-                    this.nodeInfoCanvas.style.zIndex = 3;
+                    // this.nodeInfoCanvas.style.zIndex = 3;
                     this.overCanvas.width = this.componentWidth;
                     this.overCanvas.height = this.componentHeight;
                     this.overCtx.save();
-                    this.overCtx.fillStyle = 'rgba('+this.getHexToRgb('#212227') +','+ 0.6 + ')';
+                    this.overCtx.fillStyle = 'rgba(' + this.getHexToRgb('#212227') + ',' + 0.6 + ')';
                     this.overCtx.fillRect(0, 0, this.overCanvas.width, this.overCanvas.height);
                     this.overCtx.restore();
 
@@ -9251,28 +10518,43 @@ XMTopology.prototype.Event = {
                     this.groupNameInputBox.style.opacity = 1;
                     this.groupNameInputBox.style.width = nameBoxObj.width + 10 + 'px';
                     this.groupNameInputBox.value = nameBoxObj.value;
+                    this.orginNodeName = nameBoxObj.value;
                     this.groupNameInputBox.focus();
                     this.groupNameInputBox.style.top = nameBoxObj.y - 12 + 'px';
-                    this.groupNameInputBox.style.left = nameBoxObj.x - (nameBoxObj.width/2) + 'px';
+                    this.groupNameInputBox.style.left = nameBoxObj.x - (nameBoxObj.width / 2) + 'px';
                     break;
                 }
             }
             return;
         }
 
+        if (this.isNodeSelected) {
+            this.isNodeSelected = false;
+            return;
+        }
+
+        if (this.isAreaDraging) {
+            this.isAreaDraging = false;
+            return;
+        }
+
+        if (this.isChildNodeDragMove) {
+            this.isChildNodeDragMove = false;
+            return;
+        }
+
         //================================================================================
         // Click Line Event - Open Active Txn List
         //================================================================================
-        if (this.isOnFocusRemoteInfo === true) {
+        if (this.isOnFocusRemoteInfo) {
 
             for (ix = 0, ixLen = this.remoteInfoBoxList.length; ix < ixLen; ix++ ) {
                 nameBoxObj = this.remoteInfoBoxList[ix];
-
                 marginWidth = 40;
                 marginHeight = 26;
 
-                if (mx < nameBoxObj.x + marginWidth + this.canvas.offsetLeft && mx > nameBoxObj.x - this.canvas.offsetLeft &&
-                    my < nameBoxObj.y + marginHeight + this.canvas.offsetTop  && my > nameBoxObj.y - this.canvas.offsetTop) {
+                if (mx < nameBoxObj.x + marginWidth + this.nodeCanvas.offsetLeft && mx > nameBoxObj.x - this.nodeCanvas.offsetLeft &&
+                    my < nameBoxObj.y + marginHeight + this.nodeCanvas.offsetTop  && my > nameBoxObj.y - this.nodeCanvas.offsetTop) {
 
                     if (this.openTxnList) {
                         this.openTxnList(
@@ -9282,13 +10564,10 @@ XMTopology.prototype.Event = {
                             nameBoxObj.toServerId,
                             nameBoxObj.toServerType,
                             nameBoxObj.fromName,
-                            nameBoxObj.toName
+                            nameBoxObj.toName,
+                            null
                         );
-
-                        //this.overCanvas.width = 0;
-                        //this.overCanvas.height = 0;
                         this.clearOverLayout();
-
                         return;
                     }
                     break;
@@ -9297,10 +10576,10 @@ XMTopology.prototype.Event = {
             return;
         }
 
+        this.isClickWebNode = false;
+        this.isPressCtrlKey = false;
     }
 };
-
-
 
 /**
  * @type
@@ -9308,8 +10587,11 @@ XMTopology.prototype.Event = {
 XMTopology.prototype.nodeClass = {
 
     node: function(clazz, id, name, type, objX, objY, isGroup, remoteType, serverType, serverId) {
-        arguments[7] // server type
-        arguments[8] // server id
+        var nodePot;
+        var viewGroup;
+
+        arguments[7]; // server type
+        arguments[8]; // server id
 
         this.clazz = clazz || 'AGENT';               // 노드 타입
         this.id    = id;                             // 노드 ID
@@ -9335,10 +10617,9 @@ XMTopology.prototype.nodeClass = {
         this.serverId    = serverId   || 0;          // 서버 ID
         this.remoteCount = {};                       // 리모트 개수
 
-        var nodePot;
-
-        if (Comm.web_env_info.topologyNodePosition && !isGroup) {
-            nodePot = JSON.parse(Comm.web_env_info.topologyNodePosition);
+        viewGroup = this.viewGroup !== 'Basic' ? this.viewGroup : '';
+        if (Comm.web_env_info['topologyNodePosition' + viewGroup] && !isGroup) {
+            nodePot = JSON.parse(Comm.web_env_info['topologyNodePosition' + viewGroup]);
             if (nodePot[id]) {
                 this.x = nodePot[id].x || 0;
                 this.y = nodePot[id].y || 0;
@@ -9359,7 +10640,7 @@ XMTopology.prototype.nodeClass = {
         this.x = x || 0;
         this.y = y || 0;
         this.value = name || '';
-        this.width = (width && width > 120)? width : 120;
+        this.width = (width && width > 120) ? width : 120;
 
         return this;
     },
@@ -9367,8 +10648,8 @@ XMTopology.prototype.nodeClass = {
         this.wasId = wasId;
         this.x = x || 0;
         this.y = y || 0;
-        this.width = (width && width > 120)? width : 120;
-        this.height = (height && height > 120)? height : 120;
+        this.width = (width && width > 120) ? width : 120;
+        this.height = (height && height > 120) ? height : 120;
 
         return this;
     },
@@ -9377,7 +10658,7 @@ XMTopology.prototype.nodeClass = {
         this.x = x || 0;
         this.y = y || 0;
         this.radius = radius || 20;
-        this.type = type || ''
+        this.type = type || '';
 
         return this;
     }
@@ -9410,6 +10691,7 @@ XMTopology.prototype.property = {
         fillStyle   : '#64b40a',
         criticalFill: '#db121a',
         warningFill : '#FF9803',
+        deletedFill : '#72757B',
         radius      : 13
     },
     outCircle: {
@@ -9418,12 +10700,18 @@ XMTopology.prototype.property = {
         fillStyle   : '#7fe60d',
         criticalFill: '#f5989d',
         warningFill : '#FFD300',
+        deletedFill : '#72757B',
         radius      : 17
     },
     selectCircle: {
         strokeStyle : '#FFF',
         lineWidth   : 1,
         fillStyle   : '#FFFFFF',
+        radius      : 32
+    },
+    ctrlCircle: {
+        strokeStyle : '#FFF',
+        lineWidth   : 1,
         radius      : 32
     },
     alarmTipRect: {
@@ -9520,10 +10808,11 @@ XMTopology.LineEffect = function(targetCtx) {
     this.line = null;
     this.ballColor = null;
     this.isDrawing = false;
+    this.ballZoomRate = 1;
 
     this.criticalBall = '#f5989d';
-    this.warningBall  = '#FFD300'
-    this.normalBall   = '#7fe60d'
+    this.warningBall  = '#FFD300';
+    this.normalBall   = '#7fe60d';
 
     this.linePositionLength = 100;
 
@@ -9537,6 +10826,9 @@ XMTopology.LineEffect = function(targetCtx) {
     };
 
     this.drawLineEffect = function(index) {
+        var ix;
+        var lineInfo;
+
         // Check Animation Frame Performance
         //window.cancelAnimationFrame(this.lineDrawAnimateId);
 
@@ -9544,10 +10836,13 @@ XMTopology.LineEffect = function(targetCtx) {
             return;
         }
 
-        if (this.isLineAnimate !== true) {
+        if (!this.isLineAnimate) {
+            this.isDrawing = false;
             this.effectCtx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
             return;
         }
+
+        this.isDrawing = true;
 
         this.lineFPS.now = Date.now();
         this.delta = this.lineFPS.now - this.lineFPS.then;
@@ -9556,14 +10851,18 @@ XMTopology.LineEffect = function(targetCtx) {
 
             this.effectCtx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
 
-            this.isDrawing = true;
-
-            for (var ix = 0; ix < this.lineList.length; ix++) {
+            for (ix = 0; ix < this.lineList.length; ix++) {
+                lineInfo = this.lineList[ix];
 
                 if (!this.isDrawAnimate(this.lineList[ix].from, this.lineList[ix].to)) {
-                    continue
+                    continue;
                 }
-                this.ballPos = this.getRelationLinePosIndex(this.lineList[ix], index);
+
+                if (lineInfo.isCurve) {
+                    this.ballPos = this.getCurvedLinePosIndex(lineInfo, index);
+                } else {
+                    this.ballPos = this.getRelationLinePosIndex(lineInfo, index);
+                }
 
                 if (!this.ballPos) {
                     continue;
@@ -9571,22 +10870,22 @@ XMTopology.LineEffect = function(targetCtx) {
 
                 this.effectCtx.beginPath();
                 this.effectCtx.arc(
-                    this.lineList[ix].sx + this.ballPos[0],
-                    this.lineList[ix].sy + this.ballPos[1],
-                    3,
+                    this.ballPos[0],
+                    this.ballPos[1],
+                    3 * this.ballZoomRate,
                     0,
                     2 * Math.PI
                 );
                 this.effectCtx.closePath();
 
-                if (this.lineList[ix].status === 2) {
+                if (lineInfo.status === 2) {
                     this.ballColor =  this.criticalBall;
-                } else if (this.lineList[ix].status === 1) {
+                } else if (lineInfo.status === 1) {
                     this.ballColor =  this.warningBall;
                 } else {
                     this.ballColor =  this.normalBall;
                 }
-                this.effectCtx.fillStyle = (index % 20 > 10)? this.ballColor : '#FFFFFF';
+                this.effectCtx.fillStyle = (index % 20 > 10) ? this.ballColor : '#FFFFFF';
                 this.effectCtx.fill();
             }
 
@@ -9606,110 +10905,104 @@ XMTopology.LineEffect = function(targetCtx) {
 
     },
 
-    this.getRelationLinePosIndex = function(line, index){
-        var xDistance = line.sx - line.ex;
-        var yDistance = line.sy - line.ey;
-        var xDirect;
-        var distance;
-        var point;
-        var angle;
-        var xRatio;
+        this.getRelationLinePosIndex = function(line, index) {
+            var dx = line.ex - line.sx;     // 밑변길이
+            var dy = line.ey - line.sy;     // 높이길이
+            var vAngle = Math.sqrt(dx * dx) + (dy * dy);  // 빗변길이
+            var percent = index / this.linePositionLength;
 
-        // X 방향
-        if (xDistance > 0) {
-            xDirect = -1;
-        } else {
-            xDirect = 1;
-        }
-        xDistance = Math.abs(xDistance);
-        yDistance = Math.abs(yDistance);
-        distance = Math.max(Math.abs(xDistance), Math.abs(yDistance));
+            var x = (dx / vAngle * (vAngle * percent)) + line.sx;
+            var y = (dy / vAngle * (vAngle * percent)) + line.sy;
 
-        xRatio = xDistance / distance;
-        // 기울기
-        angle = Math.max(((line.ey - line.sy) || 1) / ((line.ex - line.sx) || 1));
+            return [x, y];
+        },
 
-        point = (distance / this.linePositionLength) * index;
+        this.getCurvedLinePosIndex = function(line, index) {
+            var cpx = line.sx + (line.ex - line.sx) / 2;            // control point X
+            var cpy = line.ey - 20 - (line.ey - line.sy) / 2 - 20;  // control point Y
+            var percent = index / this.linePositionLength;
 
-        var x = point * xDirect * xRatio;
-        var y = angle * x;
+            var x = (Math.pow(1 - percent,2) * line.sx + 2 * (1 - percent) * percent * cpx + Math.pow(percent,2) * line.ex);
+            var y = (Math.pow(1 - percent,2) * line.sy + 2 * (1 - percent) * percent * cpy + Math.pow(percent,2) * line.ey);
 
-        return [x, y];
-    },
+            return [x, y];
+        },
 
-    this.isDrawAnimate = function(fromId, toId){
-        var ix, ixLen;
-        var fromNodeId, toNodeId;
-        var isFromNodeMatch, isToNodeMatch;
-        var isDraw = false;
+        this.isDrawAnimate = function(fromId, toId) {
+            var ix, ixLen;
+            var fromNodeId, toNodeId;
+            var isFromNodeMatch, isToNodeMatch;
+            var isDraw = false;
+            var drawLineInfo;
 
-        for (ix = 0, ixLen = this.drawLineList.length; ix < ixLen; ix++) {
+            for (ix = 0, ixLen = this.drawLineList.length; ix < ixLen; ix++) {
+                drawLineInfo = this.drawLineList[ix];
+                isFromNodeMatch = false;
+                isToNodeMatch   = false;
 
-            isFromNodeMatch = false;
-            isToNodeMatch   = false;
+                fromNodeId = drawLineInfo[0];
+                toNodeId   = drawLineInfo[1];
 
-            fromNodeId = this.drawLineList[ix][0];
-            toNodeId   = this.drawLineList[ix][1];
+                // 출발 노드가 그룹 노드인 경우
+                if (fromId && fromId.startsWith('GROUP-')) {
+                    isFromNodeMatch = this.getNodeIdArrById(fromId).indexOf(fromNodeId) !== -1;
 
-            // 출발 노드가 그룹 노드인 경우
-            if (fromId && fromId.indexOf('GROUP-') === 0) {
-                isFromNodeMatch = this.getNodeIdArrById(fromId).indexOf(fromNodeId) !== -1;
+                } else if (fromNodeId === fromId) {
+                    isFromNodeMatch = true;
+                }
 
-            } else if (fromNodeId === fromId) {
-                isFromNodeMatch = true;
-            }
+                // 도착 노드가 그룹 노드인 경우
+                if (toId && toId.startsWith('GROUP-')) {
+                    isToNodeMatch = this.getNodeIdArrById(toId).indexOf(toNodeId) !== -1;
 
-            // 도착 노드가 그룹 노드인 경우
-            if (toId && toId.indexOf('GROUP-') === 0) {
-                isToNodeMatch = this.getNodeIdArrById(toId).indexOf(toNodeId) !== -1;
+                } else if (toNodeId === toId) {
+                    isToNodeMatch = true;
+                }
 
-            } else if (toNodeId === toId) {
-                isToNodeMatch = true;
-            }
-
-            // 값이 일치하는 경우 애니메이션 처리
-            if (isFromNodeMatch && isToNodeMatch) {
-                isDraw = true;
-                break;
-            }
-        }
-        return isDraw;
-    },
-
-
-    this.getNodeIdArrById = function(id) {
-        var nodeIdArr = [];
-
-        var parentNode = this.nodeMap[id];
-        if (parentNode && parentNode.childIdAllList && parentNode.childIdAllList.length > 0) {
-            nodeIdArr = parentNode.childIdAllList.concat();
-        }
-        parentNode = null;
-
-        return nodeIdArr;
-    },
-
-    this.getNodeIdArrById_old = function(id) {
-        var ix = 0, ixLen = this.nodeList.length;
-        var jx, jxLen;
-        var parentNode;
-        var nodeIdArr = [];
-
-        for (; ix < ixLen; ix++) {
-            if (this.nodeList[ix].id === id) {
-                parentNode = this.nodeList[ix];
-                for (jx = 0, jxLen = parentNode.childList.length; jx < jxLen; jx++) {
-                    nodeIdArr[nodeIdArr.length] = parentNode.childList[jx].id;
+                // 값이 일치하는 경우 애니메이션 처리
+                if (isFromNodeMatch && isToNodeMatch) {
+                    isDraw = true;
+                    break;
                 }
             }
-        }
+            drawLineInfo = null;
 
-        if (parentNode) {
+            return isDraw;
+        },
+
+
+        this.getNodeIdArrById = function(id) {
+            var nodeIdArr = [];
+
+            var parentNode = this.nodeMap[id];
+            if (parentNode && parentNode.childIdAllList && parentNode.childIdAllList.length > 0) {
+                nodeIdArr = parentNode.childIdAllList.concat();
+            }
             parentNode = null;
-        }
 
-        return nodeIdArr.concat();
-    }
+            return nodeIdArr;
+        },
 
+        this.getNodeIdArrById_old = function(id) {
+            var ix = 0, ixLen = this.nodeList.length;
+            var jx, jxLen;
+            var parentNode;
+            var nodeIdArr = [];
+
+            for (; ix < ixLen; ix++) {
+                if (this.nodeList[ix].id === id) {
+                    parentNode = this.nodeList[ix];
+                    for (jx = 0, jxLen = parentNode.childList.length; jx < jxLen; jx++) {
+                        nodeIdArr[nodeIdArr.length] = parentNode.childList[jx].id;
+                    }
+                }
+            }
+
+            if (parentNode) {
+                parentNode = null;
+            }
+
+            return nodeIdArr.concat();
+        };
 };
 

@@ -38,7 +38,8 @@ Ext.define('rtm.src.rtmTopologyView', {
     initProperty: function() {
         this.isWinClosed         = false;
         this.isNotFirstConfig    = false;
-        this.isBusinessGroupMode = false;
+        this.isBusinessGroupMode = common.Menu.topologyBizGroupMode || false;
+        this.isTierGroupMode = common.Menu.isBusinessPerspectiveMonitoring || false;
 
         this.topologyInfoData    = null;
 
@@ -48,6 +49,8 @@ Ext.define('rtm.src.rtmTopologyView', {
 
 
     init: function() {
+        var theme;
+        var fontColor, nodeJoinColor, backgroundColor;
 
         this.initProperty();
 
@@ -70,21 +73,17 @@ Ext.define('rtm.src.rtmTopologyView', {
             layout : {
                 type : 'hbox'
             },
-            margin: '0 0 0 5'
+            margin: '6 0 0 5'
         });
 
         this.frameTitle = Ext.create('Ext.form.Label',{
             height : 20,
-            margin : '5 0 0 5',
+            margin : '0 0 0 5',
             cls    : 'header-title',
             text   : common.Util.TR('Topology View')
         });
 
-        this.createGroupTypeComboBox();
-
-        this.createAutoSaveCheckBox();
-
-        this.titleArea.add(this.frameTitle, {xtype: 'tbfill', flex: 1 }, this.nodeGroupTypeCombo, this.autoSaveCheckBox, this.savePositionButton);
+        this.createComponent();
 
         this.chartArea = Ext.create('Ext.container.Container', {
             layout: 'fit',
@@ -105,9 +104,7 @@ Ext.define('rtm.src.rtmTopologyView', {
 
         this.background.add(this.titleArea, this.chartArea);
 
-        var theme = Comm.RTComm.getCurrentTheme();
-
-        var fontColor, nodeJoinColor, backgroundColor;
+        theme = Comm.RTComm.getCurrentTheme();
         switch (theme) {
             case 'Black' :
                 fontColor = '#FFFFFF';
@@ -148,6 +145,9 @@ Ext.define('rtm.src.rtmTopologyView', {
         this.topology.saveNodePosition    = this.saveNodePosition;
         this.topology.getInitInfo         = this.getInitInfo;
         this.topology.updateDestFilter    = this.updateDestFilter;
+        this.topology.isShowAllNode       = this.isShowAllNode;
+        this.topology.zoomPercent         = this.zoomPercent;
+        this.topology.viewGroup           = this.viewGroup;
 
         this.topology.init();
 
@@ -165,32 +165,426 @@ Ext.define('rtm.src.rtmTopologyView', {
         this.createGrid();
     },
 
+    createOptionWindow: function() {
+        var optionPanel, firstOption,
+            radioBoxCon, checkBoxCon,
+            bottomArea,
+            bizLabelName;
 
-    /**
-     * 콤보박스 데이터 설정
-     */
-    createGroupTypeComboBox: function() {
-        this.nodeGroupTypeCombo = Ext.create('Exem.ComboBox',{
-            cls: 'rtm-list-condition',
-            width: 150,
-            margin: '5 20 0 0',
-            forceSelection: true,
-            editable: false,
-            hidden: true,
-            store: Ext.create('Exem.Store'),
+        optionWin =  Ext.create('Exem.XMWindow', {
+            layout  : 'fit',
+            title   : common.Util.TR('Add User Screen'),
+            cls     : 'xm-dock-window-base rtm-transactionmonitor-option-window',
+            width   : 440,
+            height  : 280,
+            modal   : true,
+            resizable  : false,
+            maximizable: false,
+            closeAction: 'hide',
             listeners: {
                 scope: this,
-                change: function(me) {
-                    this.reconfigureNodeGroup(me.getValue());
+                afterlayout: function() {
+                    this.newGroupNameField.setValue('');
+                    this.orderByCopied.setValue(true);
+                    this.newGroupNameField.focus();
                 }
             }
         });
 
-        this.nodeGroupTypeCombo.addItem('None', 'None');
-        this.nodeGroupTypeCombo.addItem('Host', 'Host');
-        this.nodeGroupTypeCombo.addItem('Business', 'Business');
+        optionPanel = Ext.create('Ext.panel.Panel', {
+            layout : 'vbox',
+            width  : '100%',
+            height : 120,
+            border : false,
+            split  : true,
+            margin : '3 0 3 0',
+            padding: '2 2 2 2',
+            items: [{
+                xtype : 'container',
+                layout: 'absolute',
+                cls   : 'rtm-activetxn-option',
+                itemId: 'optionPanelLeft',
+                width : '100%',
+                flex  : 1
+            }]
+        });
+
+        firstOption = Ext.create('Ext.form.FieldSet',{
+            width : 395,
+            height: 70,
+            layout: {
+                type :'absolute'
+            },
+            title: common.Util.TR('Please enter a new name.'),
+            x: 10,
+            y: 12
+        });
+
+        this.newGroupNameField = Ext.create('Exem.TextField', {
+            width: 375,
+            x: 0,
+            y: 10,
+            maxLength: 20,
+            enableKeyEvents: true,
+            maskRe: new RegExp('^[A-Za-z0-9]'),
+            listeners: {
+                scope: this,
+                specialkey: function(me, e) {
+                    if (e.getKey() === e.ENTER) {
+                        this.saveNewViewGroup();
+                    }
+                }
+            }
+        });
+
+        firstOption.add(this.newGroupNameField);
+
+        this.secondOption = Ext.create('Ext.form.FieldSet',{
+            width : 395,
+            height: 60,
+            layout: {
+                type :'absolute'
+            },
+            title: common.Util.TR('Arrangement Standard'),
+            x: 10,
+            y: 87
+        });
+
+        radioBoxCon = Ext.create('Ext.container.Container', {
+            layout  : 'hbox',
+            x       : 10,
+            y       : 5,
+            margin  : '2 0 0 10',
+            cls     : 'rtm-transactionmonitor-radioBoxCon'
+        });
+
+        bizLabelName = this.isTierGroupMode ? 'Tier' : 'Business';
+
+        this.orderByBusiness = Ext.create('Ext.form.field.Radio', {
+            boxLabel : bizLabelName,
+            flex     : 1,
+            name     : 'optiontype',
+            listeners : {
+                scope: this,
+                change: function(self, newValue) {
+                    if (newValue && this.isTierGroupMode) {
+                        this.secondOption.setHeight(80);
+                        this.tierBgCheck.setVisible(true);
+                        this.tierBgCheck.setValue(false);
+                    } else {
+                        this.secondOption.setHeight(60);
+                        this.tierBgCheck.setVisible(false);
+                        this.tierBgCheck.setValue(false);
+                    }
+                }
+            }
+        });
+
+        this.orderByHost = Ext.create('Ext.form.field.Radio', {
+            boxLabel : 'Host',
+            flex     : 1,
+            name     : 'optiontype'
+        });
+
+        this.orderByCopied = Ext.create('Ext.form.field.Radio', {
+            boxLabel : 'Copy',
+            width    : 85,
+            name     : 'optiontype',
+            checked  : true
+        });
+
+        radioBoxCon.add(this.orderByBusiness, this.orderByHost, this.orderByCopied);
+
+        checkBoxCon = Ext.create('Ext.container.Container', {
+            layout  : 'hbox',
+            x       : 10,
+            y       : 32,
+            margin  : '2 0 0 10'
+        });
+
+        this.tierBgCheck = Ext.create('Ext.form.field.Checkbox', {
+            boxLabel: common.Util.TR('Add Tier Background'),
+            cls     : 'rtm-combobox-label',
+            margin  : '0 0 0 0',
+            checked : false,
+            hidden  : true
+        });
+
+        checkBoxCon.add(this.tierBgCheck);
+
+        this.secondOption.add(radioBoxCon, checkBoxCon);
+
+        optionPanel.getComponent('optionPanelLeft').add(firstOption, this.secondOption);
+
+        bottomArea =  Ext.create('Exem.Container', {
+            cls    : 'rtm-activetxn-option-bottom',
+            layout : {
+                type: 'hbox',
+                pack: 'center',
+                align: 'middle'
+            },
+            margin: '0 0 0 0',
+            width : '100%',
+            height: 38,
+            items: [{
+                xtype: 'button',
+                cls : 'rtm-btn',
+                text: common.Util.TR('Save'),
+                width : 60,
+                height: 20,
+                listeners: {
+                    scope: this,
+                    click: function() {
+                        this.saveNewViewGroup();
+                    }
+                }
+            },{
+                xtype : 'button',
+                cls   : 'rtm-btn',
+                text  : common.Util.TR('Cancel'),
+                margin: '0 0 0 15',
+                height: 20,
+                listeners: {
+                    scope: this,
+                    click: function() {
+                        optionWin.close();
+                    }
+                }
+            }]
+        });
+
+        optionPanel.add(bottomArea);
+
+        optionWin.add(optionPanel);
+
+        return optionWin;
     },
 
+    saveNewViewGroup: function() {
+        var newGroupName = this.newGroupNameField.getValue();
+        var existGroupName = this.nodeViewGroupCombo.findRecordByValue(newGroupName);
+        var arrangeStnd = null;
+
+        if (!newGroupName) {
+            this.newGroupNameField.focus();
+            return;
+        }
+
+        if (existGroupName) {
+            common.Util.showMessage(
+                common.Util.TR('OK'),
+                common.Util.TR('Username is already registered.'),
+                Ext.MessageBox.OK,
+                Ext.MessageBox.INFO
+            );
+            return;
+        }
+
+        if (this.orderByBusiness.getValue()) {
+            arrangeStnd = this.isTierGroupMode ? 'Tier' : 'Business';
+        } else if (this.orderByHost.getValue()) {
+            arrangeStnd = 'Host';
+        } else {
+            arrangeStnd = null;
+        }
+
+        this.nodeViewGroupCombo.store.add({value: newGroupName});
+
+        this.saveViewGroupList();
+        this.viewGroup = newGroupName;
+        this.topology.viewGroup = newGroupName;
+
+        if (!arrangeStnd) {
+            this.topology.saveCurrentNodeStruct();
+        }
+        this.reconfigureNodeGroup(arrangeStnd, this.tierBgCheck.getValue());
+
+        this.nodeViewGroupCombo.select(this.nodeViewGroupCombo.findRecordByValue(newGroupName));
+
+
+        common.Util.showMessage(
+            common.Util.TR('OK'),
+            common.Util.TR('Save Success'),
+            Ext.MessageBox.OK,
+            Ext.MessageBox.INFO
+        );
+
+        this.addViewGroupButton.optionView.close();
+    },
+
+    deleteViewGroup: function() {
+        var viewGroup = this.nodeViewGroupCombo.getValue();
+
+        if (viewGroup === 'Basic') {
+            common.Util.showMessage(
+                common.Util.TR('OK'),
+                common.Util.TR('You cannot delete the default screen.'),
+                Ext.MessageBox.OK,
+                Ext.MessageBox.INFO
+            );
+            return;
+        }
+
+        common.Util.showMessage(
+            common.Util.TR('Confirm'),
+            common.Util.TR('Do you want to delete the user screen?'),
+            Ext.MessageBox.OKCANCEL,
+            Ext.MessageBox.INFO,
+            function(buttonId) {
+                var lastRecord = 0;
+                var viewGroupStore = this.nodeViewGroupCombo.store;
+
+                if (buttonId === 'ok') {
+                    common.WebEnv.del_config( 'topologyNodeList' + viewGroup);
+                    common.WebEnv.del_config( 'topologyNodePosition' + viewGroup);
+                    common.WebEnv.del_config( 'topologyNodeRelation' + viewGroup);
+                    common.WebEnv.del_config( 'topologyTierList' + viewGroup);
+
+                    viewGroupStore.remove(this.nodeViewGroupCombo.findRecordByValue(viewGroup));
+                    lastRecord = viewGroupStore.getAt(viewGroupStore.data.items.length - 1);
+                    this.nodeViewGroupCombo.select(lastRecord);
+
+                    this.saveViewGroupList();
+
+                    common.Util.showMessage(
+                        common.Util.TR('OK'),
+                        common.Util.TR('Delete succeeded'),
+                        Ext.MessageBox.OK,
+                        Ext.MessageBox.INFO
+                    );
+                }
+            }.bind(this)
+        );
+    },
+
+    saveViewGroupList: function() {
+        var ix, ixLen;
+        var viewGroupLists = new Array();
+        var viewGroupRecords = this.nodeViewGroupCombo.store.data.items;
+
+        for (ix = 0, ixLen = viewGroupRecords.length; ix < ixLen; ix++) {
+            viewGroupLists.push({value: viewGroupRecords[ix].data.value});
+        }
+
+        common.WebEnv.Save('rtm_topology_viewGroupList', JSON.stringify(viewGroupLists));
+    },
+
+    createComponent: function() {
+        this.createViewGroupTypeComboBox();
+        this.createViewGroupOptionButton();
+        this.createAutoSaveCheckBox();
+        this.createZoomPercentField();
+        this.createShowAllNodeToggle();
+
+        this.titleArea.add(this.frameTitle, {xtype: 'tbfill', flex: 1 },
+            this.nodeViewGroupCombo, this.addViewGroupButton, this.delViewGroupButton,
+            this.autoSaveCheckBox, this.savePositionButton,
+            this.zoomViewField,
+            this.showAllNodeToggle);
+    },
+
+    /**
+     * 콤보박스 데이터 설정
+     */
+    createViewGroupTypeComboBox: function() {
+        var viewGroupLists = null;
+        var ix, ixLen;
+
+        this.viewGroup = 'Basic';
+
+        if (Comm.web_env_info.rtm_topology_viewGroup) {
+            this.viewGroup = Comm.web_env_info.rtm_topology_viewGroup;
+        }
+
+        if (Comm.web_env_info.rtm_topology_viewGroupList) {
+            viewGroupLists = JSON.parse(Comm.web_env_info.rtm_topology_viewGroupList);
+        }
+
+        this.nodeViewGroupCombo = Ext.create('Exem.ComboBox',{
+            cls: 'rtm-list-condition',
+            width: 150,
+            margin: '0 5 0 0',
+            valueField: 'value',
+            displayField: 'value',
+            multiSelect : false,
+            forceSelection: true,
+            useSelectFirstRow : false,
+            editable: false,
+            hidden: false,
+            store: Ext.create('Ext.data.Store',{
+                fields:['value'],
+                data  :[]
+            }),
+            listeners: {
+                scope: this,
+                change: function(me) {
+                    if (this.topology && me.getValue()) {
+                        this.viewGroup = me.getValue();
+                        this.topology.viewGroup = this.viewGroup;
+
+                        common.WebEnv.Save('rtm_topology_viewGroup', this.viewGroup);
+                        this.reconfigureNodeGroup();
+                    }
+                },
+                afterrender: function() {
+                    if (viewGroupLists) {
+                        for (ix = 0, ixLen = viewGroupLists.length; ix < ixLen; ix++) {
+                            this.nodeViewGroupCombo.store.add({value: viewGroupLists[ix].value});
+                        }
+                    } else {
+                        this.nodeViewGroupCombo.store.add({value: 'Basic'});
+                    }
+
+                    this.nodeViewGroupCombo.select(this.nodeViewGroupCombo.findRecordByValue(this.viewGroup));
+                }
+            }
+        });
+    },
+
+    createViewGroupOptionButton: function() {
+        this.addViewGroupButton = Ext.create('Ext.container.Container',{
+            width : 17,
+            height: 17,
+            margin: '3 6 0 0',
+            html  : '<div class="frame-add-icon" title="' + common.Util.TR('Add') + '"/>',
+            listeners: {
+                scope: this,
+                render : function(me) {
+                    me.el.on( 'click', function() {
+                        // if (this.nodeViewGroupCombo.store.getCount() >= 6) {
+                        //     common.Util.showMessage(
+                        //         common.Util.TR('OK'),
+                        //         common.Util.TR('최대 수량을 초과하였습니다.'),
+                        //         Ext.MessageBox.OK,
+                        //         Ext.MessageBox.INFO
+                        //     );
+                        //     return;
+                        // }
+                        this.addViewGroupButton.optionView.show();
+                    }, this);
+                }
+            }
+        });
+
+        if (this.addViewGroupButton) {
+            this.addViewGroupButton.optionView = this.createOptionWindow();
+        }
+
+        this.delViewGroupButton = Ext.create('Ext.container.Container',{
+            width : 17,
+            height: 17,
+            margin: '3 20 0 0',
+            html  : '<div class="frame-delete-icon" title="' + common.Util.TR('Delete') + '"/>',
+            listeners: {
+                scope: this,
+                render : function(me) {
+                    me.el.on( 'click', function() {
+                        this.deleteViewGroup();
+                    }, this);
+                }
+            }
+        });
+    },
 
     createAutoSaveCheckBox: function() {
         realtime.isPositionAutoSave = true;
@@ -203,7 +597,7 @@ Ext.define('rtm.src.rtmTopologyView', {
             boxLabel: common.Util.TR('Auto Save'),
             name    : 'autoRefreshCheckbox',
             cls     : 'rtm-combobox-label',
-            margin  : '6 20 0 0',
+            margin  : '0 20 0 0',
             hidden  : true,
             checked : realtime.isPositionAutoSave,
             listeners: {
@@ -219,10 +613,10 @@ Ext.define('rtm.src.rtmTopologyView', {
         this.savePositionButton = Ext.create('Ext.button.Button', {
             cls: 'rtm-button',
             text : common.Util.TR('Apply'),
-            margin: '3 20 0 0',
+            margin: '0 20 0 0',
             width: 80,
             height: 24,
-            hidden: true, //realtime.isPositionAutoSave,
+            hidden: true,
             listeners:{
                 scope: this,
                 click: function() {
@@ -232,11 +626,79 @@ Ext.define('rtm.src.rtmTopologyView', {
         });
     },
 
+    createZoomPercentField: function() {
+        this.zoomPercent = 100;
+
+        if (Comm.web_env_info.rtm_topology_zoomPercent) {
+            this.zoomPercent = parseInt(Comm.web_env_info.rtm_topology_zoomPercent);
+        }
+
+        this.zoomViewField = Ext.create('Ext.form.field.Number',{
+            fieldLabel     :common.Util.TR('Zoom Ratio (%)') + ' ',
+            labelAlign     : 'right',
+            labelWidth     : 110,
+            cls            : 'rtm-list-condition',
+            margin         : '0 30 0 0',
+            width          : 170,
+            allowBlank     : false,
+            maxLength      : 3,
+            maxValue       : 150,
+            minValue       : 50,
+            enableKeyEvents: false,
+            value          : this.zoomPercent,
+            step           : 5,
+            listeners      :{
+                scope: this,
+                change: function(field, value) {
+                    if (value < 50 || value > 150 || typeof(value) !== 'number') {
+                        return;
+                    }
+
+                    this.zoomPercent = value;
+
+                    common.WebEnv.Save('rtm_topology_zoomPercent', this.zoomPercent);
+
+                    this.topology.zoomPercent = this.zoomPercent;
+                    this.topology.zoomRate = this.topology.zoomPercent / 100;
+                    this.topology.canvasDraw();
+                }
+            }
+        });
+    },
+
+    createShowAllNodeToggle: function() {
+        this.isShowAllNode = true;
+
+        if (Comm.web_env_info.rtm_topology_isshowall) {
+            this.isShowAllNode =
+                Comm.RTComm.getBooleanValue(Comm.web_env_info.rtm_topology_isshowall);
+        }
+
+        this.showAllNodeToggle = Ext.create('Ext.ux.toggleslide.ToggleSlide', {
+            width   : 85,
+            height  : 20,
+            margin  : '0 20 0 0',
+            onText  : common.Util.TR('All'),
+            offText : common.Util.TR('Exclude'),
+            state   : this.isShowAllNode,
+            hidden  : false,
+            listeners: {
+                scope   : this,
+                change  : function(toggle, state) {
+                    this.topology.isShowAllNode = state;
+                    common.WebEnv.Save('rtm_topology_isshowall', state);
+                    this.topology.canvasDraw();
+                }
+            }
+        });
+    },
 
     /**
      * 팝업창에 보여지는 Transaction Path 화면 구성
      */
     configPopupTxnPath: function() {
+        var theme;
+        var fontColor, nodeJoinColor, backgroundColor;
 
         this.txnPathHeader = Ext.create('Exem.Container', {
             itemId: 'txnPathHeader',
@@ -328,9 +790,7 @@ Ext.define('rtm.src.rtmTopologyView', {
 
         this.txnPathHeader.add(this.txnInfoHeader);
 
-        var theme = Comm.RTComm.getCurrentTheme();
-        var fontColor, nodeJoinColor, backgroundColor;
-
+        theme = Comm.RTComm.getCurrentTheme();
         switch (theme) {
             case 'Black' :
                 fontColor = '#FFFFFF';
@@ -372,8 +832,7 @@ Ext.define('rtm.src.rtmTopologyView', {
 
             if (this.txnPath && this.txnPath.onTxnPathData) {
                 this.txnPath.isEndTxnPath = false;
-                this.txnPath.clearLayout();
-                this.txnPath.clearLineLayout();
+                this.txnPath.clearNodeLayout();
 
                 this.openTxnFilterDest = rowData.dest;
                 this.fromWASID    = rowData.wasid;
@@ -382,7 +841,7 @@ Ext.define('rtm.src.rtmTopologyView', {
                 this.elapsed      = rowData.elapsedtime * 1000;
                 this.statTime     = Ext.Date.format(new Date(rowData.starttime), 'Y-m-d H:i:s');
 
-                console.debug('%c [Topology View]  WAS Name: '+rowData.wasname+', Dest: '+rowData.dest + ', TID: '+rowData.tid, 'color:#63A5E0;');
+                console.debug('%c [Topology View]  WAS Name: ' + rowData.wasname + ', Dest: ' + rowData.dest + ', TID: ' + rowData.tid, 'color:#63A5E0;');
 
                 this.onRemoteData();
 
@@ -421,7 +880,6 @@ Ext.define('rtm.src.rtmTopologyView', {
      * Transaction Info Header
      */
     createHeader: function(data) {
-
         if (!data) {
             data = {
                 wasname     : '',
@@ -439,21 +897,21 @@ Ext.define('rtm.src.rtmTopologyView', {
         if (!this.$infoContainer) {
             this.$infoContainer = $(
                 '<div class="rtm-txn-path txn-detail-info-container">' +
-                '<div class="txn-detail-info-name-label"></div><div class="txn-detail-info-wrap"><div class="txn-detail-info-name"><div class="txn-detail-info-name-value" style="margin-top: 0px;"></div></div>'+
-                '<div class="txn-detail-bar" style="display:none;"></div>'+
-                '<div class="txn-detail-info-detail-wrap"><div class="txn-detail-info-detail"></div>'+
-                '<div class="txn-detail-info-start"></div></div>'+
-                '<div class="txn-detail-bar col" style="display:none;"></div>'+
-                '<div class="txn-detail-info-client icon"></div>'+
-                '<div class="txn-detail-bar" style="display:none;"></div>'+
-                '<div class="txn-detail-info-web icon"><div class="wrap"><div class="txn-detail-info-web-name"></div><div class="txn-detail-info-web-value"></div></div></div>'+
-                '<div class="txn-detail-bar" style="display:none;"></div>'+
-                '<div class="txn-detail-info-java icon"><div class="wrap"><div class="txn-detail-info-java-name"></div><div class="txn-detail-info-java-value"></div></div></div>'+
-                '<div class="txn-detail-bar" style="display:none;"></div>'+
-                '<div class="txn-detail-info-db icon"><div class="wrap"><div class="txn-detail-info-db-name"></div><div class="txn-detail-info-db-value"></div></div></div>'+
-                '<div class="txn-detail-bar" style="display:none;"></div>'+
-                '<div class="txn-detail-info-remote icon"></div></div></div>'+
-                '<div class="txn-detail-info-container2">'+
+                '<div class="txn-detail-info-name-label"></div><div class="txn-detail-info-wrap"><div class="txn-detail-info-name" style="vertical-align: middle;"><div class="txn-detail-info-name-value" style="margin-top: 0px;"></div></div>' +
+                '<div class="txn-detail-bar" style="display:none;"></div>' +
+                '<div class="txn-detail-info-detail-wrap"><div class="txn-detail-info-detail"></div>' +
+                '<div class="txn-detail-info-start"></div></div>' +
+                '<div class="txn-detail-bar col" style="display:none;"></div>' +
+                '<div class="txn-detail-info-client icon"></div>' +
+                '<div class="txn-detail-bar" style="display:none;"></div>' +
+                '<div class="txn-detail-info-web icon"><div class="wrap"><div class="txn-detail-info-web-name"></div><div class="txn-detail-info-web-value"></div></div></div>' +
+                '<div class="txn-detail-bar" style="display:none;"></div>' +
+                '<div class="txn-detail-info-java icon"><div class="wrap"><div class="txn-detail-info-java-name"></div><div class="txn-detail-info-java-value"></div></div></div>' +
+                '<div class="txn-detail-bar" style="display:none;"></div>' +
+                '<div class="txn-detail-info-db icon"><div class="wrap"><div class="txn-detail-info-db-name"></div><div class="txn-detail-info-db-value"></div></div></div>' +
+                '<div class="txn-detail-bar" style="display:none;"></div>' +
+                '<div class="txn-detail-info-remote icon"></div></div></div>' +
+                '<div class="txn-detail-info-container2">' +
                 '<div class="txn-detail-info-url-label">' + common.Util.TR('URL : ') + '</div><div class="txn-detail-info-last-wrap"><div class="txn-detail-info-url"></div></div>'
             );
 
@@ -475,9 +933,9 @@ Ext.define('rtm.src.rtmTopologyView', {
         }
 
         /*
-        // WEB
-        //this.$infoContainer.find('.txn-detail-info-web-name').text(web[0][0]).next().text(common.Util.TR('Elapse') + ': ' + (web[0][4] / 1000).toFixed(3) + ' / ' + common.Util.TR('Exec') + ': ' + web[0][3]).parent().parent().show().next().show();
-        */
+         // WEB
+         //this.$infoContainer.find('.txn-detail-info-web-name').text(web[0][0]).next().text(common.Util.TR('Elapse') + ': ' + (web[0][4] / 1000).toFixed(3) + ' / ' + common.Util.TR('Exec') + ': ' + web[0][3]).parent().parent().show().next().show();
+         */
 
         // WAS (txn_elapse, exec_cnt
         if (data.wasname) {
@@ -485,23 +943,23 @@ Ext.define('rtm.src.rtmTopologyView', {
         }
 
         /*
-        // Remote
-        //this.remoteValue = (remote[0][1]/1000).toFixed(3);
-        //this.$infoContainer.find('.txn-detail-info-remote').text(0).show();
-        */
+         // Remote
+         //this.remoteValue = (remote[0][1]/1000).toFixed(3);
+         //this.$infoContainer.find('.txn-detail-info-remote').text(0).show();
+         */
 
         // DB
         if (data.instancename) {
-            this.$infoContainer.find('.txn-detail-info-db-name').text(data.instancename).next().text(common.Util.TR('Elapse') + ': ' + (data.dbtime/ 1000).toFixed(3) + ' / ' + common.Util.TR('Exec') + ': ' + data.sqlexeccount).parent().parent().show().next().show();
+            this.$infoContainer.find('.txn-detail-info-db-name').text(data.instancename).next().text(common.Util.TR('Elapse') + ': ' + (data.dbtime / 1000).toFixed(3) + ' / ' + common.Util.TR('Exec') + ': ' + data.sqlexeccount).parent().parent().show().next().show();
         } else {
             this.$infoContainer.find('.txn-detail-info-db').hide().next().hide();
         }
 
         /*
-        // URL
-        //this.$infoContainer.find('.txn-detail-info-url-label').show();
-        //this.$infoContainer.find('.txn-detail-info-url').text('URL');
-        */
+         // URL
+         //this.$infoContainer.find('.txn-detail-info-url-label').show();
+         //this.$infoContainer.find('.txn-detail-info-url').text('URL');
+         */
     },
 
 
@@ -533,7 +991,7 @@ Ext.define('rtm.src.rtmTopologyView', {
         if (instanceName) {
             this.$infoContainer.find('.txn-detail-info-db-name')
                 .text(data.instancename).next()
-                .text(common.Util.TR('Elapse') + ': ' + (dbTime/ 1000).toFixed(3) + ' / ' + common.Util.TR('Exec') + ': ' + sqlexecCount)
+                .text(common.Util.TR('Elapse') + ': ' + (dbTime / 1000).toFixed(3) + ' / ' + common.Util.TR('Exec') + ': ' + sqlexecCount)
                 .parent().parent().show().next().show();
         }
     },
@@ -612,10 +1070,12 @@ Ext.define('rtm.src.rtmTopologyView', {
      */
     openCallTree: function(tid, serverId) {
         var monitorType = '';
+        var txnCallTree;
+
         if (Comm.wasInfoObj[serverId]) {
             monitorType = Comm.wasInfoObj[serverId].type;
         }
-        var txnCallTree = Ext.create('rtm.src.rtmActiveTxnCallTree');
+        txnCallTree = Ext.create('rtm.src.rtmActiveTxnCallTree');
         txnCallTree.tid = tid;
         txnCallTree.monitorType = monitorType;
         txnCallTree.initWindow();
@@ -633,13 +1093,13 @@ Ext.define('rtm.src.rtmTopologyView', {
      * @param {string} tid
      */
     openFullSQLText: function(sqlid, bind_list) {
+        var theme, editTheme;
         var sqlFullText = Ext.create('Exem.FullSQLTextWindow',{
             cls: 'rtm-sqlview'
         });
         sqlFullText.getFullSQLText(sqlid, bind_list);
 
-        var theme = Comm.RTComm.getCurrentTheme();
-        var editTheme;
+        theme = Comm.RTComm.getCurrentTheme();
         switch (theme) {
             case 'Black' :
                 editTheme = 'ace/theme/dark_imx';
@@ -667,8 +1127,15 @@ Ext.define('rtm.src.rtmTopologyView', {
      * @param {string} toServerType - ex) AGENT, DB
      * @param {string} fromName - from node name
      * @param {string} toName - to node name
+     * @param {string} type - Transaction Type
      */
-    openTxnList: function(wasId, txnDest, destKey, toServerId, toServerType, fromName, toName) {
+    openTxnList: function(wasId, txnDest, destKey, toServerId, toServerType, fromName, toName, type) {
+        var tempView;
+        var isTP;
+        var serverList;
+        var serverCnt = 0;
+        var ix, ixLen;
+
         realtime.openTxnFilterWasId = wasId;
         realtime.isOpenerTopology = true;
         realtime.openTxnFilterDestKey = destKey;
@@ -696,18 +1163,15 @@ Ext.define('rtm.src.rtmTopologyView', {
             realtime.topologyTxnViewList = {};
         }
 
-        var tempView;
-        var isTP;
-        var serverList;
-        var serverCnt = 0;
-
-        if (Number.isInteger(+wasId) && +wasId > -1) {
+        if (type === 'WEB') {
+            isTP = false;
+        } else if (Number.isInteger(+wasId) && +wasId > -1) {
             isTP = Comm.tpIdArr.indexOf(+wasId) !== -1;
 
         } else {
             serverList = wasId.split(',');
 
-            for (var ix = 0, ixLen = serverList.length; ix < ixLen; ix++) {
+            for (ix = 0, ixLen = serverList.length; ix < ixLen; ix++) {
                 if (Comm.tpIdArr.indexOf(serverList[ix]) !== -1) {
                     serverCnt++;
                 }
@@ -717,6 +1181,8 @@ Ext.define('rtm.src.rtmTopologyView', {
 
         if (isTP) {
             tempView = common.OpenView.onMenuPopup('rtm.src.rtmTPActiveTxnList');
+        } else if (type === 'WEB') {
+            tempView = common.OpenView.onMenuPopup('rtm.src.rtmWebActiveTxnList');
         } else {
             tempView = common.OpenView.onMenuPopup('rtm.src.rtmActiveTxnList');
         }
@@ -734,22 +1200,26 @@ Ext.define('rtm.src.rtmTopologyView', {
      *
      * @param {number} wasId
      * @param {string} nodeName
+     * @param {string} type - monitor Type
      */
-    openTxnMonitor: function(wasId, nodeName) {
-        realtime.openTxnFilterWasId = wasId;
-        realtime.openTxnFilterNodeName = nodeName;
-
+    openTxnMonitor: function(serverId, nodeName, type) {
+        var ix, ixLen;
         var isTP;
         var serverList;
         var serverCnt = 0;
 
-        if (Number.isInteger(+wasId) && +wasId > -1) {
-            isTP = Comm.tpIdArr.indexOf(+wasId) !== -1;
+        realtime.openTxnFilterWasId = serverId;
+        realtime.openTxnFilterNodeName = nodeName;
+
+        if (type === 'WEB') {
+            isTP = false;
+        } else if (Number.isInteger(+serverId) && +serverId > -1) {
+            isTP = Comm.tpIdArr.indexOf(+serverId) !== -1;
 
         } else {
-            serverList = wasId.split(',');
+            serverList = serverId.split(',');
 
-            for (var ix = 0, ixLen = serverList.length; ix < ixLen; ix++) {
+            for (ix = 0, ixLen = serverList.length; ix < ixLen; ix++) {
                 if (Comm.tpIdArr.indexOf(serverList[ix]) !== -1) {
                     serverCnt++;
                 }
@@ -759,6 +1229,8 @@ Ext.define('rtm.src.rtmTopologyView', {
 
         if (isTP) {
             common.OpenView.onMenuPopup('rtm.src.rtmTPTransactionMonitor');
+        } else if (type === 'WEB') {
+            common.OpenView.onMenuPopup('rtm.src.rtmWebTransactionMonitor');
         } else {
             common.OpenView.onMenuPopup('rtm.src.rtmTransactionMonitor');
         }
@@ -772,14 +1244,16 @@ Ext.define('rtm.src.rtmTopologyView', {
      * @param {number} dbId - DB ID
      */
     openDBMonitor: function(dbId) {
+        var dbmonitor;
+        var status;
+
         if (!Comm.dbInfoObj[dbId]) {
             return;
         }
 
-        var status = Comm.Status.DB[dbId];
-
+        status = Comm.Status.DB[dbId];
         if (status !== 'Disconnected' && status !== 'Server Hang' && status !== 'Server Down') {
-            var dbmonitor = Ext.create('rtm.src.rtmDBMonitor');
+            dbmonitor = Ext.create('rtm.src.rtmDBMonitor');
 
             dbmonitor.loadingMask = Ext.create('Exem.LoadingMask', {
                 target: dbmonitor,
@@ -812,12 +1286,15 @@ Ext.define('rtm.src.rtmTopologyView', {
      * @param {object} dest
      */
     updateDestFilter: function(dest) {
+        var ix;
+        var keys;
+
         realtime.topologyTxnFilterDest = dest;
 
         if (realtime.topologyTxnViewList) {
-            var keys = Object.keys(realtime.topologyTxnViewList);
+            keys = Object.keys(realtime.topologyTxnViewList);
 
-            for (var ix = 0; ix < keys.length; ix++) {
+            for (ix = 0; ix < keys.length; ix++) {
                 if (realtime.topologyTxnViewList[keys[ix]].updateData) {
                     realtime.topologyTxnViewList[keys[ix]].updateData();
                 }
@@ -859,8 +1336,19 @@ Ext.define('rtm.src.rtmTopologyView', {
      */
     saveNodePosition: function(wasId, x, y) {
         var nodePositon;
+        var saveNodeList;
+        var viewGroup;
+        var ix, ixLen;
+
+        if (Comm.web_env_info.rtm_topology_viewGroup) {
+            viewGroup = Comm.web_env_info.rtm_topology_viewGroup;
+        } else {
+            viewGroup = 'Basic';
+        }
+        viewGroup = viewGroup !== 'Basic' ? viewGroup : '';
+
         try {
-            nodePositon = Comm.web_env_info.topologyNodePosition;
+            nodePositon = Comm.web_env_info['topologyNodePosition' + viewGroup];
             nodePositon = JSON.parse(nodePositon);
         } catch (e) {
             console.debug(e.message);
@@ -871,21 +1359,19 @@ Ext.define('rtm.src.rtmTopologyView', {
         }
         nodePositon[wasId] = {x: x, y: y};
 
-        var saveNodeList = Ext.clone(this.nodeList);
-        for (var ix = 0, ixLen = saveNodeList.length; ix < ixLen; ix++) {
+        saveNodeList = Ext.clone(this.nodeList);
+        for (ix = 0, ixLen = saveNodeList.length; ix < ixLen; ix++) {
             if (saveNodeList[ix].addr) {
                 saveNodeList[ix].addr.length = 0;
             }
         }
 
         // Save Node Position
-        common.WebEnv.Save('topologyNodePosition', JSON.stringify(nodePositon));
-
+        common.WebEnv.Save('topologyNodePosition' + viewGroup, JSON.stringify(nodePositon));
         // Save Node List
-        common.WebEnv.Save('topologyNodeList', JSON.stringify(saveNodeList));
-
+        common.WebEnv.Save('topologyNodeList' + viewGroup, JSON.stringify(saveNodeList));
         // Save Node Relation
-        common.WebEnv.Save('topologyNodeRelation', JSON.stringify(this.relationData));
+        common.WebEnv.Save('topologyNodeRelation' + viewGroup, JSON.stringify(this.relationData));
 
         saveNodeList = null;
     },
@@ -914,7 +1400,17 @@ Ext.define('rtm.src.rtmTopologyView', {
      * Get Topology Node Position
      */
     configNodePosition: function() {
-        var nodePositon = Comm.web_env_info.topologyNodePosition;
+        var viewGroup = null;
+        var nodePositon = null;
+
+        if (Comm.web_env_info.rtm_topology_viewGroup) {
+            viewGroup = Comm.web_env_info.rtm_topology_viewGroup;
+        } else {
+            viewGroup = 'Basic';
+        }
+
+        viewGroup = viewGroup !== 'Basic' ? viewGroup : '';
+        nodePositon = Comm.web_env_info['topologyNodePosition' + viewGroup];
 
         if (this.topology) {
             this.topology.nodePot = JSON.parse(nodePositon);
@@ -941,11 +1437,14 @@ Ext.define('rtm.src.rtmTopologyView', {
      *         {id: dbId, name: instanceName, type: dbType}
      */
     getDBInfoByHashCode: function(code) {
+        var key;
+        var ix, ixLen;
+
         if (!this.dbObjKeys) {
             this.dbObjKeys = Object.keys(Comm.allDBInfo);
         }
-        var key;
-        for (var ix = 0, ixLen = this.dbObjKeys.length; ix < ixLen; ix++) {
+
+        for (ix = 0, ixLen = this.dbObjKeys.length; ix < ixLen; ix++) {
             key = this.dbObjKeys[ix];
 
             if (+Comm.allDBInfo[key].dbAddr === +code) {
@@ -1036,7 +1535,7 @@ Ext.define('rtm.src.rtmTopologyView', {
             this.txnPath.isEndTxnPath = true;
 
         } else {
-            this.refreshCheckTxnTimerId = setTimeout(this.refreshCheckEndTxn.bind(this), 1000*3);
+            this.refreshCheckTxnTimerId = setTimeout(this.refreshCheckEndTxn.bind(this), 1000 * 3);
         }
     },
 
@@ -1058,6 +1557,9 @@ Ext.define('rtm.src.rtmTopologyView', {
      * @param {object} aData - packet data
      */
     onRemoteData: function(aData) {
+        var ix, jx;
+        var adata;
+
         this.CNodeRunOnce = false;
 
         this.remoteTree.clearNodes();
@@ -1088,10 +1590,9 @@ Ext.define('rtm.src.rtmTopologyView', {
         this.remoteData.length = 0;
         this.relationTxn.length = 0;
 
-        var adata = this.remoteTree.pnlExTree.getStore().data.items;
-        var jx;
+        adata = this.remoteTree.pnlExTree.getStore().data.items;
 
-        for (var ix = 0; ix < adata.length; ix++) {
+        for (ix = 0; ix < adata.length; ix++) {
             /**
              * 0:"Was_ID"
              * 1:"Was_Name"
@@ -1109,15 +1610,12 @@ Ext.define('rtm.src.rtmTopologyView', {
              */
             for (jx = 0; jx < Repository.ActiveTxnRemote.length; jx++) {
 
-                if (
-                    //this.fromWASID === adata[ix].data.wasid &&
-                    this.fromGUID === adata[ix].data.guid  &&
-                    Repository.ActiveTxnRemote[jx][0]  === adata[ix].data.wasid &&
-                    Repository.ActiveTxnRemote[jx][2]  === adata[ix].data.tid   &&
-                    Repository.ActiveTxnRemote[jx][11] === adata[ix].data.dest
-                    //this.openTxnFilterDest && this.openTxnFilterDest.indexOf(adata[ix].data.dest) !== -1
-                    ) {
-
+                if ( // this.fromWASID === adata[ix].data.wasid &&
+                // this.openTxnFilterDest && this.openTxnFilterDest.indexOf(adata[ix].data.dest) !== -1 &&
+                this.fromGUID === adata[ix].data.guid  &&
+                Repository.ActiveTxnRemote[jx][0]  === adata[ix].data.wasid &&
+                Repository.ActiveTxnRemote[jx][2]  === adata[ix].data.tid   &&
+                Repository.ActiveTxnRemote[jx][11] === adata[ix].data.dest ) {
                     if (this.statTime === adata[ix].data.starttime) {
                         this.updateTxnPathWasInfo(
                             adata[ix].data.wasname,
@@ -1147,7 +1645,7 @@ Ext.define('rtm.src.rtmTopologyView', {
                         this.setTxnTreeData(
                             adata[ix].data.id,
                             adata[ix].data.childNodes,
-                            adata[ix].data.wasid + '-'+adata[ix].data.transaction,
+                            adata[ix].data.wasid + '-' + adata[ix].data.transaction,
                             1
                         );
                     }
@@ -1209,7 +1707,7 @@ Ext.define('rtm.src.rtmTopologyView', {
                     ];
                     this.relationTxn[this.relationTxn.length] = {
                         fN: parentId,
-                        tN: Repository.ActiveTxnRemote[jx][0] + '-'+Repository.ActiveTxnRemote[jx][3]
+                        tN: Repository.ActiveTxnRemote[jx][0] + '-' + Repository.ActiveTxnRemote[jx][3]
                     };
                 }
             }
@@ -1218,7 +1716,7 @@ Ext.define('rtm.src.rtmTopologyView', {
                 this.setTxnTreeData(
                     adata[ix].id,
                     adata[ix].childNodes,
-                    adata[ix].wasid + '-'+adata[ix].transaction,
+                    adata[ix].wasid + '-' + adata[ix].transaction,
                     depth + 1
                 );
             }
@@ -1305,7 +1803,7 @@ Ext.define('rtm.src.rtmTopologyView', {
                     node[ix][9] / 1000,                                         // Elapsed_Time
                     node[ix][39],                                               // Login_Name
                     ' ',                                                        // Browser
-                    (node[ix][10] / 1000)+(node[ix][11] / 1000),                // DB Time
+                    (node[ix][10] / 1000) + (node[ix][11] / 1000),                // DB Time
                     node[ix][11] / 1000,                                        // Wait_Time
                     node[ix][13],                                               // Pool
                     node[ix][15],                                               // Instance
@@ -1342,7 +1840,7 @@ Ext.define('rtm.src.rtmTopologyView', {
 
 
     addMCNode: function(rows, type) {
-        var ix;
+        var ix, jx;
         var compare = type === 'M' ? 77 : 67;
         var bind = '';
         var temp;
@@ -1398,7 +1896,7 @@ Ext.define('rtm.src.rtmTopologyView', {
                         rows[ix][9] / 1000,                                   // Elapsed_Time
                         rows[ix][39],                                         // Login_Name
                         ' ',                                                  // Browser
-                        (rows[ix][10] / 1000)+(rows[ix][11] / 1000),          // DB Time
+                        (rows[ix][10] / 1000) + (rows[ix][11] / 1000),          // DB Time
                         rows[ix][11] / 1000,                                  // Wait_Time
                         rows[ix][13],                                         // Pool
                         rows[ix][15],                                         // Instance
@@ -1429,7 +1927,7 @@ Ext.define('rtm.src.rtmTopologyView', {
                 bind = '';
                 if (rows[ix][55] !== '') {
                     temp = common.Util.convertBindList(rows[ix][55]);
-                    for (var jx = 0; jx < temp.length; jx++) {
+                    for (jx = 0; jx < temp.length; jx++) {
                         if (jx === 0) {
                             bind += ',';
                         }
@@ -1460,7 +1958,7 @@ Ext.define('rtm.src.rtmTopologyView', {
                         rows[ix][9] / 1000,                                   // Elapsed_Time
                         rows[ix][39],                                         // Login_Name
                         ' ',                                                  // Browser
-                        (rows[ix][10] / 1000)+(rows[ix][11] / 1000),          // DB Time
+                        (rows[ix][10] / 1000) + (rows[ix][11] / 1000),          // DB Time
                         rows[ix][11] / 1000,                                  // Wait_Time
                         rows[ix][13],                                         // Pool
                         rows[ix][15],                                         // Instance
@@ -1622,11 +2120,12 @@ Ext.define('rtm.src.rtmTopologyView', {
     },
 
     moveByGuid: function() {
+        var ix;
         var temp;
         var nodeGuidMap = {};
         var nodeList = this.remoteTree._jsonData.childNodes;
 
-        for (var ix = 0; ix < nodeList.length; ix++) {
+        for (ix = 0; ix < nodeList.length; ix++) {
             temp = nodeList[ix];
 
             if (!temp.guid) {
@@ -1678,6 +2177,15 @@ Ext.define('rtm.src.rtmTopologyView', {
      * @param {object} data
      */
     onData: function(data) {
+        var viewGroup = null;
+
+        if (Comm.web_env_info.rtm_topology_viewGroup) {
+            viewGroup = Comm.web_env_info.rtm_topology_viewGroup;
+        } else {
+            viewGroup = 'Basic';
+        }
+        viewGroup = viewGroup !== 'Basic' ? viewGroup : '';
+
         // 토폴로지 뷰를 필터된 서버만 보이게 재구성할 때 사용하기위한 데이터 설정.
         this.topologyInfoData = data;
 
@@ -1692,8 +2200,8 @@ Ext.define('rtm.src.rtmTopologyView', {
                 if (this.isBusinessGroupMode && !this.isNotFirstConfig) {
                     this.isNotFirstConfig = true;
 
-                    if (!Comm.web_env_info.topologyNodePosition) {
-                        this.reconfigureNodeGroup('Business');
+                    if (!Comm.web_env_info['topologyNodePosition' + viewGroup]) {
+                        this.reconfigureNodeGroup();
                     }
                 }
 
@@ -1707,6 +2215,14 @@ Ext.define('rtm.src.rtmTopologyView', {
      */
     reconfigTopologyView: function() {
         var data = this.topologyInfoData;
+        var viewGroup = null;
+
+        if (Comm.web_env_info.rtm_topology_viewGroup) {
+            viewGroup = Comm.web_env_info.rtm_topology_viewGroup;
+        } else {
+            viewGroup = 'Basic';
+        }
+        viewGroup = viewGroup !== 'Basic' ? viewGroup : '';
 
         if (this.topologyInfoData && this.topology.onConfigLineData) {
             // 토폴로지 뷰 데이터를 읽어왔는지 체크하는 구분값을 재설정
@@ -1719,11 +2235,10 @@ Ext.define('rtm.src.rtmTopologyView', {
             if (this.isBusinessGroupMode && !this.isNotFirstConfig) {
                 this.isNotFirstConfig = true;
 
-                if (!Comm.web_env_info.topologyNodePosition) {
-                    this.reconfigureNodeGroup('Business');
+                if (!Comm.web_env_info['topologyNodePosition' + viewGroup]) {
+                    this.reconfigureNodeGroup();
                 }
             }
-
         }
     },
 
@@ -1741,8 +2256,10 @@ Ext.define('rtm.src.rtmTopologyView', {
             }
         }, function(aheader, adata) {
             var txnDestMap = {};
+            var ix, ixLen;
+
             if (adata && adata.rows.length > 0) {
-                for (var ix = 0, ixLen = adata.rows.length; ix < ixLen; ix++) {
+                for (ix = 0, ixLen = adata.rows.length; ix < ixLen; ix++) {
                     txnDestMap[adata.rows[ix][0]] = adata.rows[ix][1];
                 }
                 this.topology.originalTxnDestData = txnDestMap;
@@ -1797,27 +2314,41 @@ Ext.define('rtm.src.rtmTopologyView', {
      * Change Node Group By Group Type.
      * [User, Host, Business, Service]
      *
-     * @param {string} groupType - Group Type
+     * @param {string} viewGroup - Group Type
      */
-    reconfigureNodeGroup: function(groupType) {
+    reconfigureNodeGroup: function(arrangeStnd, bgCheck) {
+        var viewGroupName = '';
+        var savedNodeList = null;
+        var ix, ixLen;
+        var wasIdArrByGroup = {};
+
         if (!this.topology) {
             return;
         }
 
-        var ix, ixLen;
-        var wasIdArrByGroup = {};
+        viewGroupName = this.viewGroup !== 'Basic' ? this.viewGroup : '';
+        savedNodeList = Comm.web_env_info['topologyNodeList' + viewGroupName];
 
-        if (groupType === 'Host') {
-            for (ix = 0, ixLen = Comm.hosts.length; ix < ixLen; ix++) {
-                wasIdArrByGroup[Comm.hosts[ix]] = Comm.RTComm.WASListByHostName(Comm.hosts[ix]);
+        if (!savedNodeList || !savedNodeList.length) {
+            if (arrangeStnd === 'Host') {
+                for (ix = 0, ixLen = Comm.hosts.length; ix < ixLen; ix++) {
+                    wasIdArrByGroup[Comm.hosts[ix]] = Comm.RTComm.WASListByHostName(Comm.hosts[ix]);
+                }
+            } else if (arrangeStnd === 'Business') {
+                for (ix = 0, ixLen = Comm.bizGroups.length; ix < ixLen; ix++) {
+                    wasIdArrByGroup[Comm.bizGroups[ix]] = Comm.RTComm.WASListInGroup(Comm.bizGroups[ix]);
+                }
+            }  else if (arrangeStnd === 'Tier') {
+                for (ix = 0, ixLen = Comm.sortTierInfo.length; ix < ixLen; ix++) {
+                    wasIdArrByGroup[Comm.sortTierInfo[ix].tierName] = Comm.RTComm.WASListInGroup(Comm.sortTierInfo[ix].tierName);
+                }
             }
-        } else if (groupType === 'Business') {
-            for (ix = 0, ixLen = Comm.bizGroups.length; ix < ixLen; ix++) {
-                wasIdArrByGroup[Comm.bizGroups[ix]] = Comm.RTComm.WASListInGroup(Comm.bizGroups[ix]);
-            }
+
+            this.topology.isChangeDisplayRelation = true;
+            this.topology.mergeNodeByGroupType(wasIdArrByGroup, arrangeStnd, bgCheck);
+        } else {
+            this.reconfigTopologyView();
         }
-
-        this.topology.mergeNodeByGroupType(wasIdArrByGroup);
     },
 
 
@@ -1828,6 +2359,8 @@ Ext.define('rtm.src.rtmTopologyView', {
         clearTimeout(this.topology.refreshTimerId);
         clearTimeout(this.topology.repeatCheckTimerId);
         clearTimeout(this.topology.refreshTxnPathTimerId);
+        clearTimeout(this.topology.openFolderAnimateId);
+        clearTimeout(this.topology.lastDestCheckTimeId);
 
         window.cancelAnimationFrame(this.topology.animationHandle);
         window.cancelAnimationFrame(this.topology.alarmAnimateHandle);
@@ -1839,8 +2372,13 @@ Ext.define('rtm.src.rtmTopologyView', {
         this.topology.nodeList          = null;
         this.topology.lineList          = null;
         this.topology.relationData      = null;
+        this.topology.nodeNameBoxList   = null;
         this.topology.remoteInfoBoxList = null;
         this.topology.filterServerList  = null;
+        this.topology.selectedLineObj   = null;
+        this.topology.multiSelectedNode = null;
+        this.topology.selectedRelationObj = null;
+        this.topology.iconImg = null;
 
         if (this.topology.bufferWasNodes) {
             this.topology.bufferWasNodes.length   = 0;
@@ -1850,6 +2388,7 @@ Ext.define('rtm.src.rtmTopologyView', {
         }
 
         delete this.topology.nodeMap;
+        delete this.topology.webMap;
         delete this.topology.linePath;
         delete this.topology.nodePath;
         delete this.topology.activateDest;
@@ -1858,10 +2397,8 @@ Ext.define('rtm.src.rtmTopologyView', {
         delete this.topology.originalTxnDestData;
 
         delete this.topology;
-
         delete this.topologyInfoData;
     },
-
 
     /**
      * Start Frame Animation Rendering
