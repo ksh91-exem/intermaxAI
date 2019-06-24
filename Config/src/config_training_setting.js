@@ -141,7 +141,7 @@ Ext.define('config.config_training_setting', {
             initChecked : false,
             emptyTextMsg: common.Util.TR('No data to display'),
             cellclick:function(thisGrid, td, cellIndex, record) {
-                if (cellIndex == 7) {
+                if (cellIndex == 8) {
                     if (record.get('auto_training') == 0) {
                         record.set('auto_training', 1);
 
@@ -160,7 +160,7 @@ Ext.define('config.config_training_setting', {
                     }
 
                     self.autoTrainInstance(record.data);
-                } else if (cellIndex == 6) {
+                } else if (cellIndex == 7) {
                     if (record.get('status') == common.Util.TR('Training in Progress')) {
                         var wasForm = Ext.create('config.config_training_progress_form');
                         wasForm.parent = this;
@@ -168,7 +168,7 @@ Ext.define('config.config_training_setting', {
                         wasForm.instID = record.data.inst_id;
                         wasForm.init();
                     }
-                } else if (cellIndex == 3) {
+                } else if (cellIndex == 4) {
 
                 } else {
                     var wasForm = Ext.create('config.config_training_history_form');
@@ -183,6 +183,7 @@ Ext.define('config.config_training_setting', {
         this.grid.beginAddColumns();
         this.grid.addColumn({text: 'sys_id'                              , dataIndex: 'sys_id'       , width: 120, type: Grid.tree  , alowEdit: false, editMode: false, hide: true});
         this.grid.addColumn({text: 'inst_id'                             , dataIndex: 'inst_id'      , width: 120, type: Grid.tree  , alowEdit: false, editMode: false, hide: true});
+        this.grid.addColumn({text: 'type'                                , dataIndex: 'type'         , width: 120, type: Grid.tree  , alowEdit: false, editMode: false, hide: true});
         this.grid.addColumn({text: 'desc'                                , dataIndex: 'desc'         , width: 120, type: Grid.tree  , alowEdit: false, editMode: false, hide: true});
         this.grid.addColumn({text: common.Util.CTR('Name')               , dataIndex: 'name'         , width: 120, type: Grid.tree  , alowEdit: false, editMode: false});
         this.grid.addColumn({text: common.Util.CTR('Start Training Date'), dataIndex: 'start_time'   , width: 140, type: Grid.String, alowEdit: false, editMode: false,
@@ -289,6 +290,7 @@ Ext.define('config.config_training_setting', {
                         self.grid.addNode(null, [
                             data[ix].sys_id
                             , data[ix].inst_id
+                            , data[ix].type
                             , data[ix].desc
                             , data[ix].name
                             , data[ix].start_time

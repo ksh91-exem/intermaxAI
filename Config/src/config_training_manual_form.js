@@ -83,6 +83,7 @@ Ext.define('config.config_training_manual_form', {
         this.grid.beginAddColumns();
         this.grid.addColumn({text: 'sys_id'                      , dataIndex: 'sys_id' , width: 120, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
         this.grid.addColumn({text: 'inst_id'                     , dataIndex: 'inst_id', width: 120, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
+        this.grid.addColumn({text: 'type'                        , dataIndex: 'type'   , width: 120, type: Grid.String      , alowEdit: false, editMode: false, hide: true});
         this.grid.addColumn({text: common.Util.CTR('Name')       , dataIndex: 'name'   , width: 120, type: Grid.String      , alowEdit: false, editMode: false});
         this.grid.addColumn({text: common.Util.CTR('Description'), dataIndex: 'desc'   , width: 120, type: Grid.StringNumber, alowEdit: false, editMode: false});
         this.grid.endAddColumns();
@@ -142,7 +143,7 @@ Ext.define('config.config_training_manual_form', {
             data = this.data;
 
         for (ix = 0, ixLen = data.length; ix < ixLen; ix++) {
-            this.grid.addRow([data[ix].group.sys_id, data[ix].group.inst_id, data[ix].group.name, data[ix].group.desc]);
+            this.grid.addRow([data[ix].group.sys_id, data[ix].group.inst_id, data[ix].group.type, data[ix].group.name, data[ix].group.desc]);
         }
 
         this.grid.drawGrid();
@@ -150,11 +151,12 @@ Ext.define('config.config_training_manual_form', {
 
     save: function() {
         var ix, ixLen, systemID,
-            data, inst_ids = [];
+            data, inst_ids = [], type = [];
 
         for (ix = 0, ixLen = this.grid.baseStore.data.items.length; ix < ixLen; ix++) {
             data = this.grid.baseStore.data.items[ix].data;
             inst_ids.push(data.inst_id);
+            type.push(data.type);
 
             systemID = data.sys_id;
         }
@@ -165,7 +167,8 @@ Ext.define('config.config_training_manual_form', {
             jsonData : {
                 train_from : this.datePicker.getFromDateTime(),
                 train_to   : this.datePicker.getToDateTime(),
-                inst_ids   : inst_ids
+                inst_ids   : inst_ids,
+                type       : type
             },
             success : function(response) {
                 var result = Ext.JSON.decode(response.responseText);
