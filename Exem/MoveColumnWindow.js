@@ -26,6 +26,10 @@ Ext.define('Exem.MoveColumnWindow', {
 
     leftGridTitle: common.Util.TR('Column List'),
     rightGridTitle: common.Util.TR('Column List'),
+    leftGridDisabledMessage: common.Util.TR('Disable'),
+    rightGridDisabledMessage: common.Util.TR('Disable'),
+    leftGridColumnOption: null,
+    rightGridColumnOption: null,
 
     init: function() {
 
@@ -44,8 +48,11 @@ Ext.define('Exem.MoveColumnWindow', {
             this.hideListData = this.makeUseData();
         }
 
-        this.columnListGrid = this.createGrid('firstGridDDGroup', this.hideGridHeaders, this.sortEnable, this.addStateCol, this.defaultPageSize, this.addRowBtn);
-        this.hideListGrid   = this.createGrid('secondGridDDGroup', this.hideGridHeaders, this.sortEnable, this.addStateCol, this.defaultPageSize, this.addRowBtn);
+        this.columnListGrid = this.createGrid('firstGridDDGroup', this.hideGridHeaders, this.sortEnable, this.addStateCol, this.defaultPageSize, this.addRowBtn, this.leftGridColumnOption);
+        this.hideListGrid   = this.createGrid('secondGridDDGroup', this.hideGridHeaders, this.sortEnable, this.addStateCol, this.defaultPageSize, this.addRowBtn, this.rightGridColumnOption);
+
+        this._setRowClassByDisabled(this.columnListGrid);
+        this._setRowClassByDisabled(this.hideListGrid);
 
         // 그리드에 data를 넣고 그리는 것보다. 나중에 load 해주는 방식이 더 빠름.
         this.columnListGrid.store.loadData(this.columnListData);
@@ -138,9 +145,9 @@ Ext.define('Exem.MoveColumnWindow', {
     },
 
     makeData: function() {
-        var ix, ixLen;
+        var ix, ixLen, ix2, ix2Len, optionDataIndex, tempObj;
         var tempArr = [];
-        var column, title, dataIdx, callback, name, state;
+        var column, title, dataIdx, callback, name, state, disabled;
 
         for (ix = 0, ixLen = this.columnInfo.length; ix < ixLen; ix++){
             column = this.columnInfo[ix];
@@ -168,8 +175,18 @@ Ext.define('Exem.MoveColumnWindow', {
                 dataIdx = column.id;
                 callback = column.callFn;
                 state = column.state;
+                disabled = column.disabled;
 
-                tempArr.push({title: title, dataIdx: dataIdx, name : name, state: state, idx: ix, callFn : callback});
+                tempObj = {title: title, dataIdx: dataIdx, name : name, state: state, idx: ix, callFn : callback, disabled: disabled};
+                
+                if (this.leftGridColumnOption) { // Option의 dataIndex를 추가
+                    for (ix2 = 0, ix2Len = this.leftGridColumnOption.length; ix2 < ix2Len; ix2++) {
+                        optionDataIndex = this.leftGridColumnOption[ix2].dataIndex;
+                        tempObj[optionDataIndex] = column[optionDataIndex];
+                    }
+                }
+
+                tempArr.push(tempObj);
             }
 
         }
@@ -178,9 +195,9 @@ Ext.define('Exem.MoveColumnWindow', {
     },
 
     makeUseData: function() {
-        var ix, ixLen;
+        var ix, ixLen, ix2, ix2Len, optionDataIndex, tempObj;
         var tempArr = [];
-        var column, title, dataIdx, callback, name, state;
+        var column, title, dataIdx, callback, name, state, disabled;
 
         for (ix = 0, ixLen = this.useColumnInfo.length; ix < ixLen; ix++) {
             column = this.useColumnInfo[ix];
@@ -205,8 +222,18 @@ Ext.define('Exem.MoveColumnWindow', {
                 dataIdx = column.id;
                 callback = column.callFn;
                 state = column.state;
+                disabled = column.disabled;
 
-                tempArr.push({title: title, dataIdx: dataIdx, name : name, state: state, idx: ix, callFn : callback});
+                tempObj = {title: title, dataIdx: dataIdx, name : name, state: state, idx: ix, callFn : callback, disabled: disabled};
+
+                if (this.rightGridColumnOption) { // Option의 dataIndex를 추가
+                    for (ix2 = 0, ix2Len = this.rightGridColumnOption.length; ix2 < ix2Len; ix2++) {
+                        optionDataIndex = this.rightGridColumnOption[ix2].dataIndex;
+                        tempObj[optionDataIndex] = column[optionDataIndex];
+                    }
+                }
+
+                tempArr.push(tempObj);
             }
 
         }
@@ -322,61 +349,117 @@ Ext.define('Exem.MoveColumnWindow', {
 
     // 우측 그리드에서 좌측으로 이동
     onClickMoveLeft : function() {
-        var fromStore = this.hideListGrid.getStore();
-        var toStore   = this.columnListGrid.getStore();
-        var selected  = this.hideListGrid.getSelectionModel().getSelection();
+        var fromStore   = this.hideListGrid.getStore();
+        var toStore     = this.columnListGrid.getStore();
+        var selected    = this.hideListGrid.getSelectionModel().getSelection();
+        var showMessage = false;
         for (var ix = 0, leng = selected.length; ix < leng; ix++){
-            fromStore.remove(selected[ix]);
-            toStore.add(selected[ix]);
+            if(selected[ix].data.disabled === true) {
+                this.columnListGrid.getSelectionModel().deselect(selected[ix]);
+                showMessage = true;
+            } else {
+                fromStore.remove(selected[ix]);
+                toStore.add(selected[ix]);
+            }
         }
 
         if(!fromStore.getCount()){
             this.rightAll.setValue(false);
+        }
+
+        if(showMessage) {
+            common.Util.showMessage(common.Util.TR('Warning'),  this.rightGridDisabledMessage , Ext.Msg.OK, Ext.MessageBox.WARNING);
         }
     },
 
     // 좌측 그리드에서 우측으로 이동
     onClickMoveRight: function() {
-        var fromStore = this.columnListGrid.getStore();
-        var toStore   = this.hideListGrid.getStore();
-        var selected  = this.columnListGrid.getSelectionModel().getSelection();
+        var fromStore   = this.columnListGrid.getStore();
+        var toStore     = this.hideListGrid.getStore();
+        var selected    = this.columnListGrid.getSelectionModel().getSelection();
+        var showMessage = false;
         for (var ix = 0, leng = selected.length; ix < leng; ix++){
-            fromStore.remove(selected[ix]);
-            toStore.add(selected[ix]);
+            if(selected[ix].data.disabled === true) {
+                this.columnListGrid.getSelectionModel().deselect(selected[ix]);
+                showMessage = true;
+            } else {
+                fromStore.remove(selected[ix]);
+                toStore.add(selected[ix]);
+            }
         }
 
         if(!fromStore.getCount()){
             this.leftAll.setValue(false);
+        }
+
+        if(showMessage) {
+            common.Util.showMessage(common.Util.TR('Warning'),  this.leftGridDisabledMessage , Ext.Msg.OK, Ext.MessageBox.WARNING);
         }
     },
 
     // 좌측 그리드에서 우측으로 이동 All
     onClickMoveRightAll: function() {
-        var fromStore = this.columnListGrid.getStore();
-        var toStore   = this.hideListGrid.getStore();
-        var data      = fromStore.data.items;
+        var fromStore    = this.columnListGrid.getStore();
+        var toStore      = this.hideListGrid.getStore();
+        var data         = fromStore.data.items;
+        var disabledData = [];
+        var fromSelModel = this.columnListGrid.getSelectionModel();
         for (var ix = 0, leng = data.length; ix < leng; ix++){
-            toStore.add(data[ix]);
+            // Disabled row를 제외한 모든 data를 toStore에 추가
+            if (data[ix].data.disabled === true) {
+                disabledData.push(data[ix]);
+                if (fromSelModel.isSelected(data[ix]) === true) {
+                    fromSelModel.deselect(data[ix]);
+                }
+            }
+            else {
+                toStore.add(data[ix]);
+            }
         }
+
         fromStore.removeAll();
 
         if(!fromStore.getCount()){
             this.leftAll.setValue(false);
         }
+
+        if(disabledData.length > 0) { // Disabled row는 다시 좌측 그리드에 로드
+            for (var ix = 0, leng = disabledData.length; ix < leng; ix++){
+                fromStore.add(disabledData[ix]);
+            }
+        }
     },
 
     // 우측 그리드에서 좌측으로 이동 All
     onClickMoveLeftAll: function() {
-        var fromStore = this.hideListGrid.getStore();
-        var toStore   = this.columnListGrid.getStore();
-        var data      = fromStore.data.items;
+        var fromStore    = this.hideListGrid.getStore();
+        var toStore      = this.columnListGrid.getStore();
+        var data         = fromStore.data.items;
+        var disabledData = [];
+        var fromSelModel = this.hideListGrid.getSelectionModel();
         for (var ix = 0, leng = data.length; ix < leng; ix++){
-            toStore.add(data[ix]);
+            // Disabled row를 제외한 모든 data를 toStore에 추가
+            if (data[ix].data.disabled === true) {
+                disabledData.push(data[ix]);
+                if (fromSelModel.isSelected(data[ix]) === true) {
+                    fromSelModel.deselect(data[ix]);
+                }
+            }
+            else {
+                toStore.add(data[ix]);
+            }
         }
+
         fromStore.removeAll();
 
         if(!fromStore.getCount()){
             this.rightAll.setValue(false);
+        }
+
+        if(disabledData.length > 0) { // Disabled row는 다시 우측 그리드에 로드
+            for (var ix = 0, leng = disabledData.length; ix < leng; ix++){
+                fromStore.add(disabledData[ix]);
+            }
         }
     },
 
@@ -484,6 +567,17 @@ Ext.define('Exem.MoveColumnWindow', {
         this.hideListGrid.store.loadData([]);
         this.leftAll.setValue(false);
         this.rightAll.setValue(false);
+    },
+
+    _setRowClassByDisabled: function(targetGrid) {
+        targetGrid.getView().getRowClass = function(record) {
+            var cls;
+
+            if (record.data.disabled === true) {
+                cls = 'grid-panel-row-disabled';
+            }
+            return cls;
+        }.bind(this);
     }
 
 });

@@ -2002,4 +2002,6 @@ window.msgMap = {
     ,"Mapable Instance"                                          : "맵핑 가능 인스턴스"
     ,"Mapped Instance"                                           : "맵핑 된 인스턴스"
     ,"Manual Training Settings"                                  : "수동학습 설정"
+    ,"Mapped Tier"                                               : "맵핑 된 티어"
+    ,"Cannot map an instance that already mapped to another tier." : "이미 다른 구간에 맵핑된 인스턴스를 설정할 수 없습니다."
 };

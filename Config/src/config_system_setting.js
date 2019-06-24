@@ -1058,6 +1058,42 @@ Ext.define('config.config_system_setting', {
 
                 break;
             case 'tierMapping' :
+                var setTierMapableList = function(tierMap) {
+                    var data, record;
+
+                    Ext.Ajax.request({
+                        url : common.Menu.useGoogleCloudURL + '/admin/system/' + id + '/tier/instance',
+                        method : 'GET',
+                        success : function(response) {
+                            var result = Ext.JSON.decode(response.responseText);
+
+                            if (result.success === true) {
+                                data = result.data;
+
+                                self.tierMapableList = data.reduce(function(acc, cur, index) {
+                                    // tier_id가 이미 지정된 instance에 대해 disable 처리
+                                    if (cur.tier_id != id2) {
+                                        record = {
+                                            desc: cur.name,
+                                            inst_id: cur.inst_id,
+                                            sys_id: cur.sys_id,
+                                            tier_name: cur.tier_name,
+                                            title: cur.inst_id,
+                                            disabled: false
+                                        };
+                                        if (cur.hasOwnProperty("tier_id")) {
+                                            record.disabled = true;
+                                        }
+                                        acc.push(record);
+                                    }
+                                    return acc;
+                                }, []);
+                            }
+                        },
+                        failure : function(){}
+                    })
+                };
+
                 Ext.Ajax.request({
                     url : common.Menu.useGoogleCloudURL + '/admin/system/' + id + '/tiermap/' + id2,
                     method : 'GET',
@@ -1075,6 +1111,7 @@ Ext.define('config.config_system_setting', {
                             self.grid[key].drawGrid();
                             self.tierMappingToolbar.getComponent('cfg_tier_mapping_edit').setDisabled(false);
                             self.grid[key].baseGrid.setDisabled(false);
+                            setTierMapableList(data);
                         }
                     },
                     failure : function(){}
@@ -1125,30 +1162,27 @@ Ext.define('config.config_system_setting', {
 
     showOrderingWindow: function(){
         var mappingList = [], instList = [],
-            instGrid, mappingGrid;
+            mapableList, mappingGrid,
+            leftGridColumnOption;
         var ix, ixLen;
 
-        instGrid    = this.grid['ins'];
+        mapableList = this.tierMapableList;
         mappingGrid = this.grid['tierMapping'];
 
+        // 좌측 그리드에 지정된 tier 표시 옵션 추가
+        leftGridColumnOption = [
+            {text: common.Util.TR('Mapped Tier'), flex: 1, dataIndex: 'tier_name'}
+        ]
+
+        // 좌측 그리드 list 생성
+        for (ix = 0, ixLen = mapableList.length; ix < ixLen; ix++) {
+            instList.push(mapableList[ix]);
+        }
+
+        // 우측 그리드 list 생성
         for (ix = 0, ixLen = mappingGrid.getRowCount(); ix < ixLen; ix++) {
             mappingGrid.getRow(ix).data.title = mappingGrid.getRow(ix).data.inst_id;
             mappingList.push(mappingGrid.getRow(ix).data);
-        }
-
-        for (ix = 0, ixLen = instGrid.getRowCount(); ix < ixLen; ix++) {
-            instGrid.getRow(ix).data.title = instGrid.getRow(ix).data.inst_id;
-            instList.push(instGrid.getRow(ix).data);
-        }
-
-        for (ix = 0, ixLen = mappingGrid.getRowCount(); ix < ixLen; ix++) {
-            var idx = instList.findIndex(function(item) {
-                return item.title == mappingGrid.getRow(ix).data.inst_id;
-            });
-
-            if (idx > -1) {
-                instList.splice(idx, 1);
-            }
         }
 
         var mappingWindow = Ext.create('Exem.MoveColumnWindow', {
@@ -1162,6 +1196,8 @@ Ext.define('config.config_system_setting', {
             orderMode : true,
             leftGridTitle : common.Util.TR('Mapable Instance'),
             rightGridTitle : common.Util.TR('Mapped Instance'),
+            leftGridDisabledMessage : common.Util.TR('Cannot map an instance that already mapped to another tier.'),
+            leftGridColumnOption : leftGridColumnOption,
             okFn : this.apply
         });
 

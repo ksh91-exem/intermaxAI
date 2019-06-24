@@ -302,8 +302,8 @@ Ext.define('Exem.DragNDropWindowBase', {
         };
     },
 
-    createGrid : function(startGroup, isHideHeaders, isSortEnable, isAddStateCol, defaultPageSize, isAddBtn) {
-        var columns, gridStore, seltype, grid, bbarContainer, nextRowBtn, plugIn, btnPaddingValue;
+    createGrid : function(startGroup, isHideHeaders, isSortEnable, isAddStateCol, defaultPageSize, isAddBtn, columnOption = null) {
+        var columns, gridStore, seltype, grid, bbarContainer, nextRowBtn, plugIn, btnPaddingValue, fieldOptions;
 
         columns = [
             {text: common.Util.TR('Name'), flex: 1, dataIndex: 'title'},
@@ -317,6 +317,18 @@ Ext.define('Exem.DragNDropWindowBase', {
             });
 
             columns.push({text: common.Util.TR('Learning State'), flex: 1, dataIndex: 'state'});
+        } else if (columnOption) { // add additional columns
+            fieldOptions = ['title', 'dataIdx'];
+            for (var ix = 0, ixLen = columnOption.length; ix < ixLen; ix++) {
+                fieldOptions.push(columnOption[ix].dataIndex);
+            }
+
+            Ext.define(startGroup, {
+                extend: 'Ext.data.Model',
+                fields: fieldOptions
+            });
+
+            columns = columns.concat(columnOption);
         } else {
             Ext.define(startGroup, {
                 extend: 'Ext.data.Model',
