@@ -273,7 +273,7 @@ MainLaoaingMask.prototype = {
 var AppLaunch = function(arg) {
     // 브라우저 언어에 따른 타이틀 설정.
     if (navigator.language === 'ko' || navigator.language === 'ko-KR') {
-        document.title = 'InterMax';
+        document.title = 'AIOps';
         $('div.login-left-area div.login-logo').removeClass('global');
     } else {
         document.title = 'MaxGauge for Java';

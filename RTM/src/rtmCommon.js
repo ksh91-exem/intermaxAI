@@ -2925,7 +2925,7 @@ Ext.define('rtm.src.rtmCommon', {
                 layer = '[{"cls":"Ext.container.Container","layout":"vbox","flex":1,"items":[{"cls":"Ext.container.Container","layout":"hbox","flex":235,"items":[{"cls":"rtm.src.rtmDashboardInstanceInfo","layout":"fit","flex":632,"items":[],"frameOption":null},{"cls":"Ext.container.Container","layout":"hbox","flex":1268,"items":[{"cls":"rtm.src.rtmDashTxnLoadPredict1","layout":"fit","flex":632,"items":[],"frameOption":null,"componentId":"rtm-ext-211-cmp"},{"cls":"rtm.src.rtmDashTxnLoadPredict","layout":"fit","flex":631,"items":[],"frameOption":null,"componentId":"rtm-ext-270-cmp"}],"frameOption":null}],"frameOption":null},{"cls":"Ext.container.Container","layout":"vbox","flex":716,"items":[{"cls":"rtm.src.rtmDashAbnormalLogInfo","layout":"fit","flex":356,"items":[],"frameOption":null},{"cls":"rtm.src.rtmDashAbnormalLogInfo","layout":"fit","flex":355,"items":[],"frameOption":null}],"frameOption":null}],"frameOption":null}]';
                 break;
             case 'TopologyView':
-                layer = '[{"cls":"Ext.container.Container","layout":"vbox","flex":1,"items":[{"cls":"rtm.src.rtmAlertInfo","layout":"fit","flex":35,"items":[],"frameOption":null},{"cls":"rtm.src.rtmTopologyView","layout":"fit","flex":968,"items":[],"frameOption":null}],"frameOption":null}]';
+                layer = '[{"cls":"Ext.container.Container","layout":"vbox","flex":1,"items":[{"cls":"rtm.src.rtmAlertInfo","layout":"fit","flex":35,"items":[],"frameOption":null},{"cls":"rtm.src.rtmTopologyAiView","layout":"fit","flex":968,"items":[],"frameOption":null}],"frameOption":null}]';
                 break;
             case 'TPMonitor':
                 layer = '[{"defaultFrameVersion":"' + this.layoutVersion.TP + '", "cls":"Ext.container.Container","layout":"vbox","flex":1,"items":[{"cls":"rtm.src.rtmTPAgentList","layout":"fit","flex":40,"items":[],"frameOption":null},{"cls":"Ext.container.Container","layout":"vbox","flex":908,"items":[{"cls":"rtm.src.rtmTPAlertInfo","layout":"fit","flex":50,"items":[],"frameOption":null},{"cls":"Ext.container.Container","layout":"vbox","flex":853,"items":[{"cls":"Ext.container.Container","layout":"vbox","flex":705,"items":[{"cls":"rtm.src.rtmTPActivityMonitor","layout":"vbox","flex":140,"items":[],"frameOption":null},{"cls":"Ext.container.Container","layout":"vbox","flex":560,"items":[{"cls":"rtm.src.rtmTPActiveTxnCount","layout":"fit","flex":120,"items":[],"frameOption":null},{"cls":"Ext.container.Container","layout":"vbox","flex":435,"items":[{"cls":"rtm.src.rtmTPUsageCpu","layout":"fit","flex":120,"items":[],"frameOption":null},{"cls":"Ext.container.Container","layout":"hbox","flex":310,"items":[{"cls":"rtm.src.rtmTPTrendStat","layout":"fit","flex":698,"items":[],"frameOption":null,"componentId":"rtm-was-ext-62049-cmp"},{"cls":"Ext.container.Container","layout":"vbox","flex":513,"items":[{"cls":"rtm.src.rtmTPTransactionMonitor","layout":"fit","flex":153,"items":[],"frameOption":null},{"cls":"rtm.src.rtmTPActiveTxnList","layout":"fit","flex":152,"items":[],"frameOption":null}],"frameOption":null}],"frameOption":null}],"frameOption":null}],"frameOption":null}],"frameOption":null},{"cls":"Ext.container.Container","layout":"hbox","flex":143,"items":[{"cls":"rtm.src.rtmTPSlog","layout":"fit","flex":700,"items":[],"frameOption":null},{"cls":"rtm.src.rtmTPTmadmin","layout":"fit","flex":511,"items":[],"frameOption":null}],"frameOption":null}],"frameOption":null}],"frameOption":null}],"frameOption":null}]';
@@ -6014,7 +6014,8 @@ Ext.define('rtm.src.rtmCommon', {
     setRTMTabSubTitle: function(viewName) {
         if (!viewName) {
             if (window.rtmMonitorType && window.rtmMonitorType === 'WAS') { // WAS만 기본화면 이름부여
-                viewName = 'RealTime Monitor (All)';
+                // viewName = 'RealTime Monitor (All)';
+                viewName = 'AI Monitor';
             } else {
                 viewName = 'Default View';
             }
@@ -6133,6 +6134,7 @@ Ext.define('rtm.src.rtmCommon', {
                 className,
                 common.Menu.getClassConfig(className.substring(className.lastIndexOf('.') + 1))
             );
+            console.log(titleList[ix]);
             rtmPanel.title = common.Util.TR(titleList[ix]);
 
             // 탭 패널에서 패널 순서를 변경하지 못하게 고정하는 옵션
@@ -6145,9 +6147,9 @@ Ext.define('rtm.src.rtmCommon', {
         // WAS 이외의 서버를 모니터링 하는데 WAS 모니터링 대상이 없는 경우,
         // WAS 모니터링 실시간 화면을 표시하지 않게 해달라는 요청이 있어 처리.
         if (wasIdArr.length <= 0) {
-            window.tabPanel.setActiveTab(1);
-            window.tabPanel.getTabBar().remove(window.tabPanel.getTabBar().items.items[0].id);
-            window.tabPanel.updateLayout();
+            // window.tabPanel.setActiveTab(1);
+            // window.tabPanel.getTabBar().remove(window.tabPanel.getTabBar().items.items[0].id);
+            // window.tabPanel.updateLayout();
         }
 
         $('.server-type-info').css('width', width);

@@ -90,6 +90,7 @@ Ext.define('common.DataModule', {
         Comm.etoeBizInfos = {};
         Comm.etoeBizMaps  = {};
 
+        Comm.txCodeInfo = [];
         Comm.businessRegisterInfo = [];
         Comm.sortTierInfo = [];
         Comm.exclusionInfo = [];
@@ -257,6 +258,9 @@ Ext.define('common.DataModule', {
 
         console.debug('%c [DataModule]  Loading WAS Info...', 'color:#63A5E0;');
 
+        var serviceIds = [1];
+        Comm.serviceid = [1];
+
         Comm.dashSettingData = [];
 
         this.setRepositoryInfo();
@@ -395,6 +399,31 @@ Ext.define('common.DataModule', {
 
                     loadSet();
 
+                    if (common.Menu.isBusinessPerspectiveMonitoring) {
+                        getBizPerspectiveInfo();
+                        getTierInfo('IMXRT_Tier_Business_Info.sql');
+                    } else {
+                        getTierInfo('IMXRT_Tier_Info.sql');
+                    }
+
+                    if (!common.Menu.categoriesConf['RealtimeAI']) {
+                        getLoadDataAI();
+                    }
+
+                    if (common.Menu.useExtMaxGaugeDetail) {
+                        WS.PluginFunction({
+                            function : 'get_mapped_db_info'
+                        }, function(header, data) {
+                            var ix, ixLen;
+                            Comm.mappingMFONameList = {};
+                            Comm.mfoMappingMFJDBList = data.db_list;
+
+                            for (ix = 0, ixLen = Comm.mfoMappingMFJDBList.length; ix < ixLen; ix++) {
+                                Comm.mappingMFONameList[Comm.mfoMappingMFJDBList[ix]] = data.mfo_name_list[ix];
+                            }
+                        }, this);
+                    }
+
                 }
             }, this);
         }
@@ -466,6 +495,295 @@ Ext.define('common.DataModule', {
             }
 
             $('#M_rtmUsageJVMCpu span').text(common.Util.TR('JVM CPU Usage'));
+        }
+
+        /**
+         * IMXRT_BaseInfo.sql의 멀티 sql의 수가 많아서 별로도 분기를 해서 업무 관점 모니터링 관련 데이터를 받도록 추가.
+         */
+        function getBizPerspectiveInfo() {
+            var dataSet = {};
+
+            dataSet.sql_file = 'IMXRT_GetBizPerspectiveInfo.sql';
+
+            dataSet.replace_string = [{
+                name: 'serviceid',
+                value: String(serviceIds.join(','))
+            },{
+                name: 'user_id',
+                value: Comm.web_env_info.user_id
+            }];
+
+            WS.SQLExec(dataSet, function(aheader, adata) {
+                if(!common.Util.checkSQLExecValid(aheader, adata)){
+                    return;
+                }
+
+                var bizRegisterInfo = adata[0].rows;
+                var bizId, bizName, parentId, level, parentBizId,
+                    ix, ixLen, jx, jxLen, subBizIdList, topBizIdArr,
+                    parentInfo = [], childInfo = [], childList = [];
+
+                for (ix = 0, ixLen = bizRegisterInfo.length; ix < ixLen; ix++) {
+                    bizId     = bizRegisterInfo[ix][0];
+                    bizName   = bizRegisterInfo[ix][1];
+                    parentId  = bizRegisterInfo[ix][2];
+                    level     = bizRegisterInfo[ix][3];
+
+                    Comm.etoeBizInfos[bizId] = {id: bizId, name: bizName};
+
+                    if (level === 1) {
+                        parentInfo.push({ bizId : bizId, bizName : bizName });
+
+                        if (!Comm.etoeBizMaps[bizId]) {
+                            Comm.etoeBizMaps[bizId] = [];
+                        }
+
+                    } else if (level === 2) {
+                        for (jx = 0, jxLen = parentInfo.length; jx < jxLen; jx++) {
+                            parentBizId = parentInfo[jx].bizId;
+
+                            if (parentBizId === parentId) {
+                                childInfo.push({parentBizId: parentBizId, bizId: bizId, bizName : bizName});
+                            }
+                        }
+
+                        if (Comm.etoeBizMaps[parentId] && Comm.etoeBizMaps[parentId].indexOf(bizId) === -1) {
+                            Comm.etoeBizMaps[parentId].push(bizId);
+                        }
+
+                    } else if (level === 3) {
+                        topBizIdArr = Object.keys(Comm.etoeBizMaps);
+
+                        for ( jx = 0, jxLen = topBizIdArr.length; jx < jxLen; jx++ ) {
+                            subBizIdList = Comm.etoeBizMaps[topBizIdArr[jx]];
+
+                            if (subBizIdList && subBizIdList.length > 0 && subBizIdList.indexOf(parentId) !== -1 &&
+                                subBizIdList.indexOf(bizId) === -1) {
+                                subBizIdList.push(bizId);
+                            }
+                        }
+                    }
+                }
+
+                for (ix = 0, ixLen = parentInfo.length; ix < ixLen; ix++) {
+                    for (jx = 0, jxLen = childInfo.length; jx < jxLen; jx++) {
+                        if (parentInfo[ix].bizId === childInfo[jx].parentBizId) {
+                            childList.push(childInfo[jx]);
+                        }
+                    }
+                    Comm.businessRegisterInfo.push({parent : parentInfo[ix], child: childList});
+                    childList = [];
+                }
+
+                /////////////////////////////////////////////////////////////////////////////////
+                var tierSortInfo = adata[1].rows;
+                var tierId, tierName;
+                for (ix = 0, ixLen = tierSortInfo.length; ix < ixLen; ix++) {
+                    tierId     = tierSortInfo[ix][0];
+                    tierName   = tierSortInfo[ix][1];
+
+                    Comm.sortTierInfo.push({tierId : tierId, tierName: tierName});
+                }
+                /////////////////////////////////////////////////////////////////////////////////
+                var exclusionData = adata[2].rows;
+                var nextBizId, beforeBizId;
+                var tierList = [];
+                var obj = {};
+                obj.bizId = [];
+                obj.tierList = [];
+
+                for (ix = 0, ixLen = exclusionData.length; ix < ixLen; ix++) {
+                    bizId       = exclusionData[ix][0];
+                    tierId      = exclusionData[ix][1];
+                    if (exclusionData.length === 1) {
+                        tierList.push(exclusionData[ix][1]);
+                        obj.bizId.push(bizId);
+                        obj.tierList.push(tierList);
+                    } else if (exclusionData[ix + 1]) {
+                        nextBizId   = exclusionData[ix + 1][0];
+
+                        tierList.push(exclusionData[ix][1]);
+
+                        if (bizId === nextBizId) {
+                            continue;
+                        }
+
+                        if (bizId !== nextBizId) {
+                            obj.bizId.push(bizId);
+                            obj.tierList.push(tierList);
+                            tierList = [];
+                        }
+                    } else {
+                        beforeBizId = exclusionData[ix - 1][0];
+                        if (bizId === beforeBizId) {
+                            tierList.push(exclusionData[ix][1]);
+                            obj.bizId.push(bizId);
+                            obj.tierList.push(tierList);
+                        } else {
+                            obj.bizId.push(bizId);
+                            obj.tierList.push(tierList);
+                        }
+                    }
+                }
+
+                for (ix = 0, ixLen = obj.bizId.length; ix < ixLen; ix++) {
+                    Comm.exclusionInfo.push({businessId : obj.bizId[ix], tierId: obj.tierList[ix]});
+                }
+
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////
+                var metaTreeKey = adata[3].rows;
+                var treeKey;
+
+                for (ix = 0, ixLen = metaTreeKey.length; ix < ixLen; ix++) {
+                    treeKey     = metaTreeKey[ix][0];
+
+                    Comm.metaTreeKey.push(treeKey);
+                }
+            });
+        }
+
+        function getTierInfo(sqlFile) {
+            var result, tierId, tierName, serverId, serverType, ix, ixLen;
+
+            WS.SQLExec({
+                sql_file: sqlFile,
+                replace_string: [{
+                    name: 'serviceid', value: Comm.serviceid.join(',')
+                }]
+            }, function(header, data) {
+                if(!common.Util.checkSQLExecValid(header, data)){
+                    console.debug('%c [DataModule] [ERROR] Failed to retrieve the tier data.', 'color:white;background-color:red;font-weight:bold;', header.message);
+                    return;
+                }
+
+                result = data.rows;
+
+                /*
+                 * [0] TIER ID
+                 * [1] TIER Name
+                 * [2] Server ID
+                 * [3] Server Name
+                 * [4] Server Type
+                 */
+                for (ix = 0, ixLen = result.length; ix < ixLen; ix++) {
+                    tierId     = result[ix][0];
+                    tierName   = result[ix][1];
+                    serverId   = result[ix][2];
+                    serverType = result[ix][4];
+
+                    if (Comm.tierList.indexOf(tierId) === -1) {
+                        Comm.tierList.push(tierId);
+                    }
+
+                    if (!Comm.tierInfo[tierId]) {
+                        Comm.tierInfo[tierId] = {
+                            name      : tierName,
+                            type      : serverType,
+                            serverList: []
+                        };
+                    }
+
+                    if (Comm.tierInfo[tierId].serverList.indexOf(serverId) === -1) {
+                        Comm.tierInfo[tierId].serverList.push(serverId);
+                    }
+                }
+            });
+        }
+
+        /**
+         * IMXRT_BaseInfo.sql의 멀티 sql의 수가 많아서 별로도 분기를 해서 AI 관련 데이터를 받도록 추가.
+         */
+        function getLoadDataAI() {
+            var dataSet = {}, dataSet2 = {};
+
+            dataSet.sql_file = 'IMXRT_Get_TxnNameCombo.sql';
+
+            WS.SQLExec(dataSet, function(aheader, adata) {
+                if(!common.Util.checkSQLExecValid(aheader, adata)){
+                    return;
+                }
+
+                var txnId, txnName, ix, ixLen;
+                var txnInfo = adata.rows;
+
+                for (ix = 0, ixLen = txnInfo.length; ix < ixLen; ix++) {
+                    txnId     = txnInfo[ix][0];
+                    txnName   = txnInfo[ix][1];
+
+                    Comm.txnNameInfo.push({ txnId : txnId, txnName: txnName });
+                }
+            });
+
+            ////////////////////////////////////////////////////////////////////////////
+
+            dataSet = {};
+
+            dataSet.sql_file = 'IMXRT_Txn_Name_Business_Info.sql';
+
+            WS.SQLExec(dataSet, function(aheader, adata) {
+                if(!common.Util.checkSQLExecValid(aheader, adata)){
+                    return;
+                }
+
+                var bizId, bizName, txnInfo, ix, ixLen, jx, jxLen;
+                for (ix = 0, ixLen = adata.length; ix < ixLen; ix++) {
+                    txnInfo = adata[ix].rows;
+
+                    for (jx = 0, jxLen = txnInfo.length; jx < jxLen; jx++) {
+                        bizId     = txnInfo[jx][0];
+                        bizName   = txnInfo[jx][1];
+
+                        if (ix == 0) {
+                            Comm.bizInfo.push({ bizId : bizId, bizName : bizName });
+                        } else if (ix == 1) {
+                            Comm.learnBizInfo.push({ bizId : bizId, bizName : bizName });
+                        }
+                    }
+                }
+            });
+
+            ////////////////////////////////////////////////////////////////////////////
+
+            dataSet2.sql_file = 'IMXConfig_Table_Check.sql';
+            dataSet2.bind = [{
+                name    : 'table',
+                value   : 'xapm_business_name',
+                type    : SQLBindType.STRING
+            }];
+
+            WS.SQLExec(dataSet2, function(aheader, adata) {
+                if(!common.Util.checkSQLExecValid(aheader, adata)){
+                    return;
+                }
+
+                if (adata.rows[0][0] == 't' || adata.rows[0][0] === 1) {
+                    dataSet = {};
+
+                    dataSet.sql_file = 'IMXRT_Txn_Name_Business_Name.sql';
+
+                    WS2.SQLExec(dataSet, function(aheader, adata) {
+                        if(!common.Util.checkSQLExecValid(aheader, adata)){
+                            return;
+                        }
+
+                        var bizId, bizName, txnInfo, ix, ixLen, jx, jxLen;
+                        for (ix = 0, ixLen = adata.length; ix < ixLen; ix++) {
+                            txnInfo = adata[ix].rows;
+
+                            for (jx = 0, jxLen = txnInfo.length; jx < jxLen; jx++) {
+                                bizId     = txnInfo[jx][0];
+                                bizName   = txnInfo[jx][1];
+
+                                if (ix == 0) {
+                                    Comm.bizNameInfo.push({ bizId : bizId, bizName : bizName });
+                                } else if (ix == 1) {
+                                    Comm.learnBizNameInfo.push({ bizId : bizId, bizName : bizName });
+                                }
+                            }
+                        }
+                    });
+                }
+            });
         }
     },
 

@@ -73,6 +73,30 @@ div.frame-option-icon:hover{
     background-position-x: -87px !important;
 }
 
+div.frame-add-icon {
+    background-image: url(../../images/xm_icon_White_v1.png);
+    background-position: -222px -480px;
+    width: 22px;
+    height: 18px;
+    cursor: pointer;
+}
+
+div.frame-add-icon:hover{
+    background-position-y: -499px;
+}
+
+div.frame-delete-icon {
+    background-image: url(../../images/xm_icon_White_v1.png);
+    background-position: -267px -480px;
+    width: 19px;
+    height: 17px;
+    cursor: pointer;
+}
+
+div.frame-delete-icon:hover{
+    background-position-y: -499px;
+}
+
 div.trend-chart-icon{
     background-image: url(../../images/xm_icon_v1_b.png);
     background-position: -5px -98px;
