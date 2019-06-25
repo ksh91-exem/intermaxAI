@@ -2,7 +2,7 @@ Ext.define('common.Menu', {
     singleton: true,
     singletonList : {},
     Menucategorization : [
-        {text : common.Util.TR('Tools'),                      PGID : 'Tools',        GROUP: 'TOOLS',       PARENTID: 'Panalysis'},
+        // {text : common.Util.TR('Tools'),                      PGID : 'Tools',        GROUP: 'TOOLS',       PARENTID: 'Panalysis'},
         {text : common.Util.TR('RTM Dashboard'),              PGID : 'Dashboard',    GROUP: 'DASHBOARD'    },
         {text : common.Util.TR('RTM Dashboard'),              PGID : 'E2EMonitor',   GROUP: 'DASHBOARD'    },
         {text : common.Util.TR('WEB'),                        PGID : 'RealtimeWeb',  GROUP: 'REALTIME_WEB' },
@@ -14,8 +14,8 @@ Ext.define('common.Menu', {
         {text : common.Util.TR('AI Docking Frame'),           PGID : 'RealtimeAI',   GROUP: 'REALTIME_AI'  },
         {text : common.Util.TR('Performance Analysis'),       PGID : 'Panalysis',    GROUP: 'ANALYSIS'     },
         {text : common.Util.TR(''),                           PGID : 'Panalysis2',   GROUP: 'ANALYSIS_ETE' },
-        {text : common.Util.TR('Performance Statistics'),     PGID : 'Pstatistics',  GROUP: 'STATISTICS'   },
-        {text : common.Util.TR('Report'),                     PGID : 'Report',       GROUP: 'REPORT',      PARENTID: 'Pstatistics'}
+        // {text : common.Util.TR('Performance Statistics'),     PGID : 'Pstatistics',  GROUP: 'STATISTICS'   },
+        // {text : common.Util.TR('Report'),                     PGID : 'Report',       GROUP: 'REPORT',      PARENTID: 'Pstatistics'}
     ],
 
 
@@ -76,8 +76,7 @@ Ext.define('common.Menu', {
         { ID: 'M_dashTopologyView',           PGID: 'Dashboard',   STYPE: 'WAS',    text: common.Util.TR('Topology View'),                    cls: 'dashboard.TopologyView'          },
         // { ID: 'M_TaskMonitor',                PGID: 'Dashboard',   STYPE: 'WAS',    text: '업무 관점 모니터링 뷰',                                cls: 'dashboard.TaskMonitor'           },
 
-        { ID: 'M_dashAIMonitor1',             PGID: 'Dashboard',   STYPE: 'WAS',    text: common.Util.TR('Dashboard'),                          cls: 'dashboard.AIMonitor'       },
-        { ID: 'M_dashAIMonitor2',             PGID: 'Dashboard',   STYPE: 'WAS',    text: common.Util.TR('Abnormal Indicators by Instance'),    cls: 'dashboard.AIMonitor2'      },
+        { ID: 'M_dashAIMonitor',             PGID: 'Dashboard',   STYPE: 'WAS',    text: common.Util.TR('AI Dashboard'),                          cls: 'dashboard.AIMonitor'       },
 
         { ID: 'M_rtmActivityMonitor',         PGID: 'Realtime1',   STYPE: 'WAS',    text: common.Util.TR('Activity Monitor'),                         cls: 'rtm.src.rtmActivityMonitor'            ,   GPIDX: '1'    },
         { ID: 'M_rtmActivityGroup',           PGID: 'Realtime1',   STYPE: 'WAS',    text: common.Util.TR('Activity Group Monitor'),                   cls: 'rtm.src.rtmActivityGroup'              ,   GPIDX: '1'    },
@@ -125,8 +124,6 @@ Ext.define('common.Menu', {
         { ID: 'M_rtmDashLoadPredict',         PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('WAS Load Prediction'),                   cls: 'rtm.src.rtmDashLoadPredict'            ,   GPIDX: '1'   },
         { ID: 'M_rtmDashTxnLoadPredict',      PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('Transaction Load Prediction'),           cls: 'rtm.src.rtmDashTxnLoadPredict'         ,   GPIDX: '1'   },
         { ID: 'M_rtmDashTxnLoadPredict1',     PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('Transaction Load Prediction'),           cls: 'rtm.src.rtmDashTxnLoadPredict1'        ,   GPIDX: '1'   },
-        { ID: 'M_rtmDashTxnLoadPredict2',     PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('Transaction Load Prediction'),           cls: 'rtm.src.rtmDashTxnLoadPredict2'        ,   GPIDX: '1'   },
-        { ID: 'M_rtmDashTxnLoadPredict3',     PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('Transaction Load Prediction'),           cls: 'rtm.src.rtmDashTxnLoadPredict3'        ,   GPIDX: '1'   },
         { ID: 'M_rtmDashLoadPredictMCA',      PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('Load Prediction MCA'),                   cls: 'rtm.src.rtmDashLoadPredictMCA'         ,   GPIDX: '1'   },
         { ID: 'M_rtmDashLoadPredictCBS',      PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('Load Prediction CBS'),                   cls: 'rtm.src.rtmDashLoadPredictCBS'         ,   GPIDX: '1'   },
         { ID: 'M_rtmDashLoadPredictFEP',      PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('Load Prediction FEP'),                   cls: 'rtm.src.rtmDashLoadPredictFEP'         ,   GPIDX: '1'   },
@@ -134,7 +131,8 @@ Ext.define('common.Menu', {
         { ID: 'M_rtmDashboardInstanceInfo',   PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('인스턴스 정보'),                            cls: 'rtm.src.rtmDashboardInstanceInfo'      ,   GPIDX: '1'   },
         { ID: 'M_rtmDashAbnormalStatSummary', PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('이상 지표 요약'),                           cls: 'rtm.src.rtmDashAbnormalStatSummary'    ,   GPIDX: '1'   },
         { ID: 'M_rtmDashAbnormalStatInfo',    PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('이상 지표 정보'),                           cls: 'rtm.src.rtmDashAbnormalStatInfo'       ,   GPIDX: '1'   },
-        { ID: 'M_rtmDashAbnormalLogInfo',     PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('이상 로그 정보'),                           cls: 'rtm.src.rtmDashAbnormalLogInfo'       ,   GPIDX: '1'   },
+        { ID: 'M_rtmDashAbnormalLogInfo',     PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('이상 로그 정보'),                           cls: 'rtm.src.rtmDashAbnormalLogInfo'        ,   GPIDX: '1'   },
+        { ID: 'M_rtmTopologyAiView',          PGID: 'RealtimeAI',  STYPE: 'WAS',    text: common.Util.TR('Topology View'),                         cls: 'rtm.src.rtmTopologyAiView'              ,   GPIDX: '1'   },
 
         // TP
         { ID: 'M_TPTrend',                    PGID: 'Panalysis',   STYPE: 'TP',     text: common.Util.TR('Performance Trend'),                     cls: 'view.TPTrend'                    },
@@ -499,10 +497,6 @@ Ext.define('common.Menu', {
 
     ],
 
-    RTMMenu: [
-        { text: 'WAS Monitor',  cls: 'rtm.view.rtmView',     isDockContainer : true,     specifiedView: []}
-    ],
-
     defaultView: {
         className : 'view.PerformanceTrend',
         title     : common.Util.TR('Performance Trend')
@@ -597,6 +591,7 @@ Ext.define('common.Menu', {
             rtmDashAbnormalStatSummary : { isWindow : true,  isDock : true,   width : 600,   height : 300,   minWidth : 250,   minHeight : 90   },
             rtmDashAbnormalStatInfo    : { isWindow : true,  isDock : true,   width : 600,   height : 600,   minWidth : 250,   minHeight : 90   },
             rtmDashAbnormalLogInfo     : { isWindow : true,  isDock : true,   width : 800,   height : 150,   minWidth : 600,   minHeight : 90   },
+            rtmTopologyAiView           : { isWindow : true,  isDock : true,   width : 1600,   height : 800,   minWidth : 1600,   minHeight : 800   },
 
             // Web Component
             rtmWebActivityMonitor      : { isWindow : true,  isDock : true,   width : 800,   height : 145,   minWidth : 730,   minHeight : 140, singleton: true},

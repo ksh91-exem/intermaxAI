@@ -1482,6 +1482,7 @@ window.msgMap = {
     ,"Web Monitor"                                               : "Web Monitor"
     ,"E2E Monitor"                                               : "E2E Monitor"
     ,"EtoE Monitor"                                              : "EtoE Monitor"
+    ,"AI Monitor"                                                : "AI Monitor"
     ,"Please select a type."                                     : "Please select a type."
     ,"Please select a comparison."                               : "Please select a comparison."
     ,"Please Enter URL."                                         : "Please Enter URL."

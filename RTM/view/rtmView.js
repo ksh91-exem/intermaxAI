@@ -1507,7 +1507,7 @@ Ext.define('rtm.view.rtmView', {
                 }]
             }, function(aheader, adata) {
 
-                if (aheader && aheader.success === false && !adata) {
+                if(!common.Util.checkSQLExecValid(aheader, adata)){
                     console.debug('%c [RTM View] [ERROR] Failed to retrieve the server time.', 'color:white;background-color:red;font-weight:bold;', aheader.message);
                     return;
                 }

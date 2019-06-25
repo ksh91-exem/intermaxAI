@@ -706,7 +706,7 @@ Ext.define ('common.Util', {
 
             if (window.loginMode === 'RTM') {
                 //실시간 화면에 WAS 모니터링 탭 이름 설정
-                testTab.title = common.Util.TR('WAS Monitor');
+                testTab.title = common.Util.TR('AI Monitor');
                 window.RTMShow = true;
             } else {
                 title = '';
@@ -732,7 +732,7 @@ Ext.define ('common.Util', {
             testTab = Ext.create(className, common.Menu.getClassConfig(className.substring(className.lastIndexOf('.') + 1)));
             if (window.loginMode === 'RTM') {
                 //실시간 화면에 WAS 모니터링 탭 이름 설정
-                testTab.title = common.Util.TR('WAS Monitor');
+                testTab.title = common.Util.TR('AI Monitor');
                 window.RTMShow = true;
             } else {
                 if (Comm.Lang === 'ko') {

@@ -83,10 +83,7 @@ Ext.define('config.config_ui', {
                 flex: 1,
                 items: [{
                     title: usefont(12, common.Util.TR('Menu')),
-                    layout: {
-                        type: 'accordion',
-                        hideCollapseTool: true
-                    },
+                    layout: 'accordion',
                     region: 'west',
                     floatable: false,
                     collapsible: true,
@@ -98,6 +95,30 @@ Ext.define('config.config_ui', {
                     items: [{
                         title: usefont(12, common.Util.TR('Configuration')),
                         id: 'cfg_menu_configuration'
+                    // }, {
+                    //     title: usefont(12, common.Util.TR('User Configuration')),
+                    //     id: 'cfg_menu_userconfiguration'
+                    // }, {
+                    //     title: usefont(12, common.Util.TR('Alert Configuration')),
+                    //     id: 'cfg_menu_alertconfiguration'
+                    // }, {
+                    //     title: usefont(12, common.Util.TR('Business Configuration')),
+                    //     id: 'cfg_menu_businessconfiguration'
+                    // }, {
+                    //     title: usefont(12, common.Util.TR('Repository Configuration')),
+                    //     id: 'cfg_menu_repositoryconfiguration'
+                    // }, {
+                    //     title: usefont(12, common.Util.TR('JSPD Property Configuration')),
+                    //     id: 'cfg_menu_propertyconfiguration'
+                    // }, {
+                    //     title: usefont(12, common.Util.TR('Sender History')),
+                    //     id: 'cfg_menu_senderHistory'
+                    // }, {
+                    //     title: usefont(12, common.Util.TR('ETE Configuration')),
+                    //     id: 'cfg_menu_eteconfiguration'
+                    // }, {
+                    //     title: usefont(12, common.Util.TR('AI Configuration')),
+                    //     id: 'cfg_menu_trainingAI'
                     }]
                 }, {
                     title: '',
@@ -113,8 +134,81 @@ Ext.define('config.config_ui', {
                 style: {
                     background: '#e7e7e7'
                 }
+            }, {
+                xtype: 'container',
+                width: '100%',
+                height: 30,
+                layout: { type: 'hbox', pack: 'start', align: 'middle' },
+                items: [{
+                    xtype: 'button',
+                    text: usefont(12, common.Util.TR('SMS Schedule Manager')),
+                    x: 523,
+                    y: 0,
+                    width: 150,
+                    height: 25,
+                    cls: 'x-btn-config-default',
+                    listeners: {
+                        click: function() {
+                            var smsschedule_form = Ext.create('config.config_alert_smsschedulemgr');
+                            smsschedule_form.init(null);
+                        }
+                    }
+                }, {
+                    xtype: 'panel',
+                    layout: { type: 'hbox', align: 'middle', pack: 'end' },
+                    margin: '0 0 0 0',
+                    padding: '0 0 0 0',
+                    border: false,
+                    height: 25,
+                    flex: 1,
+                    items: [{
+                        xtype: 'button',
+                        text: usefont(12, common.Util.TR('Realtime')),
+                        id: 'config_execute_rtm',
+                        width: 150,
+                        height: 25,
+                        cls: 'x-btn-config-special',
+                        margin: '0 2 0 0',
+                        padding: '0 0 0 0',
+                        listeners: {
+                            click: function() {
+                                sessionStorage.removeItem('Intermax_ServiceReconfigure');
+                                sessionStorage.removeItem('Intermax_SelectedServiceInfo');
+                                if (window.location !== window.parent.location) {
+                                    window.parent.location.href = 'http://' + location.host + '/'+location.pathname.split('/')[1];
+                                } else {
+                                    window.location.href = 'http://' + location.host + '/'+location.pathname.split('/')[1];
+                                }
+                            }
+                        }
+                    }, {
+                        xtype: 'button',
+                        text: usefont(12, common.Util.TR('Performance Analyzer')),
+                        id: 'config_execute_pa',
+                        width: 150,
+                        height: 25,
+                        cls: 'x-btn-config-special',
+                        margin: '0 0 0 2',
+                        padding: '0 0 0 0',
+                        listeners: {
+                            click: function() {
+                                if (window.location !== window.parent.location) {
+                                    window.parent.location.href = 'http://' + location.host + '/'+location.pathname.split('/')[1]+'/PA';
+                                } else {
+                                    window.location.href = 'http://' + location.host + '/'+location.pathname.split('/')[1]+'/PA';
+                                }
+                            }
+                        }
+                    }]
+                }]
             }]
         });
+
+        if(common.Menu.isBusinessPerspectiveMonitoring){
+            var displayText = common.Util.TR('Tier Settings');
+        } else {
+            displayText = common.Util.TR('Business Group Settings');
+        }
 
         this.treeConfigPanel = Ext.create('Ext.tree.Panel', {
             layout: 'fit',
@@ -125,12 +219,169 @@ Ext.define('config.config_ui', {
                 root: {
                     expanded: true,
                     children: [
+                        { text: common.Util.TR('Agent Settings')            , id: 'config_wasname'                , leaf: true },
+                        { text: common.Util.TR('Service Settings')          , id: 'config_service'                , leaf: true },
+                        { text: displayText                                 , id: 'config_businessgroup'          , leaf: true },
+                        { text: common.Util.TR('WebServer Settings')        , id: 'config_webserver_setting'      , leaf: true },
+                        { text: common.Util.TR('Common(Other) Settings')    , id: 'config_other_setting'          , leaf: true },
                         { text: common.Util.TR('System Settings')           , id: 'config_system_setting'         , leaf: true },
                         { text: common.Util.TR('Training Settings')         , id: 'config_training_setting'      , leaf: true },
                         { text: common.Util.TR('Business Calendar Settings'), id: 'config_bizcal_setting'         , leaf: true },
                         { text: common.Util.TR('Failure History Settings')  , id: 'config_failure_history_setting', leaf: true },
                         { text: common.Util.TR('Metric Settings')           , id: 'config_metric_setting'         , leaf: true }
                     ]
+                }
+            }),
+            rootVisible: false,
+            listeners: {
+                itemclick: function(s, r) {
+                    self.menuClick(s, r);
+                }
+            }
+        });
+
+        this.treeUserPanel = Ext.create('Ext.tree.Panel', {
+            layout: 'fit',
+            border: false,
+            width: 200,
+            height: '100%',
+            store: Ext.create('Ext.data.TreeStore', {
+                root: {
+                    expanded: true,
+                    children: []
+                }
+            }),
+            rootVisible: false,
+            listeners: {
+                itemclick: function(s, r) {
+                    self.menuClick(s, r);
+                }
+            }
+        });
+
+        this.treeAlertPanel = Ext.create('Ext.tree.Panel', {
+            layout: 'fit',
+            border: false,
+            width: 200,
+            height: '100%',
+            store: Ext.create('Ext.data.TreeStore', {
+                root: {
+                    expanded: true,
+                    children: []
+                }
+            }),
+            rootVisible: false,
+            listeners: {
+                itemclick: function(s, r) {
+                    self.menuClick(s, r);
+                }
+            }
+        });
+
+        this.treeBusinessPanel = Ext.create('Ext.tree.Panel', {
+            layout: 'fit',
+            border: false,
+            width: 200,
+            height: '100%',
+            store: Ext.create('Ext.data.TreeStore', {
+                root: {
+                    expanded: true,
+                    children: []
+                }
+            }),
+            rootVisible: false,
+            listeners: {
+                itemclick: function(s, r) {
+                    self.menuClick(s, r);
+                }
+            }
+        });
+
+        this.treeRepositoryPanel = Ext.create('Ext.tree.Panel', {
+            layout: 'fit',
+            border: false,
+            width: 200,
+            height: '100%',
+            store: Ext.create('Ext.data.TreeStore', {
+                root: {
+                    expanded: true,
+                    children: []
+                }
+            }),
+            rootVisible: false,
+            listeners: {
+                itemclick: function(s, r) {
+                    self.menuClick(s, r);
+                }
+            }
+        });
+
+        this.treePropertyPanel = Ext.create('Ext.tree.Panel', {
+            layout: 'fit',
+            border: false,
+            width: 200,
+            height: '100%',
+            store: Ext.create('Ext.data.TreeStore', {
+                root: {
+                    expanded: true,
+                    children: []
+                }
+            }),
+            rootVisible: false,
+            listeners: {
+                itemclick: function(s, r) {
+                    self.menuClick(s, r);
+                }
+            }
+        });
+
+        this.treeSenderHistoryPanel = Ext.create('Ext.tree.Panel', {
+            layout: 'fit',
+            border: false,
+            width: 200,
+            height: '100%',
+            store: Ext.create('Ext.data.TreeStore', {
+                root: {
+                    expanded: true,
+                    children: []
+                }
+            }),
+            rootVisible: false,
+            listeners: {
+                itemclick: function(s, r) {
+                    self.menuClick(s, r);
+                }
+            }
+        });
+
+        this.treeETEPanel = Ext.create('Ext.tree.Panel', {
+            layout: 'fit',
+            border: false,
+            width: 200,
+            height: '100%',
+            store: Ext.create('Ext.data.TreeStore', {
+                root: {
+                    expanded: true,
+                    children: []
+                }
+            }),
+            rootVisible: false,
+            listeners: {
+                itemclick: function(s, r) {
+                    self.menuClick(s, r);
+                }
+            }
+        });
+
+        this.treeAIPanel = Ext.create('Ext.tree.Panel', {
+            layout: 'fit',
+            border: false,
+            width: 200,
+            height: '100%',
+            store: Ext.create('Ext.data.TreeStore', {
+                root: {
+                    expanded: true,
+                    children: []
                 }
             }),
             rootVisible: false,
@@ -319,6 +570,14 @@ Ext.define('config.config_ui', {
         });
 
         Ext.getCmp('cfg_menu_configuration').add(this.treeConfigPanel);
+        // Ext.getCmp('cfg_menu_userconfiguration').add(this.treeUserPanel);
+        // Ext.getCmp('cfg_menu_alertconfiguration').add(this.treeAlertPanel);
+        // Ext.getCmp('cfg_menu_businessconfiguration').add(this.treeBusinessPanel);
+        // Ext.getCmp('cfg_menu_repositoryconfiguration').add(this.treeRepositoryPanel);
+        // Ext.getCmp('cfg_menu_propertyconfiguration').add(this.treePropertyPanel);
+        // Ext.getCmp('cfg_menu_senderHistory').add(this.treeSenderHistoryPanel);
+        // Ext.getCmp('cfg_menu_eteconfiguration').add(this.treeETEPanel);
+        // Ext.getCmp('cfg_menu_trainingAI').add(this.treeAIPanel);
         Ext.getCmp('cfg_tab_body').add(tabPanel);
 
         // // DB연결이 있어야지 DB설정이 보이도록 변경
@@ -332,6 +591,60 @@ Ext.define('config.config_ui', {
             this.treeConfigPanel.store.filterBy(function(record) {
                 return common.Menu.hiddenList.indexOf(record.data.id) === -1;
             });
+
+            // this.treeUserPanel.store.filterBy(function(record) {
+            //     return common.Menu.hiddenList.indexOf(record.data.id) === -1;
+            // });
+            //
+            // this.treeAlertPanel.store.filterBy(function(record) {
+            //     return common.Menu.hiddenList.indexOf(record.data.id) === -1;
+            // });
+            //
+            // this.treeBusinessPanel.store.filterBy(function(record) {
+            //     return common.Menu.hiddenList.indexOf(record.data.id) === -1;
+            // });
+            //
+            // this.treeRepositoryPanel.store.filterBy(function(record) {
+            //     return common.Menu.hiddenList.indexOf(record.data.id) === -1;
+            // });
+            //
+            // this.treePropertyPanel.store.filterBy(function(record) {
+            //     return common.Menu.hiddenList.indexOf(record.data.id) === -1;
+            // });
+            //
+            // this.treeSenderHistoryPanel.store.filterBy(function(record) {
+            //     return common.Menu.hiddenList.indexOf(record.data.id) === -1;
+            // });
+            //
+            // this.treeETEPanel.store.filterBy(function(record) {
+            //     return common.Menu.hiddenList.indexOf(record.data.id) === -1;
+            // });
+            //
+            // // 메뉴안에 있는 트리가 1개만 있는것만 추가.
+            // if(common.Menu.hiddenList.indexOf('cfg_menu_repositoryconfiguration') !== -1){
+            //     var menu = Ext.getCmp('cfg_menu_repositoryconfiguration');
+            //     menu.setHidden(true);
+            // }
+            //
+            // if(common.Menu.hiddenList.indexOf('cfg_menu_propertyconfiguration') !== -1){
+            //     menu = Ext.getCmp('cfg_menu_propertyconfiguration');
+            //     menu.setHidden(true);
+            // }
+            //
+            // if(common.Menu.hiddenList.indexOf('cfg_menu_senderHistory') !== -1){
+            //     menu = Ext.getCmp('cfg_menu_senderHistory');
+            //     menu.setHidden(true);
+            // }
+            //
+            // if(common.Menu.hiddenList.indexOf('cfg_menu_eteconfiguration') !== -1){
+            //     menu = Ext.getCmp('cfg_menu_eteconfiguration');
+            //     menu.setHidden(true);
+            // }
+            //
+            // if(common.Menu.hiddenList.indexOf('cfg_menu_trainingAI') !== -1){
+            //     menu = Ext.getCmp('cfg_menu_trainingAI');
+            //     menu.setHidden(true);
+            // }
         }
         this.add(this.area);
         this.area.setVisible(false);
